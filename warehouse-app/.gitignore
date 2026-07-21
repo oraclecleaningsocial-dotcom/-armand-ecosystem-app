@@ -1,0 +1,20 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# Scaffold nativi generati da `flutter create .` (non versionati qui:
+# ognuno li rigenera in locale con la propria toolchain)
+android/
+ios/
+macos/
+linux/
+windows/
+web/
+
+# IDE
+.idea/
+.vscode/
