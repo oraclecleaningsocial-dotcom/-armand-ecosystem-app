@@ -211,7 +211,10 @@ flutter run
 - **State management**: `provider` (ChangeNotifier) — sufficiente per un'app
   a singolo utente senza esigenze di stato complesse; evita di introdurre
   Riverpod/Bloc quando non serve.
-- Il codice in questo repo non è stato compilato in questo ambiente (non è
-  disponibile una Flutter SDK nella sandbox in cui è stato scritto): prima
-  del primo `flutter run` lanciare `flutter pub get` e correggere eventuali
-  scostamenti di versione dei pacchetti elencati in `pubspec.yaml`.
+- Il codice Dart (`lib/`) è stato validato con `flutter analyze` su Flutter
+  3.44.7 stable (0 errori, 0 warning): staticamente corretto e coerente con
+  le API attuali del framework. Non è stata eseguita una build APK/IPA
+  completa (richiederebbe Android SDK/Xcode, non disponibili nell'ambiente
+  in cui è stato scritto questo codice) né un avvio su emulatore/dispositivo
+  reale: prima del primo `flutter run` va comunque fatto un giro di prova
+  manuale delle funzionalità (scansione, notifiche, permessi).
