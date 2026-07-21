@@ -180,12 +180,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int?>(
-                value: _categoryId,
+                initialValue: _categoryId,
                 decoration: const InputDecoration(labelText: 'Categoria'),
                 items: [
                   const DropdownMenuItem<int?>(value: null, child: Text('Nessuna categoria')),
                   ...provider.categoryList.map(
-                    (Category c) => DropdownMenuItem<int?>(value: c.id, child: Text(c.name)),
+                    (ProductCategory c) => DropdownMenuItem<int?>(value: c.id, child: Text(c.name)),
                   ),
                 ],
                 onChanged: (value) => setState(() => _categoryId = value),

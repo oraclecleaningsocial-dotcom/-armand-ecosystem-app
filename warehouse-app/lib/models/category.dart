@@ -1,11 +1,13 @@
-class Category {
+/// Chiamata `ProductCategory` (non `Category`) perché quel nome collide con
+/// l'annotazione `Category` esportata da `package:flutter/foundation.dart`.
+class ProductCategory {
   final int? id;
   final String name;
 
-  const Category({this.id, required this.name});
+  const ProductCategory({this.id, required this.name});
 
-  factory Category.fromMap(Map<String, Object?> map) {
-    return Category(
+  factory ProductCategory.fromMap(Map<String, Object?> map) {
+    return ProductCategory(
       id: map['id'] as int?,
       name: map['name'] as String,
     );

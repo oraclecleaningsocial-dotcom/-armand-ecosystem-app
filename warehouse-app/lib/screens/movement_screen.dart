@@ -184,7 +184,7 @@ class _TypeButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.15) : Theme.of(context).cardColor,
+          color: selected ? color.withValues(alpha: 0.15) : Theme.of(context).cardColor,
           border: Border.all(color: selected ? color : Colors.grey.shade300, width: 2),
           borderRadius: BorderRadius.circular(14),
         ),

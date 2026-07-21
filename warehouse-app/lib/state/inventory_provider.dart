@@ -40,8 +40,8 @@ class InventoryProvider extends ChangeNotifier {
   List<Product> _lowStockList = [];
   List<Product> get lowStockList => _lowStockList;
 
-  List<Category> _categoryList = [];
-  List<Category> get categoryList => _categoryList;
+  List<ProductCategory> _categoryList = [];
+  List<ProductCategory> get categoryList => _categoryList;
 
   List<Movement> _recentMovements = [];
   List<Movement> get recentMovements => _recentMovements;
@@ -73,7 +73,7 @@ class InventoryProvider extends ChangeNotifier {
     return _products.findByBarcode(barcode);
   }
 
-  Future<Category> getOrCreateCategory(String name) {
+  Future<ProductCategory> getOrCreateCategory(String name) {
     return _categories.getOrCreate(name);
   }
 

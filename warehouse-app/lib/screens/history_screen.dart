@@ -33,7 +33,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Column(
           children: [
             DropdownButtonFormField<int?>(
-              value: _selectedProductId,
+              initialValue: _selectedProductId,
               decoration: const InputDecoration(labelText: 'Filtra per prodotto'),
               items: [
                 const DropdownMenuItem<int?>(value: null, child: Text('Tutti i prodotti')),
@@ -77,7 +77,7 @@ class _MovementRow extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.15),
+          backgroundColor: color.withValues(alpha: 0.15),
           child: Icon(isIn ? Icons.arrow_downward : Icons.arrow_upward, color: color),
         ),
         title: Text(movement.productName ?? 'Prodotto'),

@@ -26,14 +26,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _openActions(Product product) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Wrap(
           children: [
             ListTile(
               leading: const Icon(Icons.swap_vert),
               title: const Text('Registra movimento'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => MovementScreen(product: product)),
                 );
@@ -43,7 +43,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               leading: const Icon(Icons.edit_outlined),
               title: const Text('Modifica anagrafica'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(sheetContext);
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => ProductFormScreen(product: product)),
                 );
@@ -52,28 +52,34 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
               title: const Text('Elimina prodotto', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                Navigator.pop(context);
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Eliminare il prodotto?'),
-                    content: Text('Verrà eliminato anche lo storico movimenti di "${product.name}".'),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annulla')),
-                      TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Elimina')),
-                    ],
-                  ),
-                );
-                if (confirmed == true && mounted) {
-                  await context.read<InventoryProvider>().deleteProduct(product);
-                }
+              onTap: () {
+                Navigator.pop(sheetContext);
+                _confirmAndDelete(product);
               },
             ),
           ],
         ),
       ),
     );
+  }
+
+  // Usa `context` dello State (stabile finché la schermata è aperta) invece
+  // del context del bottom sheet, già chiuso da Navigator.pop sopra.
+  Future<void> _confirmAndDelete(Product product) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminare il prodotto?'),
+        content: Text('Verrà eliminato anche lo storico movimenti di "${product.name}".'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Annulla')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Elimina')),
+        ],
+      ),
+    );
+
+    if (!mounted || confirmed != true) return;
+    await context.read<InventoryProvider>().deleteProduct(product);
   }
 
   @override

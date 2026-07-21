@@ -6,15 +6,15 @@ import '../models/category.dart';
 class CategoryRepository {
   Future<Database> get _db async => AppDatabase.instance.database;
 
-  Future<List<Category>> getAll() async {
+  Future<List<ProductCategory>> getAll() async {
     final db = await _db;
     final rows = await db.query('categories', orderBy: 'name ASC');
-    return rows.map(Category.fromMap).toList();
+    return rows.map(ProductCategory.fromMap).toList();
   }
 
   /// Crea la categoria se non esiste già (per nome, case-insensitive) e
   /// restituisce sempre l'istanza persistita.
-  Future<Category> getOrCreate(String name) async {
+  Future<ProductCategory> getOrCreate(String name) async {
     final db = await _db;
     final trimmed = name.trim();
 
@@ -25,10 +25,10 @@ class CategoryRepository {
       limit: 1,
     );
     if (existing.isNotEmpty) {
-      return Category.fromMap(existing.first);
+      return ProductCategory.fromMap(existing.first);
     }
 
     final id = await db.insert('categories', {'name': trimmed});
-    return Category(id: id, name: trimmed);
+    return ProductCategory(id: id, name: trimmed);
   }
 }
