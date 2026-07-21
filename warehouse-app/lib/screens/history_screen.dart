@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../models/movement.dart';
+import '../services/export_service.dart';
 import '../state/inventory_provider.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   int? _selectedProductId;
+  final _exportService = ExportService();
 
   @override
   void dispose() {
@@ -22,12 +24,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.dispose();
   }
 
+  Future<void> _confirmUndo(Movement movement) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Annullare questo movimento?'),
+        content: Text(
+          'La giacenza di "${movement.productName}" tornerà come prima di questo movimento.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('No')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Annulla movimento')),
+        ],
+      ),
+    );
+
+    if (!mounted || confirmed != true) return;
+    await context.read<InventoryProvider>().undoMovement(movement);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<InventoryProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Storico movimenti')),
+      appBar: AppBar(
+        title: const Text('Storico movimenti'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.ios_share),
+            tooltip: 'Esporta CSV',
+            onPressed: provider.recentMovements.isEmpty
+                ? null
+                : () => _exportService.shareMovements(provider.recentMovements),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -53,8 +85,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   : ListView.separated(
                       itemCount: provider.recentMovements.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 4),
-                      itemBuilder: (context, index) =>
-                          _MovementRow(movement: provider.recentMovements[index]),
+                      itemBuilder: (context, index) => _MovementRow(
+                        movement: provider.recentMovements[index],
+                        onUndo: () => _confirmUndo(provider.recentMovements[index]),
+                      ),
                     ),
             ),
           ],
@@ -66,8 +100,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
 class _MovementRow extends StatelessWidget {
   final Movement movement;
+  final VoidCallback onUndo;
 
-  const _MovementRow({required this.movement});
+  const _MovementRow({required this.movement, required this.onUndo});
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +121,19 @@ class _MovementRow extends StatelessWidget {
               (movement.note != null ? '\n${movement.note}' : ''),
         ),
         isThreeLine: movement.note != null,
-        trailing: Text(
-          '${isIn ? '+' : '-'}${movement.quantity}',
-          style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${isIn ? '+' : '-'}${movement.quantity}',
+              style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            IconButton(
+              icon: const Icon(Icons.undo, size: 20),
+              tooltip: 'Annulla movimento',
+              onPressed: onUndo,
+            ),
+          ],
         ),
       ),
     );

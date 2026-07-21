@@ -100,4 +100,52 @@ class MovementRepository {
       );
     });
   }
+
+  /// Annulla un movimento registrato per errore: ne inverte l'effetto sulla
+  /// giacenza e lo elimina dallo storico, in un'unica transazione.
+  ///
+  /// Non invia una notifica di scorta bassa: l'annullo è una correzione,
+  /// non un nuovo evento di calo scorte. Il flag `low_stock_notified` viene
+  /// comunque riallineato alla giacenza risultante, così un vero calo
+  /// futuro potrà generare un nuovo avviso.
+  Future<Product> undo(Movement movement) async {
+    final db = await _db;
+
+    return db.transaction<Product>((txn) async {
+      final rows = await txn.query(
+        'products',
+        where: 'id = ?',
+        whereArgs: [movement.productId],
+        limit: 1,
+      );
+      final current = Product.fromMap(rows.first);
+
+      final rawReversedQuantity = movement.type == MovementType.inbound
+          ? current.quantity - movement.quantity
+          : current.quantity + movement.quantity;
+      final newQuantity = rawReversedQuantity < 0 ? 0 : rawReversedQuantity;
+
+      final isBelowThreshold = newQuantity <= current.minThreshold;
+      final now = DateTime.now();
+
+      await txn.update(
+        'products',
+        {
+          'quantity': newQuantity,
+          'low_stock_notified': isBelowThreshold ? 1 : 0,
+          'updated_at': now.toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [movement.productId],
+      );
+
+      await txn.delete('movements', where: 'id = ?', whereArgs: [movement.id]);
+
+      return current.copyWith(
+        quantity: newQuantity,
+        lowStockNotified: isBelowThreshold,
+        updatedAt: now,
+      );
+    });
+  }
 }

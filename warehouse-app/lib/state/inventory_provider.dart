@@ -164,4 +164,29 @@ class InventoryProvider extends ChangeNotifier {
     await refreshProducts();
     await refreshHistory();
   }
+
+  /// Annulla un movimento registrato per errore, riportando la giacenza a
+  /// come era prima. Non genera una nuova notifica di scorta bassa.
+  Future<void> undoMovement(Movement movement) async {
+    await _movements.undo(movement);
+    await refreshProducts();
+    await refreshHistory();
+  }
+
+  /// Rettifica la giacenza al valore contato fisicamente durante un
+  /// inventario, generando automaticamente il movimento IN/OUT necessario
+  /// a colmare la differenza. Se il conteggio coincide con la giacenza
+  /// registrata non fa nulla.
+  Future<void> adjustStock(Product product, int countedQuantity) async {
+    final current = await _products.getById(product.id!) ?? product;
+    final diff = countedQuantity - current.quantity;
+    if (diff == 0) return;
+
+    await registerMovement(
+      product: current,
+      type: diff > 0 ? MovementType.inbound : MovementType.outbound,
+      quantity: diff.abs(),
+      note: 'Rettifica inventario',
+    );
+  }
 }

@@ -58,12 +58,18 @@ aggancia come modulo di export/backup opzionale.
 - Notifica locale quando la giacenza scende sotto soglia
 - Tutto offline, storage locale SQLite + filesystem per le foto
 
-### Fase 2 — Miglioramenti (prossimo step, non incluso ora)
-- Export CSV/PDF dello storico e dell'inventario (per commercialista, backup)
-- Ricerca/scanner "multi-scan" per inventario rapido (conta fisica)
-- Modifica/annullo di un movimento registrato per errore
-- Categorie con icone/colori personalizzati
-- Backup manuale su file (per trasferimento manuale, non richiede rete)
+### Fase 2 — Miglioramenti (parzialmente incluso in questo repository)
+- ✅ Export CSV dello storico e dell'inventario, condiviso via il pannello di
+  condivisione nativo (email, cloud, chiavetta...) — vedi `ExportService`
+- ✅ Annullo di un movimento registrato per errore, con ripristino della
+  giacenza precedente — azione disponibile nello Storico
+- ✅ Rettifica giacenza dopo una conta fisica: si inserisce la quantità
+  effettivamente contata e l'app genera in automatico il movimento IN/OUT
+  necessario a colmare la differenza — azione disponibile nell'Elenco prodotti
+- Categorie con icone/colori personalizzati (non incluso)
+- Scanner "multi-scan" continuo per velocizzare la conta fisica di più
+  articoli in sequenza, senza uscire dalla fotocamera (non incluso: la
+  rettifica giacenza copre già il caso d'uso, ma articolo per articolo)
 
 ### Fase 3 — Opzionale, solo se servisse multi-dispositivo o cloud backup
 - Un backend leggero (es. Supabase/Postgres) con tabella `sync_outbox` per le
@@ -131,7 +137,8 @@ warehouse-app/
 │   │   └── movement_repository.dart
 │   ├── services/
 │   │   ├── notification_service.dart   # notifiche locali scorte basse
-│   │   └── photo_storage_service.dart  # salvataggio foto in locale
+│   │   ├── photo_storage_service.dart  # salvataggio foto in locale
+│   │   └── export_service.dart         # export CSV inventario/storico + condivisione
 │   ├── state/
 │   │   └── inventory_provider.dart     # ChangeNotifier: orchestrazione UI <-> repository
 │   ├── screens/
@@ -139,8 +146,8 @@ warehouse-app/
 │   │   ├── scan_screen.dart            # fotocamera, lettura barcode/QR
 │   │   ├── movement_screen.dart        # registra IN/OUT per il prodotto scansionato
 │   │   ├── product_form_screen.dart    # crea/modifica anagrafica prodotto
-│   │   ├── product_list_screen.dart    # elenco/ricerca prodotti
-│   │   └── history_screen.dart         # storico movimenti
+│   │   ├── product_list_screen.dart    # elenco/ricerca, export, rettifica giacenza
+│   │   └── history_screen.dart         # storico movimenti, export, annullo movimento
 │   └── widgets/
 │       ├── product_card.dart
 │       └── stock_badge.dart
@@ -161,9 +168,10 @@ warehouse-app/
 4. **Anagrafica prodotto**: nome, categoria (con creazione rapida nuova
    categoria), foto (scatta o scegli da galleria), soglia minima scorta.
 5. **Elenco prodotti**: ricerca per nome/barcode, badge colorato per
-   evidenziare scorte basse.
+   evidenziare scorte basse, export CSV dell'inventario, rettifica giacenza
+   dopo una conta fisica.
 6. **Storico**: lista movimenti ordinata per data/ora, filtrabile per
-   prodotto.
+   prodotto, export CSV, annullo di un movimento inserito per errore.
 
 ## 6. Setup ambiente di sviluppo
 

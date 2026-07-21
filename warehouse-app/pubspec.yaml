@@ -33,6 +33,10 @@ dependencies:
   # Formattazione date/ore in italiano
   intl: ^0.19.0
 
+  # Condivisione file di export (CSV) tramite il pannello di condivisione
+  # nativo del sistema operativo: nessuna rete richiesta dalla chiamata in sé
+  share_plus: ^13.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
