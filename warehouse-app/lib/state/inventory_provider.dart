@@ -47,7 +47,15 @@ class InventoryProvider extends ChangeNotifier {
   List<Movement> get recentMovements => _recentMovements;
 
   Future<void> init() async {
-    await _notifications.init();
+    // Le notifiche sono un extra: se l'inizializzazione fallisse per un
+    // qualsiasi motivo (permesso negato, servizio di sistema assente...),
+    // l'app deve comunque aprirsi e restare utilizzabile offline.
+    try {
+      await _notifications.init();
+    } catch (error) {
+      debugPrint('Notifiche non disponibili: $error');
+    }
+
     await Future.wait([refreshProducts(), refreshCategories(), refreshHistory()]);
     _isLoading = false;
     notifyListeners();
@@ -158,7 +166,15 @@ class InventoryProvider extends ChangeNotifier {
     );
 
     if (result.shouldNotifyLowStock) {
-      await _notifications.notifyLowStock(result.updatedProduct);
+      // Il movimento è già scritto in transazione: un fallimento della
+      // notifica (permesso negato, servizio di sistema non disponibile...)
+      // non deve mai bloccare il resto del flusso né restare silente per
+      // l'utente in un secondo momento.
+      try {
+        await _notifications.notifyLowStock(result.updatedProduct);
+      } catch (error) {
+        debugPrint('Notifica scorta bassa non inviata: $error');
+      }
     }
 
     await refreshProducts();
