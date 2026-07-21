@@ -1,12 +1,13 @@
 # Magazzino Offline — App mobile scansione barcode/QR
 
-App mobile (iOS + Android) per la gestione della logistica di magazzino di una
-piccola attività: scansione articoli tramite fotocamera, registrazione
-automatica di entrate/uscite, anagrafica prodotti con foto, storico
-movimenti e alert di scorta minima. **Funziona interamente offline.**
+App mobile (iOS + Android) per la gestione personale di un magazzino/deposito
+(cantina, garage, dispensa, piccola scorta domestica...): scansione articoli
+tramite fotocamera, registrazione automatica di entrate/uscite, anagrafica
+prodotti con foto, storico movimenti e alert di scorta minima. **Funziona
+interamente offline.**
 
-Progettata per un solo utente (titolare/gestore), senza login, ruoli o
-permessi: si apre l'app e si lavora.
+Progettata per un solo utente, senza login, ruoli o permessi: si apre l'app
+e si lavora.
 
 ---
 
