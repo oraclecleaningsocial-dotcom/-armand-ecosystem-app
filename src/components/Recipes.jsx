@@ -25,14 +25,12 @@ export function Recipes({ state, actions }) {
             Aggiungi
           </button>
         </div>
-        <small>Potrai modificare ingredienti nel codice o estendere il form.</small>
       </Card>
       <div className="grid2">
         {state.recipes.map(r => (
           <Card key={r.id}>
             <h3>{r.name}</h3>
             <p>{r.mealType} · {r.prepTime} min</p>
-            <small>Fonte input: archivio ricette locale</small>
             <ul>
               {r.ingredients.map(i => (
                 <li key={i.name}>{i.quantity} {i.unit} {i.name} — {i.category}</li>

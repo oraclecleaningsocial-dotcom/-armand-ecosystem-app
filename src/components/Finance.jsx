@@ -46,7 +46,6 @@ export function Finance({ state, actions }) {
             Salva
           </button>
         </div>
-        <small>Fonte input: entrate, uscite, budget, obiettivo risparmio e spesa reale acquistata.</small>
       </Card>
       <div className="grid3">
         <Card>

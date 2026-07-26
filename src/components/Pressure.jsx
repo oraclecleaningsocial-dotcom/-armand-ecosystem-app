@@ -21,7 +21,6 @@ export function Pressure({ state, actions }) {
         <Card key={x.id}>
           <h3>{x.systolic}/{x.diastolic}</h3>
           <p>{x.heartRate || '-'} bpm · {x.date} {x.time}</p>
-          <small>Fonte input: inserimento manuale pressione</small>
         </Card>
       ))}
     </>

@@ -8,7 +8,6 @@ export function Suggestions({ state }) {
         <Card key={i}>
           <h3>{s.action}</h3>
           <p>{s.message}</p>
-          <small>Fonte input: Intelligence layer dell’ecosistema</small>
         </Card>
       ))}
     </>

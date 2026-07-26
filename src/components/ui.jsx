@@ -52,7 +52,6 @@ export function Widget({ w, onGo }) {
         <h3>{w.title}</h3>
         <strong>{w.mainValue}</strong>
         <p>{w.description}</p>
-        <small>Fonte input: {w.dataSource}</small>
       </div>
       <span className="cta">
         {w.actionButton}

@@ -6,7 +6,6 @@ export function Medications({ state, actions }) {
       title="Farmaci"
       items={state.health.medications}
       add={actions.addMedication}
-      source="farmaci inseriti e promemoria salute"
     />
   );
 }

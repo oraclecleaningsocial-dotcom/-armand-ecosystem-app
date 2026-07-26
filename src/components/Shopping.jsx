@@ -9,7 +9,7 @@ export function Shopping({ state, actions }) {
     <>
       <SectionTitle
         title="Lista della spesa"
-        subtitle={`Stimato ${euro(state.shoppingSummary?.estimatedTotal)} · Reale ${euro(state.shoppingSummary?.realTotal)} · Fonte: ricette di oggi + prodotti manuali`}
+        subtitle={`Stimato ${euro(state.shoppingSummary?.estimatedTotal)} · Reale ${euro(state.shoppingSummary?.realTotal)}`}
       />
       <Card>
         <h3>Aggiungi prodotto manuale</h3>
@@ -41,7 +41,7 @@ export function Shopping({ state, actions }) {
               <input type="checkbox" checked={i.purchased} onChange={() => actions.togglePurchasedItem(i.id)} />
               <div>
                 <b className={i.purchased ? 'done' : ''}>{i.name}</b>
-                <small>{i.quantity} {i.unit} · Fonte: {i.source}</small>
+                <small>{i.quantity} {i.unit}</small>
                 <small>
                   Prezzo stimato <input type="number" value={i.estimatedPrice ?? ''} onChange={e => actions.updateEstimatedPrice(i.id, e.target.value)} />
                   {' '}Reale <input type="number" value={i.realPrice ?? ''} onChange={e => actions.updateRealPrice(i.id, e.target.value)} />

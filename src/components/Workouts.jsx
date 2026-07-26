@@ -37,7 +37,6 @@ function WorkoutCard({ workout, actions }) {
     <Card>
       <h3>{workout.name}</h3>
       <p>{workout.date} {workout.time} · {workout.duration} min · {workout.muscleGroup} · Stato: {workout.status}</p>
-      <small>Fonte input: lista allenamenti ed esercizi modificabili</small>
       {workout.exercises.map(ex => (
         <div className="item" key={ex.id}>
           <input type="checkbox" checked={ex.completed} onChange={() => actions.editExercise(workout.id, ex.id, { completed: !ex.completed })} />

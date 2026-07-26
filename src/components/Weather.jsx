@@ -14,7 +14,6 @@ export function Weather({ state, actions }) {
           <h2>{state.weather.temperature}°C</h2>
           <p>{state.weather.condition} · {state.weather.city}</p>
         </div>
-        <small>Fonte input: Servizio meteo / posizione utente. Ora dati mock pronti per API meteo.</small>
       </Card>
       <Card>
         <div className="formGrid">

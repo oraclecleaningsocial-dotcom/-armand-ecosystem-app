@@ -24,7 +24,6 @@ export function Meals({ state, actions }) {
                 <>
                   <h2>{recipe.name}</h2>
                   <p><Timer size={15} /> {recipe.prepTime} minuti</p>
-                  <small>Fonte input: Ricette assegnate al piano alimentare giornaliero</small>
                   <ul>
                     {recipe.ingredients.map(i => (
                       <li key={i.name}>{i.quantity} {i.unit} {i.name}</li>

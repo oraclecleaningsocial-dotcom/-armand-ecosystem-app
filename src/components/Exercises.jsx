@@ -9,7 +9,6 @@ export function Exercises({ state }) {
           <Card key={w.id + e.id}>
             <h3>{e.name}</h3>
             <p>{w.name}: {e.sets} serie · {e.reps} rip · {e.weight} kg · recupero {e.restSeconds}s</p>
-            <small>Fonte input: allenamenti programmati</small>
           </Card>
         ))
       )}

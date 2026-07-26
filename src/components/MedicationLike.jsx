@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, SectionTitle } from './ui.jsx';
 
-export function MedicationLike({ title, items, add, source }) {
+export function MedicationLike({ title, items, add }) {
   const [m, setM] = useState({ name: '', dosage: '', frequency: 'giornaliera', time: '09:00', reminderEnabled: true });
   return (
     <>
@@ -26,7 +26,6 @@ export function MedicationLike({ title, items, add, source }) {
         <Card key={x.id}>
           <h3>{x.name}</h3>
           <p>{x.dosage} · {x.frequency} · {x.time}</p>
-          <small>Fonte input: {source}</small>
         </Card>
       ))}
     </>

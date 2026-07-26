@@ -31,7 +31,7 @@ export function Notes({ state, actions }) {
         <Card key={note.id}>
           <h3>{note.pinned ? '📌 ' : ''}{note.title}</h3>
           <p>{note.text}</p>
-          <small>{note.category} · Fonte input: Note personali</small>
+          <small>{note.category}</small>
           <div className="row">
             <button onClick={() => actions.pinNote(note.id)}>Fissa</button>
             <button className="ghost" onClick={() => actions.deleteNote(note.id)}>Elimina</button>

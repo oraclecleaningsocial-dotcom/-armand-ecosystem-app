@@ -19,7 +19,6 @@ export function Temperature({ state, actions }) {
         <Card key={x.id}>
           <h3>{x.value} °C</h3>
           <p>{x.date} {x.time} · {x.note}</p>
-          <small>Fonte input: inserimento manuale temperatura</small>
         </Card>
       ))}
     </>

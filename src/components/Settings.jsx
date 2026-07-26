@@ -7,7 +7,6 @@ export function SettingsPage({ state, actions }) {
       <Card>
         <h3>Privacy</h3>
         <p>I dati sono salvati nel browser tramite localStorage. Apple Health richiede consenso esplicito e qui è predisposto in mock.</p>
-        <small>Fonte input: configurazione app e preferenze utente</small>
       </Card>
       <Card>
         <h3>Apple Health</h3>

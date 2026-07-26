@@ -33,7 +33,7 @@ export function Notifications({ state, actions }) {
         <Card key={x.id}>
           <h3>{x.title}</h3>
           <p>{x.message}</p>
-          <small>{x.category} · {x.date} {x.time} · Stato: {x.status} · Fonte input: scadenze, farmaci, finanza, allenamenti</small>
+          <small>{x.category} · {x.date} {x.time} · Stato: {x.status}</small>
           <button onClick={() => actions.completeNotification(x.id)}>Completa</button>
         </Card>
       ))}
