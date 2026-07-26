@@ -9,6 +9,11 @@ export function SettingsPage({ state, actions }) {
         <p>I dati sono salvati nel browser tramite localStorage. Apple Health richiede consenso esplicito e qui è predisposto in mock.</p>
       </Card>
       <Card>
+        <h3>Calendario</h3>
+        <p>Esporta allenamenti, farmaci, integratori e promemoria come file .ics da aggiungere al Calendario del telefono. Da ripetere ogni volta che aggiungi nuovi eventi.</p>
+        <button onClick={actions.exportCalendar}>Esporta calendario (.ics)</button>
+      </Card>
+      <Card>
         <h3>Apple Health</h3>
         <p>Stato: {state.appleHealth.connected ? 'collegato' : 'non collegato'}</p>
         <button onClick={state.appleHealth.connected ? actions.disconnectHealth : actions.connectHealth}>

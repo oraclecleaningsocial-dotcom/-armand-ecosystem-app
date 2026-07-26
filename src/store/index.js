@@ -9,3 +9,4 @@ export * from './weather.js';
 export * from './notifications.js';
 export * from './appleHealth.js';
 export * from './dashboard.js';
+export * from './calendar.js';

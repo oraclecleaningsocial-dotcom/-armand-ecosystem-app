@@ -6,7 +6,7 @@ import {
   addManualShoppingItem, addMedication, addNote, addNotification, addOrUpdateBudget,
   addRecipe, addSupplement, addWorkout, appState, assignRecipeToMeal, completeWorkout,
   connectAppleHealth, deleteNote, deleteShoppingItem, disconnectAppleHealth, editExercise,
-  loadState, markNotificationCompleted, pinNote, resetState, saveState,
+  exportCalendarICS, loadState, markNotificationCompleted, pinNote, resetState, saveState,
   togglePurchasedItem, updateEstimatedPrice, updateRealPrice, updateWeather
 } from './store/index.js';
 import { BottomNav, QuickMenu, TopBar } from './components/Navigation.jsx';
@@ -99,7 +99,18 @@ export function App() {
     connectHealth: () => { connectAppleHealth(); refresh(); },
     disconnectHealth: () => { disconnectAppleHealth(); refresh(); },
     updateWeather: w => { updateWeather(w); refresh(); },
-    reset: () => { resetState(); refresh(); }
+    reset: () => { resetState(); refresh(); },
+    exportCalendar: () => {
+      const result = exportCalendarICS();
+      if (!result.success) {
+        window.alert(result.errors[0]);
+        return;
+      }
+      const blob = new Blob([result.ics], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
   };
   return (
     <div className="app">

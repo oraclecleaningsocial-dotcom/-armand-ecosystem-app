@@ -9,6 +9,11 @@ export function Notifications({ state, actions }) {
     <>
       <SectionTitle title="Notifiche e promemoria" />
       <Card>
+        <h3>Calendario</h3>
+        <p>Esporta questi promemoria (più allenamenti, farmaci e integratori) come file .ics per il Calendario del telefono.</p>
+        <button onClick={actions.exportCalendar}>Esporta calendario (.ics)</button>
+      </Card>
+      <Card>
         <div className="formGrid">
           <input placeholder="Titolo" value={n.title} onChange={e => setN({ ...n, title: e.target.value })} />
           <input placeholder="Messaggio" value={n.message} onChange={e => setN({ ...n, message: e.target.value })} />
