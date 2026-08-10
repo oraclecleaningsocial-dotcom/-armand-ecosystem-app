@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import ReceiptRow from '../components/ReceiptRow'
+import ReceiptCalendar from '../components/ReceiptCalendar'
 import { CATEGORIES } from '../categories'
 import { normalizeMerchant } from '../categories'
 
 export default function Search({ receipts, onOpen }) {
   const [query, setQuery] = useState('')
   const [activeCats, setActiveCats] = useState(new Set())
+  const [view, setView] = useState('list') // list | calendar
 
   const results = useMemo(() => {
     const q = normalizeMerchant(query)
@@ -55,11 +57,21 @@ export default function Search({ receipts, onOpen }) {
         ))}
       </div>
 
-      <div className="pad">
-        <p className="sect-label">{results.length} {results.length === 1 ? 'ricevuta' : 'ricevute'}</p>
+      <div className="pad view-row">
+        <p className="sect-label" style={{ margin: 0 }}>{results.length} {results.length === 1 ? 'ricevuta' : 'ricevute'}</p>
+        <div className="view-toggle">
+          <button className={view === 'list' ? 'is-active' : ''} onClick={() => setView('list')} aria-label="Vista elenco">
+            <Icon name="List" size={15} />
+          </button>
+          <button className={view === 'calendar' ? 'is-active' : ''} onClick={() => setView('calendar')} aria-label="Vista calendario">
+            <Icon name="Calendar" size={15} />
+          </button>
+        </div>
       </div>
 
-      {results.length === 0 ? (
+      {view === 'calendar' ? (
+        <ReceiptCalendar receipts={results} onOpen={onOpen} />
+      ) : results.length === 0 ? (
         <p className="empty">Nessuna ricevuta trovata.</p>
       ) : (
         <div className="list">
