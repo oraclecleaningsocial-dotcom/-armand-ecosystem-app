@@ -99,7 +99,21 @@ export function useReceipts() {
 
   const categorize = useCallback((merchantName) => guessCategory(merchantName, state.merchantCategoryMap), [state.merchantCategoryMap])
 
-  return { receipts: state.receipts, addReceipt, updateReceipt, deleteReceipt, categorize }
+  // Sostituisce tutti i dati (usato dal ripristino di un backup). Distruttivo per design:
+  // chi chiama questa funzione deve aver già chiesto conferma all'utente.
+  const replaceAll = useCallback((receipts, merchantCategoryMap) => {
+    setState({ receipts, merchantCategoryMap: merchantCategoryMap || {} })
+  }, [])
+
+  return {
+    receipts: state.receipts,
+    merchantCategoryMap: state.merchantCategoryMap,
+    addReceipt,
+    updateReceipt,
+    deleteReceipt,
+    categorize,
+    replaceAll,
+  }
 }
 
 export function totalsByPeriod(receipts, { year, month }) {

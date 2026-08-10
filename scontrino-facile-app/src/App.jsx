@@ -8,7 +8,7 @@ import Scan from './screens/Scan'
 import { useReceipts } from './state'
 
 export default function App() {
-  const { receipts, addReceipt, updateReceipt, deleteReceipt, categorize } = useReceipts()
+  const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
   const [tab, setTab] = useState('home')
   const [screen, setScreen] = useState('home')
   const [detailId, setDetailId] = useState(null)
@@ -43,6 +43,11 @@ export default function App() {
     setTimeout(() => setToast(''), 2200)
   }
 
+  function handleRestore(newReceipts, newMap) {
+    replaceAll(newReceipts, newMap)
+    showToast('Backup ripristinato')
+  }
+
   const activeReceipt = receipts.find((r) => r.id === detailId)
 
   return (
@@ -50,7 +55,9 @@ export default function App() {
       <div className="app-viewport">
         {screen === 'home' && <Home receipts={receipts} onOpen={openDetail} onNavigate={navigate} />}
         {screen === 'search' && <Search receipts={receipts} onOpen={openDetail} />}
-        {screen === 'dashboard' && <Dashboard receipts={receipts} />}
+        {screen === 'dashboard' && (
+          <Dashboard receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} />
+        )}
         {screen === 'detail' && (
           <Detail receipt={activeReceipt} onBack={() => setScreen(detailBack)} onUpdate={updateReceipt} onDelete={handleDelete} />
         )}

@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { CATEGORY_MAP } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
+import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 
-export default function Dashboard({ receipts }) {
+export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) {
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
@@ -32,6 +33,31 @@ export default function Dashboard({ receipts }) {
   function exportCsv() {
     const csv = receiptsToCsv(periodReceipts, (id) => CATEGORY_MAP[id]?.label || id)
     downloadCsv(`scontrinofacile-${monthName}-${period.year}.csv`, csv)
+  }
+
+  function exportBackup() {
+    const json = serializeBackup(receipts, merchantCategoryMap)
+    downloadJson(`scontrinofacile-backup-${new Date().toISOString().slice(0, 10)}.json`, json)
+  }
+
+  const fileInputRef = useRef(null)
+  const [importError, setImportError] = useState('')
+
+  async function handleImportFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setImportError('')
+    try {
+      const text = await file.text()
+      const { receipts: importedReceipts, merchantCategoryMap: importedMap } = parseBackup(text)
+      const ok = window.confirm(
+        `Ripristinare questo backup sostituirà tutte le ${receipts.length} ricevute attuali con le ${importedReceipts.length} del file. Continuare?`,
+      )
+      if (ok) onRestore(importedReceipts, importedMap)
+    } catch (err) {
+      setImportError(err.message || 'Backup non valido.')
+    }
   }
 
   return (
@@ -91,6 +117,21 @@ export default function Dashboard({ receipts }) {
       <button className="export-btn" onClick={exportCsv} disabled={periodReceipts.length === 0}>
         <Icon name="Download" size={16} /> Esporta riepilogo (.csv)
       </button>
+
+      <div className="pad backup-block">
+        <p className="sect-label">Backup dati</p>
+        <p className="backup-hint">I dati restano solo su questo dispositivo. Esporta un backup ogni tanto per non perderli.</p>
+        <div className="backup-actions">
+          <button className="btn" onClick={exportBackup} disabled={receipts.length === 0}>
+            <Icon name="Download" size={15} /> Esporta backup
+          </button>
+          <label className="btn">
+            <Icon name="Upload" size={15} /> Importa backup
+            <input ref={fileInputRef} type="file" accept="application/json,.json" onChange={handleImportFile} hidden />
+          </label>
+        </div>
+        {importError && <p className="notice">{importError}</p>}
+      </div>
     </div>
   )
 }
