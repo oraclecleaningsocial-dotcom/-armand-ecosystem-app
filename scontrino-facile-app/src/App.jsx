@@ -2,6 +2,7 @@ import { useState } from 'react'
 import TabBar from './components/TabBar'
 import Home from './screens/Home'
 import Search from './screens/Search'
+import CalendarScreen from './screens/CalendarScreen'
 import Dashboard from './screens/Dashboard'
 import Detail from './screens/Detail'
 import Scan from './screens/Scan'
@@ -17,7 +18,7 @@ export default function App() {
 
   function navigate(target) {
     setScreen(target)
-    if (target === 'home' || target === 'search' || target === 'dashboard') setTab(target)
+    if (['home', 'search', 'calendar', 'dashboard'].includes(target)) setTab(target)
   }
 
   function openDetail(id, from) {
@@ -55,6 +56,7 @@ export default function App() {
       <div className="app-viewport">
         {screen === 'home' && <Home receipts={receipts} onOpen={openDetail} onNavigate={navigate} />}
         {screen === 'search' && <Search receipts={receipts} onOpen={openDetail} />}
+        {screen === 'calendar' && <CalendarScreen receipts={receipts} onOpen={openDetail} />}
         {screen === 'dashboard' && (
           <Dashboard receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} />
         )}
@@ -65,7 +67,7 @@ export default function App() {
           <Scan categorize={categorize} onSave={handleSave} onCancel={() => navigate('home')} />
         )}
 
-        {['home', 'search', 'dashboard', 'detail'].includes(screen) && (
+        {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
           <TabBar active={tab} onNavigate={navigate} />
         )}
 

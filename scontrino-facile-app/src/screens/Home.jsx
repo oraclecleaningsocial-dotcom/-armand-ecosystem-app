@@ -14,14 +14,16 @@ export default function Home({ receipts, onOpen, onNavigate }) {
   return (
     <div className="screen">
       <div className="pad">
-        <p className="greet">Ciao 👋</p>
-        <h1 className="hero-total">{eur(current)}</h1>
-        <p className="hero-caption">speso questo mese</p>
-        {previous > 0 && (
-          <span className={`delta ${up ? 'up' : 'down'}`}>
-            {up ? '▲' : '▼'} {pct}% rispetto al mese scorso
-          </span>
-        )}
+        <div className="hero-card">
+          <p className="greet">Ciao 👋</p>
+          <h1 className="hero-total">{eur(current)}</h1>
+          <p className="hero-caption">speso questo mese</p>
+          {previous > 0 && (
+            <span className={`delta ${up ? 'up' : 'down'}`}>
+              {up ? '▲' : '▼'} {pct}% rispetto al mese scorso
+            </span>
+          )}
+        </div>
       </div>
 
       <button className="cta-scan" onClick={() => onNavigate('scan')}>
@@ -35,7 +37,7 @@ export default function Home({ receipts, onOpen, onNavigate }) {
       {recent.length === 0 ? (
         <p className="empty">Nessuna ricevuta ancora. Scansionane una per iniziare.</p>
       ) : (
-        <div className="list">
+        <div className="list list-cards">
           {recent.map((r) => (
             <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, 'home')} />
           ))}

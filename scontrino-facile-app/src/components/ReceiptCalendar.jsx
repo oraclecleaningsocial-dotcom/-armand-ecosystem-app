@@ -9,7 +9,7 @@ function toKey(d) {
   return d.toISOString().slice(0, 10)
 }
 
-export default function ReceiptCalendar({ receipts, onOpen }) {
+export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' }) {
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setDate(1); return d })
   const [selected, setSelected] = useState(null)
 
@@ -83,7 +83,7 @@ export default function ReceiptCalendar({ receipts, onOpen }) {
             {selectedReceipts.length > 0 && <span className="cal-day-total"> · {eur(selectedReceipts.reduce((s, r) => s + r.total, 0))}</span>}
           </p>
           <div className="list">
-            {selectedReceipts.map((r) => <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, 'search')} />)}
+            {selectedReceipts.map((r) => <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, from)} />)}
           </div>
         </div>
       )}

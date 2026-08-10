@@ -1,38 +1,25 @@
+/* Tema sempre chiaro, per scelta — niente dark mode automatica. */
 :root{
-  --paper:#f3f1ea;
+  --paper:#f2f2f7;
   --paper-raised:#ffffff;
-  --ink:#20281f;
-  --ink-soft:#6c6a5a;
-  --line:#e6e1d2;
+  --ink:#1c1c26;
+  --ink-soft:#75758c;
+  --line:#e6e6ef;
   --accent:#c8862a;
   --accent-strong:#a86a1a;
   --accent-soft:#f6e3bf;
-  --positive:#3f6b4e;
-  --positive-soft:#dde8de;
-  --negative:#a8402f;
-  --negative-soft:#f2dad2;
-  --shadow:0 16px 32px -20px rgba(32,26,10,0.35);
+  --positive:#1e9e6f;
+  --positive-soft:#dcf3e9;
+  --negative:#e0503a;
+  --negative-soft:#fbe1dc;
+  --shadow:0 16px 32px -20px rgba(28,28,38,0.18);
+
+  --hero-1:#6E5CE8;
+  --hero-2:#4A3AD1;
+  --hero-ink:#ffffff;
 
   --f-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
   --f-mono:ui-monospace,"SF Mono",Menlo,"Cascadia Mono",monospace;
-}
-
-@media (prefers-color-scheme: dark){
-  :root{
-    --paper:#15160f;
-    --paper-raised:#1f2118;
-    --ink:#ece7d8;
-    --ink-soft:#9a9686;
-    --line:#33342a;
-    --accent:#e8b24c;
-    --accent-strong:#f0c164;
-    --accent-soft:#33290f;
-    --positive:#7fb894;
-    --positive-soft:#1c2c22;
-    --negative:#e0796a;
-    --negative-soft:#2e1c18;
-    --shadow:0 16px 32px -20px rgba(0,0,0,0.6);
-  }
 }
 
 *{box-sizing:border-box;}
@@ -73,7 +60,7 @@ button{cursor:pointer;}
 .pad{padding:0 20px;}
 
 /* ---------- home ---------- */
-.greet{margin:calc(env(safe-area-inset-top,0px) + 18px) 0 0;font-size:14.5px;color:var(--ink-soft);}
+.greet{margin:0;font-size:14.5px;color:var(--ink-soft);}
 .hero-total{
   font-family:var(--f-mono);font-variant-numeric:tabular-nums;
   font-weight:650;font-size:40px;letter-spacing:-0.015em;margin:6px 0 2px;
@@ -86,6 +73,24 @@ button{cursor:pointer;}
 }
 .delta.up{background:var(--negative-soft);color:var(--negative);}
 .delta.down{background:var(--positive-soft);color:var(--positive);}
+
+.hero-card{
+  position:relative;overflow:hidden;
+  margin-top:calc(env(safe-area-inset-top,0px) + 18px);
+  padding:22px 22px 24px;border-radius:26px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(255,255,255,0.16), transparent 55%),
+    linear-gradient(135deg,var(--hero-1),var(--hero-2));
+  box-shadow:0 20px 34px -18px rgba(74,58,209,0.55);
+}
+.hero-card::after{
+  content:"";position:absolute;right:-34px;bottom:-46px;width:150px;height:150px;
+  border-radius:50%;background:rgba(255,255,255,0.08);
+}
+.hero-card .greet{color:rgba(255,255,255,0.78);}
+.hero-card .hero-total{color:var(--hero-ink);}
+.hero-card .hero-caption{color:rgba(255,255,255,0.72);}
+.hero-card .delta{background:rgba(255,255,255,0.16);color:#fff;}
 
 .cta-scan{
   all:unset;cursor:pointer;box-sizing:border-box;
@@ -121,6 +126,13 @@ button{cursor:pointer;}
 .row-sub{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px;}
 .row-amt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:650;font-size:14.5px;flex:none;}
 
+.list-cards{padding:0 20px;gap:10px;}
+.list-cards .row{
+  padding:14px 16px;border-radius:18px;background:var(--paper-raised);
+  box-shadow:0 10px 22px -16px rgba(28,28,38,0.28);
+}
+.list-cards .row:hover,.list-cards .row:focus-visible{background:var(--paper-raised);filter:brightness(0.98);}
+
 /* ---------- tab bar ---------- */
 .tabbar{
   position:absolute;left:0;right:0;bottom:0;
@@ -132,19 +144,18 @@ button{cursor:pointer;}
 }
 .tab{
   all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
-  color:var(--ink-soft);font-size:10.5px;font-weight:650;width:58px;padding:4px 0;
+  color:var(--ink-soft);font-size:9.5px;font-weight:650;width:50px;padding:4px 0;
   transition:color .12s ease;
 }
 .tab.is-active{color:var(--ink);}
 .tab-scan{
-  all:unset;cursor:pointer;width:52px;height:52px;border-radius:50%;
+  all:unset;cursor:pointer;width:50px;height:50px;border-radius:50%;flex:none;
   background:var(--accent);color:#2a1c05;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 10px 20px -8px rgba(200,134,42,.6);
   transform:translateY(-14px);transition:transform .12s ease;
 }
 .tab-scan:active{transform:translateY(-14px) scale(.94);}
-.tab-spacer{width:58px;}
 
 /* ---------- search ---------- */
 .search-box{
