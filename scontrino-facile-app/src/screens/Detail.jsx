@@ -20,13 +20,37 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
     setEditing(false)
   }
 
+  async function dataUrlToFile(dataUrl, baseName) {
+    const res = await fetch(dataUrl)
+    const blob = await res.blob()
+    const ext = blob.type.split('/')[1] || 'jpg'
+    return new File([blob], `${baseName}.${ext}`, { type: blob.type })
+  }
+
   async function share() {
+    const subject = `Ricevuta: ${receipt.merchant}`
     const text = `${receipt.merchant} · ${formatDate(receipt.date)} · ${eur(receipt.total)}`
-    if (navigator.share) {
-      try { await navigator.share({ title: 'Ricevuta', text }) } catch { /* condivisione annullata dall'utente */ }
-    } else {
-      await navigator.clipboard?.writeText(text)
+    try {
+      if (receipt.imageDataUrl && navigator.canShare) {
+        const file = await dataUrlToFile(receipt.imageDataUrl, receipt.merchant || 'ricevuta')
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: subject, text, files: [file] })
+          return
+        }
+      }
+      if (navigator.share) {
+        await navigator.share({ title: subject, text })
+        return
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return // annullato dall'utente nel foglio di condivisione
     }
+    // Desktop o browser senza Web Share: apre il client email predefinito.
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`
+  }
+
+  function exportPdf() {
+    window.print()
   }
 
   return (
@@ -38,7 +62,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
         </button>
       </div>
 
-      <div className="pad">
+      <div className="pad print-area">
         {receipt.imageDataUrl ? (
           <img className="det-image" src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} />
         ) : (
@@ -85,8 +109,9 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
         </p>
 
         {!editing && (
-          <div className="det-actions">
+          <div className="det-actions no-print">
             <button className="btn" onClick={share}><Icon name="Share2" size={15} /> Condividi</button>
+            <button className="btn" onClick={exportPdf}><Icon name="Download" size={15} /> PDF</button>
             <button className="btn danger" onClick={() => onDelete(receipt.id)}>Elimina</button>
           </div>
         )}

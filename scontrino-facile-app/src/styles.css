@@ -292,6 +292,14 @@ button{cursor:pointer;}
 .ok-pill.warn{color:var(--accent-strong);}
 .disclosure{all:unset;cursor:pointer;display:flex;align-items:center;gap:5px;margin-top:18px;font-size:13.5px;font-weight:650;color:var(--ink-soft);}
 
+/* ---------- stampa / esporta PDF (Dettaglio ricevuta) ---------- */
+@media print {
+  body *{visibility:hidden;}
+  .print-area,.print-area *{visibility:visible;}
+  .print-area{position:absolute;inset:0;margin:0 auto;padding:32px;background:#fff;color:#000;max-width:480px;}
+  .no-print{display:none !important;}
+}
+
 /* ---------- toast ---------- */
 .toast{
   position:absolute;left:50%;bottom:96px;transform:translateX(-50%);
