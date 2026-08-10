@@ -109,8 +109,8 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) 
 
           <div className="pad cat-grid">
             {breakdown.map(({ id, amount, pct, cat }) => (
-              <div className="cat-card" key={id} style={{ background: `${cat.color}18` }}>
-                <span className="cat-card-ic" style={{ background: `${cat.color}2a`, color: cat.color }}>
+              <div className="cat-card" key={id} style={{ background: `${cat.color}2e` }}>
+                <span className="cat-card-ic" style={{ background: `${cat.color}45`, color: cat.color }}>
                   <Icon name={cat.icon} size={16} />
                 </span>
                 <span className="cat-card-label">{cat.label}</span>

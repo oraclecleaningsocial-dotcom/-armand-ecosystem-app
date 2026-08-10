@@ -82,7 +82,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
             {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         ) : (
-          <span className="cat-badge" style={{ background: `${cat.color}22`, color: cat.color }}>
+          <span className="cat-badge" style={{ background: `${cat.color}3d`, color: cat.color }}>
             <Icon name={cat.icon} size={13} /> {cat.label}
           </span>
         )}

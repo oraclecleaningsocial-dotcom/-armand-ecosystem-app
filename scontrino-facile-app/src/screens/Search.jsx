@@ -52,7 +52,7 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
           <button
             key={c.id}
             className={`chip ${activeCats.has(c.id) ? 'is-active' : ''}`}
-            style={activeCats.has(c.id) ? { borderColor: c.color, background: `${c.color}1c`, color: c.color } : undefined}
+            style={activeCats.has(c.id) ? { borderColor: c.color, background: `${c.color}33`, color: c.color } : undefined}
             onClick={() => toggleCat(c.id)}
           >
             <Icon name={c.icon} size={13} /> {c.label}

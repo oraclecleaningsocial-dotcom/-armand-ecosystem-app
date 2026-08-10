@@ -6,6 +6,7 @@ import CalendarScreen from './screens/CalendarScreen'
 import Dashboard from './screens/Dashboard'
 import Detail from './screens/Detail'
 import Scan from './screens/Scan'
+import Calculator from './screens/Calculator'
 import LockScreen from './screens/LockScreen'
 import { useReceipts } from './state'
 import { isLockEnabled } from './utils/auth'
@@ -87,6 +88,7 @@ export default function App() {
         {screen === 'scan' && (
           <Scan categorize={categorize} onSave={handleSave} onCancel={() => navigate('home')} />
         )}
+        {screen === 'calculator' && <Calculator onClose={() => setScreen(tab)} />}
 
         {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
           <TabBar active={tab} onNavigate={navigate} />

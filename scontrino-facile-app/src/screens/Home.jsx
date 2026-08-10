@@ -16,6 +16,9 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
     <div className="screen">
       <div className="pad">
         <div className="hero-card">
+          <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Calcolatrice">
+            <Icon name="Calculator" size={18} />
+          </button>
           <p className="greet">Ciao 👋</p>
           <h1 className="hero-total">{eur(current)}</h1>
           <p className="hero-caption">speso questo mese</p>
@@ -35,7 +38,7 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
       <div className="quick-cats">
         {CATEGORIES.map((c) => (
           <button key={c.id} className="quick-cat" onClick={() => onQuickFilter(c.id)}>
-            <span className="quick-cat-ic" style={{ background: `${c.color}1c`, color: c.color }}>
+            <span className="quick-cat-ic" style={{ background: `${c.color}33`, color: c.color }}>
               <Icon name={c.icon} size={18} />
             </span>
             <span>{c.label}</span>
