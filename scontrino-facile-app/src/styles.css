@@ -231,7 +231,9 @@ button{cursor:pointer;}
 .doc-lines{position:absolute;inset:16%;display:flex;flex-direction:column;gap:9%;opacity:.3;}
 .doc-lines i{display:block;height:6%;background:#eee;border-radius:2px;}
 .cam-hint{text-align:center;padding:12px 0 0;font-size:14px;color:#d8d5c8;}
-.cam-bottom{display:flex;justify-content:center;padding:22px 0 calc(env(safe-area-inset-bottom,0px) + 28px);}
+.cam-bottom{display:flex;flex-direction:column;align-items:center;gap:16px;padding:22px 0 calc(env(safe-area-inset-bottom,0px) + 24px);}
+.cam-gallery{cursor:pointer;display:inline-flex;align-items:center;gap:7px;color:#cfcabb;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.18);}
+.cam-gallery:hover{color:#fff;border-color:rgba(255,255,255,.32);}
 .shutter{cursor:pointer;width:68px;height:68px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;}
 .shutter-dot{display:block;width:56px;height:56px;border-radius:50%;background:#fff;transition:transform .1s ease;}
 .shutter:active .shutter-dot{transform:scale(.92);}

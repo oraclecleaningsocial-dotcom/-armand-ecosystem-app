@@ -1,13 +1,13 @@
 import {
   ShoppingCart, Fuel, Home, HeartPulse, ShoppingBag, Popcorn, MoreHorizontal,
   Camera, Search, PieChart, ChevronLeft, Check, Pencil, Plus, Share2, Download,
-  X, Loader2, ScanLine, ChevronDown, ChevronRight, StickyNote,
+  X, Loader2, ScanLine, ChevronDown, ChevronRight, StickyNote, Image,
 } from 'lucide-react'
 
 const ICONS = {
   ShoppingCart, Fuel, Home, HeartPulse, ShoppingBag, Popcorn, MoreHorizontal,
   Camera, Search, PieChart, ChevronLeft, Check, Pencil, Plus, Share2, Download,
-  X, Loader2, ScanLine, ChevronDown, ChevronRight, StickyNote,
+  X, Loader2, ScanLine, ChevronDown, ChevronRight, StickyNote, Image,
 }
 
 export default function Icon({ name, size = 18, className = '', strokeWidth = 2 }) {

@@ -19,12 +19,15 @@ export default function Scan({ categorize, onSave, onCancel }) {
   const [draft, setDraft] = useState(null)
   const [showItems, setShowItems] = useState(false)
   const [notice, setNotice] = useState('')
+  const [sourceType, setSourceType] = useState('foto')
   const inputRef = useRef(null)
+  const galleryRef = useRef(null)
 
-  async function handleFile(e) {
+  async function handleFile(e, source) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+    setSourceType(source)
     const dataUrl = await readAsDataUrl(file)
     setImageDataUrl(dataUrl)
     setStep('processing')
@@ -41,7 +44,9 @@ export default function Scan({ categorize, onSave, onCancel }) {
       const parsed = await Promise.race([recognizeReceipt(dataUrl), globalErrorGuard])
       setDraft({ ...parsed, category: categorize(parsed.merchant), note: '' })
     } catch {
-      setNotice('Non sono riuscito a leggere lo scontrino: compila i campi a mano.')
+      setNotice(source === 'screenshot'
+        ? 'Non sono riuscito a leggere lo screenshot: compila i campi a mano.'
+        : 'Non sono riuscito a leggere lo scontrino: compila i campi a mano.')
       setDraft({ merchant: '', date: new Date().toISOString().slice(0, 10), total: 0, totalSource: 'manualOverride', items: [], ocrRawText: '', category: 'altro', note: '' })
     } finally {
       removeGuard()
@@ -50,7 +55,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
   }
 
   function save() {
-    onSave({ ...draft, imageDataUrl })
+    onSave({ ...draft, imageDataUrl, sourceType })
   }
 
   if (step === 'review' && draft) {
@@ -64,11 +69,11 @@ export default function Scan({ categorize, onSave, onCancel }) {
           {notice && <p className="notice">{notice}</p>}
 
           <div className="thumb-strip">
-            {imageDataUrl ? <img src={imageDataUrl} alt="Scontrino scansionato" /> : <div className="thumb-strip-empty" />}
+            {imageDataUrl ? <img src={imageDataUrl} alt={sourceType === 'screenshot' ? 'Screenshot del pagamento' : 'Scontrino scansionato'} /> : <div className="thumb-strip-empty" />}
           </div>
 
           <label className="field">
-            <span>Negozio</span>
+            <span>{sourceType === 'screenshot' ? 'Beneficiario' : 'Negozio'}</span>
             <input value={draft.merchant} onChange={(e) => setDraft({ ...draft, merchant: e.target.value })} />
           </label>
 
@@ -132,7 +137,11 @@ export default function Scan({ categorize, onSave, onCancel }) {
       <div className="cam-bottom">
         <label className={`shutter ${step === 'processing' ? 'is-busy' : ''}`}>
           {step === 'processing' ? <Icon name="Loader2" size={22} className="spin" /> : <span className="shutter-dot" />}
-          <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} disabled={step === 'processing'} hidden />
+          <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(e, 'foto')} disabled={step === 'processing'} hidden />
+        </label>
+        <label className="cam-gallery">
+          <Icon name="Image" size={15} /> Carica screenshot di un pagamento
+          <input ref={galleryRef} type="file" accept="image/*" onChange={(e) => handleFile(e, 'screenshot')} disabled={step === 'processing'} hidden />
         </label>
       </div>
     </div>

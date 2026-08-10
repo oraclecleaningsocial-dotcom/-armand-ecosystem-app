@@ -68,6 +68,7 @@ export function useReceipts() {
       note: draft.note || '',
       imageDataUrl: draft.imageDataUrl || null,
       ocrRawText: draft.ocrRawText || '',
+      sourceType: draft.sourceType || 'foto',
       createdAt: new Date().toISOString(),
     }
     setState((prev) => ({

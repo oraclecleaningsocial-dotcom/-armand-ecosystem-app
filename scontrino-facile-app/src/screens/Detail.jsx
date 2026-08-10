@@ -81,7 +81,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
         )}
 
         <p className="src-line">
-          Fonte input: {receipt.ocrRawText ? 'scansione OCR' : 'inserimento manuale'} del {formatDate(receipt.date)}
+          Fonte input: {receipt.ocrRawText ? (receipt.sourceType === 'screenshot' ? 'screenshot pagamento' : 'scansione scontrino') : 'inserimento manuale'} del {formatDate(receipt.date)}
         </p>
 
         {!editing && (
