@@ -6,9 +6,12 @@ import CalendarScreen from './screens/CalendarScreen'
 import Dashboard from './screens/Dashboard'
 import Detail from './screens/Detail'
 import Scan from './screens/Scan'
+import LockScreen from './screens/LockScreen'
 import { useReceipts } from './state'
+import { isLockEnabled } from './utils/auth'
 
 export default function App() {
+  const [locked, setLocked] = useState(isLockEnabled)
   const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
   const [tab, setTab] = useState('home')
   const [screen, setScreen] = useState('home')
@@ -56,6 +59,16 @@ export default function App() {
   }
 
   const activeReceipt = receipts.find((r) => r.id === detailId)
+
+  if (locked) {
+    return (
+      <div className="app-shell">
+        <div className="app-viewport">
+          <LockScreen onUnlock={() => setLocked(false)} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-shell">

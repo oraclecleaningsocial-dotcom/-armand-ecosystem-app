@@ -5,9 +5,12 @@ import { eur } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
+import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 
 export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) {
   const now = new Date()
+  const [lockOn, setLockOn] = useState(isLockEnabled)
+  const [lockError, setLockError] = useState('')
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
   const trend = useMemo(() => last6MonthsTrend(receipts), [receipts])
@@ -57,6 +60,21 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) 
       if (ok) onRestore(importedReceipts, importedMap)
     } catch (err) {
       setImportError(err.message || 'Backup non valido.')
+    }
+  }
+
+  async function toggleLock() {
+    setLockError('')
+    if (lockOn) {
+      disableLock()
+      setLockOn(false)
+      return
+    }
+    try {
+      await registerBiometric()
+      setLockOn(true)
+    } catch {
+      setLockError('Non sono riuscito ad attivare Face ID su questo dispositivo.')
     }
   }
 
@@ -138,6 +156,17 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) 
         </div>
         {importError && <p className="notice">{importError}</p>}
       </div>
+
+      {isBiometricSupported() && (
+        <div className="pad backup-block">
+          <p className="sect-label">Sicurezza</p>
+          <p className="backup-hint">Richiedi Face ID (o lo sblocco biometrico del dispositivo) ogni volta che apri l'app.</p>
+          <button className="btn" onClick={toggleLock}>
+            <Icon name="ScanFace" size={15} /> {lockOn ? 'Disattiva Face ID' : 'Attiva Face ID'}
+          </button>
+          {lockError && <p className="notice">{lockError}</p>}
+        </div>
+      )}
     </div>
   )
 }

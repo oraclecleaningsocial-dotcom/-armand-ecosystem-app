@@ -327,6 +327,33 @@ button{cursor:pointer;}
   .no-print{display:none !important;}
 }
 
+/* ---------- blocco Face ID ---------- */
+.lock-screen{
+  min-height:100vh;width:100%;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:32px;text-align:center;color:#fff;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,0.14), transparent 55%),
+    linear-gradient(150deg,var(--hero-1),var(--hero-2));
+}
+.lock-icon{
+  width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,0.14);
+  display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+}
+.lock-screen h1{font-size:21px;margin:0;font-weight:700;}
+.lock-screen p{margin:2px 0 0;color:rgba(255,255,255,0.78);font-size:13.5px;}
+.lock-btn{
+  all:unset;cursor:pointer;box-sizing:border-box;width:100%;max-width:300px;
+  margin-top:26px;padding:15px;border-radius:16px;text-align:center;
+  background:#fff;color:var(--hero-2);font-weight:700;font-size:15px;
+}
+.lock-btn:disabled{opacity:.7;}
+.lock-error{color:#ffd7d0;font-size:12.5px;margin-top:10px;}
+.lock-fallback{
+  all:unset;cursor:pointer;margin-top:22px;font-size:12px;color:rgba(255,255,255,0.68);
+  text-decoration:underline;text-underline-offset:3px;
+}
+
 /* ---------- toast ---------- */
 .toast{
   position:absolute;left:50%;bottom:96px;transform:translateX(-50%);
