@@ -8,7 +8,7 @@ import { normalizeMerchant } from '../categories'
 export default function Search({ receipts, onOpen }) {
   const [query, setQuery] = useState('')
   const [activeCats, setActiveCats] = useState(new Set())
-  const [view, setView] = useState('list') // list | calendar
+  const [view, setView] = useState('calendar') // list | calendar
 
   const results = useMemo(() => {
     const q = normalizeMerchant(query)
