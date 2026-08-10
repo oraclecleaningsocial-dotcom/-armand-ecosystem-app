@@ -1,9 +1,10 @@
 import Icon from '../components/Icon'
 import ReceiptRow from '../components/ReceiptRow'
+import { CATEGORIES } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend } from '../state'
 
-export default function Home({ receipts, onOpen, onNavigate }) {
+export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
   const trend = last6MonthsTrend(receipts)
   const current = trend[trend.length - 1].total
   const previous = trend[trend.length - 2].total
@@ -30,6 +31,17 @@ export default function Home({ receipts, onOpen, onNavigate }) {
         <span className="cta-scan-icon"><Icon name="Camera" size={17} strokeWidth={2.3} /></span>
         Scansiona ricevuta
       </button>
+
+      <div className="quick-cats">
+        {CATEGORIES.map((c) => (
+          <button key={c.id} className="quick-cat" onClick={() => onQuickFilter(c.id)}>
+            <span className="quick-cat-ic" style={{ background: `${c.color}1c`, color: c.color }}>
+              <Icon name={c.icon} size={18} />
+            </span>
+            <span>{c.label}</span>
+          </button>
+        ))}
+      </div>
 
       <div className="pad">
         <p className="sect-label">Ricevute recenti</p>

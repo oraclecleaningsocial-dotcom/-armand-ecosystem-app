@@ -15,10 +15,16 @@ export default function App() {
   const [detailId, setDetailId] = useState(null)
   const [detailBack, setDetailBack] = useState('home')
   const [toast, setToast] = useState('')
+  const [searchPreset, setSearchPreset] = useState(null)
 
   function navigate(target) {
     setScreen(target)
     if (['home', 'search', 'calendar', 'dashboard'].includes(target)) setTab(target)
+  }
+
+  function quickFilter(categoryId) {
+    setSearchPreset(categoryId)
+    navigate('search')
   }
 
   function openDetail(id, from) {
@@ -54,8 +60,10 @@ export default function App() {
   return (
     <div className="app-shell">
       <div className="app-viewport">
-        {screen === 'home' && <Home receipts={receipts} onOpen={openDetail} onNavigate={navigate} />}
-        {screen === 'search' && <Search receipts={receipts} onOpen={openDetail} />}
+        {screen === 'home' && <Home receipts={receipts} onOpen={openDetail} onNavigate={navigate} onQuickFilter={quickFilter} />}
+        {screen === 'search' && (
+          <Search receipts={receipts} onOpen={openDetail} presetCategory={searchPreset} onConsumePreset={() => setSearchPreset(null)} />
+        )}
         {screen === 'calendar' && <CalendarScreen receipts={receipts} onOpen={openDetail} />}
         {screen === 'dashboard' && (
           <Dashboard receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} />

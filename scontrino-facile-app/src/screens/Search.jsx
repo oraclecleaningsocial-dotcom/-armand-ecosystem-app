@@ -1,12 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORIES } from '../categories'
 import { normalizeMerchant } from '../categories'
 
-export default function Search({ receipts, onOpen }) {
+export default function Search({ receipts, onOpen, presetCategory, onConsumePreset }) {
   const [query, setQuery] = useState('')
-  const [activeCats, setActiveCats] = useState(new Set())
+  const [activeCats, setActiveCats] = useState(() => (presetCategory ? new Set([presetCategory]) : new Set()))
+
+  useEffect(() => {
+    if (presetCategory) onConsumePreset?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const results = useMemo(() => {
     const q = normalizeMerchant(query)

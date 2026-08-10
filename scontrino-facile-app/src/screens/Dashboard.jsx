@@ -79,23 +79,29 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) 
       {total === 0 ? (
         <p className="empty">Ancora nessuna spesa questo mese.</p>
       ) : (
-        <div className="pad donut-row">
-          <div className="donut" style={{ background: `conic-gradient(${gradientStops.join(',')})` }}>
-            <div className="donut-hole">
-              <b>{eur(total)}</b>
-              <span>totale</span>
+        <>
+          <div className="pad donut-row centered">
+            <div className="donut" style={{ background: `conic-gradient(${gradientStops.join(',')})` }}>
+              <div className="donut-hole">
+                <b>{eur(total)}</b>
+                <span>totale</span>
+              </div>
             </div>
           </div>
-          <div className="legend">
+
+          <div className="pad cat-grid">
             {breakdown.map(({ id, amount, pct, cat }) => (
-              <div className="legend-row" key={id}>
-                <span className="legend-sw" style={{ background: cat.color }} />
-                <span className="legend-name"><Icon name={cat.icon} size={13} /> {cat.label}</span>
-                <span className="legend-amt">{eur(amount)} · {pct}%</span>
+              <div className="cat-card" key={id} style={{ background: `${cat.color}18` }}>
+                <span className="cat-card-ic" style={{ background: `${cat.color}2a`, color: cat.color }}>
+                  <Icon name={cat.icon} size={16} />
+                </span>
+                <span className="cat-card-label">{cat.label}</span>
+                <span className="cat-card-amt">{eur(amount)}</span>
+                <span className="cat-card-pct" style={{ color: cat.color }}>{pct}%</span>
               </div>
             ))}
           </div>
-        </div>
+        </>
       )}
 
       <div className="pad trend-block">
