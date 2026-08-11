@@ -1,5 +1,5 @@
 export const CATEGORIES = [
-  { id: 'cibo', label: 'Cibo', icon: 'ShoppingCart', color: '#c0453f' },
+  { id: 'cibo', label: 'Cibo', icon: 'ShoppingCart', color: '#3B82F6' },
   { id: 'trasporti', label: 'Trasporti', icon: 'Fuel', color: '#4c6b7a' },
   { id: 'casa', label: 'Casa', icon: 'Home', color: '#6b7b4c' },
   { id: 'salute', label: 'Salute', icon: 'HeartPulse', color: '#9c6b6b' },
