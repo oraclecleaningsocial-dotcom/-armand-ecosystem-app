@@ -96,6 +96,15 @@ export default function Products({ onClose }) {
     runSearch(barcode)
   }
 
+  // Via di uscita quando la scansione fallisce (foto poco nitida, codice piccolo o
+  // angolato — capita spesso con una singola foto invece di uno scanner video continuo)
+  // e l'utente non ha/non vuole cercare il codice a barre: senza questo restava bloccato
+  // sul solo messaggio di errore, senza nessun modo di creare comunque il prodotto.
+  function addManually() {
+    setSearchError('')
+    setResult({ barcode: barcode.trim(), name: '', brand: '' })
+  }
+
   function saveProduct() {
     if (!result) return
     const entry = addProduct({ ...result, price: price ? Number(price) : null })
@@ -156,7 +165,14 @@ export default function Products({ onClose }) {
               />
             </label>
           </div>
-          {scanner.error && <p className="notice">{scanner.error}</p>}
+          {scanner.error && (
+            <>
+              <p className="notice">{scanner.error}</p>
+              <button type="button" className="link-btn accent" onClick={addManually}>
+                <Icon name="Pencil" size={14} /> Crea prodotto senza scansione
+              </button>
+            </>
+          )}
         </form>
 
         {searchError && <p className="notice">{searchError}</p>}
@@ -172,6 +188,15 @@ export default function Products({ onClose }) {
                 onChange={(e) => setResult({ ...result, name: e.target.value })}
               />
               {result.brand && <span className="product-preview-brand">{result.brand}</span>}
+              <label className="field" style={{ marginTop: 12 }}>
+                <span>Codice a barre (facoltativo)</span>
+                <input
+                  inputMode="numeric"
+                  placeholder="Es. 8001120344449"
+                  value={result.barcode}
+                  onChange={(e) => setResult({ ...result, barcode: e.target.value.replace(/\D/g, '') })}
+                />
+              </label>
               <div className="score-row">
                 <ScoreBadge label="Nutri-Score" value={result.nutriScore} />
                 {result.novaGroup && <span className="score-badge nova">NOVA {result.novaGroup}</span>}
@@ -201,7 +226,7 @@ export default function Products({ onClose }) {
                   <Icon name="Trash2" size={14} />
                 </button>
                 <div className="vault-doc-card-text">
-                  <b>{p.name || p.barcode}</b>
+                  <b>{p.name || p.barcode || 'Prodotto senza nome'}</b>
                   <span>{p.price != null ? eur(p.price) : 'Prezzo non inserito'}</span>
                 </div>
               </div>
@@ -214,7 +239,7 @@ export default function Products({ onClose }) {
         <div className="vault-viewer-overlay" onClick={() => setViewing(null)}>
           <div className="vault-viewer" onClick={(e) => e.stopPropagation()}>
             <div className="vault-viewer-head">
-              <span className="vault-viewer-title">{viewing.name || viewing.barcode}</span>
+              <span className="vault-viewer-title">{viewing.name || viewing.barcode || 'Prodotto senza nome'}</span>
               <div className="vault-viewer-actions">
                 <button onClick={() => setViewing(null)} aria-label="Chiudi"><Icon name="X" size={19} /></button>
               </div>
