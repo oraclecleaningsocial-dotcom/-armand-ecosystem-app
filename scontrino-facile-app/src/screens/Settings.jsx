@@ -81,6 +81,9 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
       </div>
       <div className="pad">
         <h1 className="scr-title">Impostazioni</h1>
+        <p className="backup-hint" style={{ marginTop: 4 }}>
+          Versione app: {new Date(__BUILD_TIME__).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+        </p>
       </div>
 
       <div className="pad backup-block">

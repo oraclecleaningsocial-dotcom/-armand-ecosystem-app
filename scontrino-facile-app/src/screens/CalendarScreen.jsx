@@ -130,6 +130,7 @@ export default function CalendarScreen({ receipts, onOpen }) {
           reminders={reminders}
           onAddReminder={addReminder}
           onDeleteReminder={deleteReminder}
+          scrollRef={scrollRef}
         />
       )}
     </div>

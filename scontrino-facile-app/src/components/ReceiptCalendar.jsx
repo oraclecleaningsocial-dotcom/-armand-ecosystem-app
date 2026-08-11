@@ -22,7 +22,7 @@ function startOfWeek(d) {
   return out
 }
 
-export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder }) {
+export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder, scrollRef }) {
   const [viewMode, setViewMode] = useState('month')
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })
   // Se siamo nel mese corrente, mostra subito gli eventi di oggi senza dover toccare il
@@ -35,6 +35,15 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
   const [selected, setSelected] = useState(null)
   useEffect(() => { setSelected(toKey(new Date())) }, [])
   const [reminderTitle, setReminderTitle] = useState('')
+
+  // Cambiare giorno selezionato può aggiungere di colpo un bel po' di contenuto (scontrini
+  // + scadenze + promemoria + modulo), e su iOS lo scroll dello schermo a volte restava
+  // bloccato subito dopo — Safari non sempre ricalcola l'altezza scrollabile dopo una
+  // mutazione del DOM. Leggere una proprietà di layout forza il ricalcolo sincrono.
+  useEffect(() => {
+    const el = scrollRef?.current
+    if (el) requestAnimationFrame(() => { void el.offsetHeight })
+  }, [selected, scrollRef])
 
   const byDay = useMemo(() => {
     const map = new Map()
