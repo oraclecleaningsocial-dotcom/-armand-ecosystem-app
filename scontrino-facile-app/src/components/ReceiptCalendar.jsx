@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Icon from './Icon'
 import ReceiptRow from './ReceiptRow'
 import { eur } from '../utils/format'
@@ -29,7 +29,13 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })
   // Se siamo nel mese corrente, mostra subito gli eventi di oggi senza dover toccare il
   // giorno: si vede solo se oggi rientra effettivamente nella griglia visualizzata.
-  const [selected, setSelected] = useState(() => toKey(new Date()))
+  // Impostato con un effect dopo il primo render (non nello useState iniziale): quando
+  // il pannello del giorno era già presente nel primissimo paint, su iOS lo scroll
+  // restava a volte bloccato — Safari può calcolare l'altezza scrollabile prima che il
+  // layout sia del tutto assestato e non ricalcolarla finché non arriva una mutazione
+  // successiva. Un aggiornamento di stato dopo il mount forza quel ricalcolo.
+  const [selected, setSelected] = useState(null)
+  useEffect(() => { setSelected(toKey(new Date())) }, [])
   const [reminderTitle, setReminderTitle] = useState('')
 
   const byDay = useMemo(() => {
