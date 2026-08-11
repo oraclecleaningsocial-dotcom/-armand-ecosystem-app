@@ -268,11 +268,32 @@ button{cursor:pointer;}
 .det-top{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 0;}
 .link-btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:650;padding:8px;color:var(--ink);}
 .link-btn.accent{color:var(--accent-strong);}
+.det-image-btn{all:unset;cursor:zoom-in;display:block;width:100%;}
 .det-image{width:100%;height:150px;border-radius:16px;object-fit:cover;margin-top:10px;background:var(--paper-raised);border:1px solid var(--line);}
 .det-image.placeholder{display:flex;align-items:center;justify-content:center;}
 .det-name{font-size:20px;font-weight:750;margin:16px 0 8px;}
 .det-total{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:32px;font-weight:650;margin:12px 0 4px;}
 .cat-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:650;padding:5px 11px;border-radius:99px;}
+.merchant-details{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+.merchant-detail-row{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-soft);margin:0 0 8px;}
+.merchant-detail-row:last-child{margin-bottom:0;}
+.field-row{display:flex;gap:14px;}
+.field-row .field{flex:1;}
+.map-block{margin-top:18px;}
+.map-frame{margin-top:8px;height:150px;border-radius:16px;overflow:hidden;background:var(--paper-raised);border:1px solid var(--line);}
+.map-frame iframe{width:100%;height:100%;border:0;}
+.map-open-link{margin-top:8px;padding-left:0;}
+.img-lightbox{
+  position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  animation:fadein .15s ease;
+}
+.img-lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;}
+.img-lightbox-close{
+  all:unset;cursor:pointer;position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);right:20px;
+  width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
 .edit-input{
   width:100%;background:var(--paper-raised);border:1px solid var(--line);border-radius:10px;
   padding:10px 12px;font-size:15px;margin:4px 0;

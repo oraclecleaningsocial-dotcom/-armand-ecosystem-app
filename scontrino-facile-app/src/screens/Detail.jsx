@@ -6,15 +6,23 @@ import { eur, formatDate } from '../utils/format'
 export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(receipt)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   if (!receipt) return null
   const cat = CATEGORY_MAP[receipt.category] || CATEGORY_MAP.altro
+
+  const mapQuery = [receipt.merchant, receipt.address].filter(Boolean).join(', ')
+  const mapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
+  const mapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`
 
   function save() {
     onUpdate(receipt.id, {
       merchant: draft.merchant,
       total: Number(draft.total) || 0,
       category: draft.category,
+      address: draft.address,
+      phone: draft.phone,
+      vat: draft.vat,
       note: draft.note,
     })
     setEditing(false)
@@ -64,7 +72,9 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
 
       <div className="pad print-area">
         {receipt.imageDataUrl ? (
-          <img className="det-image" src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} />
+          <button className="det-image-btn" onClick={() => setPreviewOpen(true)} aria-label="Ingrandisci immagine scontrino">
+            <img className="det-image" src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} />
+          </button>
         ) : (
           <div className="det-image placeholder">
             <Icon name="ScanLine" size={22} className="muted-ic" />
@@ -93,6 +103,47 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           <p className="det-total">{eur(receipt.total)}</p>
         )}
 
+        {(editing || receipt.address || receipt.phone || receipt.vat) && (
+          <div className="merchant-details">
+            {editing ? (
+              <>
+                <label className="field">
+                  <span><Icon name="MapPin" size={13} /> Indirizzo</span>
+                  <input value={draft.address || ''} onChange={(e) => setDraft({ ...draft, address: e.target.value })} placeholder="Non disponibile" />
+                </label>
+                <div className="field-row">
+                  <label className="field">
+                    <span><Icon name="Phone" size={13} /> Telefono</span>
+                    <input value={draft.phone || ''} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} placeholder="—" />
+                  </label>
+                  <label className="field">
+                    <span><Icon name="FileText" size={13} /> Partita IVA</span>
+                    <input value={draft.vat || ''} onChange={(e) => setDraft({ ...draft, vat: e.target.value })} placeholder="—" />
+                  </label>
+                </div>
+              </>
+            ) : (
+              <>
+                {receipt.address && <p className="merchant-detail-row"><Icon name="MapPin" size={14} className="muted-ic" /> {receipt.address}</p>}
+                {receipt.phone && <p className="merchant-detail-row"><Icon name="Phone" size={14} className="muted-ic" /> {receipt.phone}</p>}
+                {receipt.vat && <p className="merchant-detail-row"><Icon name="FileText" size={14} className="muted-ic" /> P.IVA/CF {receipt.vat}</p>}
+              </>
+            )}
+          </div>
+        )}
+
+        {!editing && (
+          <div className="map-block no-print">
+            <p className="sect-label">Posizione</p>
+            <div className="map-frame">
+              <iframe title={`Mappa ${receipt.merchant}`} src={mapsEmbedUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+            </div>
+            <a className="link-btn accent map-open-link" href={mapsSearchUrl} target="_blank" rel="noreferrer">
+              Apri in Google Maps <Icon name="ExternalLink" size={13} />
+            </a>
+          </div>
+        )}
+
         {receipt.items.length > 0 && (
           <div className="items">
             {receipt.items.map((it, i) => (
@@ -116,6 +167,15 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           </div>
         )}
       </div>
+
+      {previewOpen && receipt.imageDataUrl && (
+        <div className="img-lightbox no-print" onClick={() => setPreviewOpen(false)}>
+          <button className="img-lightbox-close" onClick={() => setPreviewOpen(false)} aria-label="Chiudi anteprima">
+            <Icon name="X" size={20} />
+          </button>
+          <img src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   )
 }

@@ -41,6 +41,10 @@ const DATE_PATTERN = /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/
 const MONTHS_IT = { gennaio: 0, gen: 0, febbraio: 1, feb: 1, marzo: 2, mar: 2, aprile: 3, apr: 3, maggio: 4, mag: 4, giugno: 5, giu: 5, luglio: 6, lug: 6, agosto: 7, ago: 7, settembre: 8, set: 8, ottobre: 9, ott: 9, novembre: 10, nov: 10, dicembre: 11, dic: 11 }
 const LONG_DATE_PATTERN = new RegExp(`(\\d{1,2})\\s+(${Object.keys(MONTHS_IT).join('|')})\\.?\\s+(\\d{4})`, 'i')
 const NOISE_LINE = /^(p\.?\s?iva|c\.?\s?f\.?|cod\.?\s?fisc|via |viale |corso |tel\.?|scontrino|documento|n\.\s?\d|iban|causale|completat|inviat|in corso)/i
+const ADDRESS_LINE = /^(via|viale|v\.le|corso|c\.so|piazza|p\.zza|largo|vicolo|strada|contrada)\s+.+/i
+const PHONE_LINE = /tel\.?\s*[:\-]?\s*(\+?\d[\d\s\/\-]{6,15}\d)/i
+const VAT_LINE = /p\.?\s?iva\s*[:\-]?\s*(\d{11})/i
+const CF_LINE = /c\.?\s?f\.?\s*[:\-]?\s*([A-Z0-9]{11,16})/i
 
 function toNumber(str) {
   return Number(str.replace(/\./g, '').replace(',', '.'))
@@ -85,6 +89,23 @@ export function parseReceiptText(rawText) {
     }
   }
 
+  // Dettagli anagrafici dell'esercente, quando lo scontrino li riporta (non tutti i formati
+  // digitali/screenshot li hanno): indirizzo, telefono, partita IVA o codice fiscale.
+  let address = null
+  let phone = null
+  let vat = null
+  for (const line of lines) {
+    if (!address && ADDRESS_LINE.test(line)) address = line.replace(/\s{2,}/g, ' ').trim().slice(0, 60)
+    if (!phone) {
+      const m = line.match(PHONE_LINE)
+      if (m) phone = m[1].replace(/\s{2,}/g, ' ').trim()
+    }
+    if (!vat) {
+      const m = line.match(VAT_LINE) || line.match(CF_LINE)
+      if (m) vat = m[1].toUpperCase()
+    }
+  }
+
   const items = []
   for (const line of lines) {
     if (TOTAL_LINE.test(line) || NOISE_LINE.test(line) || STANDALONE_AMOUNT.test(line)) continue
@@ -125,6 +146,9 @@ export function parseReceiptText(rawText) {
     total,
     totalSource,
     items,
+    address: address || '',
+    phone: phone || '',
+    vat: vat || '',
     ocrRawText: rawText,
   }
 }

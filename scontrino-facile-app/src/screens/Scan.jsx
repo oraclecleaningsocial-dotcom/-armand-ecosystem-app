@@ -47,7 +47,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
       setNotice(source === 'screenshot'
         ? 'Non sono riuscito a leggere lo screenshot: compila i campi a mano.'
         : 'Non sono riuscito a leggere lo scontrino: compila i campi a mano.')
-      setDraft({ merchant: '', date: new Date().toISOString().slice(0, 10), total: 0, totalSource: 'manualOverride', items: [], ocrRawText: '', category: 'altro', note: '' })
+      setDraft({ merchant: '', date: new Date().toISOString().slice(0, 10), total: 0, totalSource: 'manualOverride', items: [], address: '', phone: '', vat: '', ocrRawText: '', category: 'altro', note: '' })
     } finally {
       removeGuard()
     }
@@ -76,6 +76,25 @@ export default function Scan({ categorize, onSave, onCancel }) {
             <span>{sourceType === 'screenshot' ? 'Beneficiario' : 'Negozio'}</span>
             <input value={draft.merchant} onChange={(e) => setDraft({ ...draft, merchant: e.target.value })} />
           </label>
+
+          {sourceType !== 'screenshot' && (
+            <>
+              <label className="field">
+                <span><Icon name="MapPin" size={13} /> Indirizzo <em>(letto dallo scontrino)</em></span>
+                <input value={draft.address || ''} onChange={(e) => setDraft({ ...draft, address: e.target.value })} placeholder="Non rilevato, inserisci a mano" />
+              </label>
+              <div className="field-row">
+                <label className="field">
+                  <span><Icon name="Phone" size={13} /> Telefono</span>
+                  <input value={draft.phone || ''} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} placeholder="—" />
+                </label>
+                <label className="field">
+                  <span><Icon name="FileText" size={13} /> Partita IVA</span>
+                  <input value={draft.vat || ''} onChange={(e) => setDraft({ ...draft, vat: e.target.value })} placeholder="—" />
+                </label>
+              </div>
+            </>
+          )}
 
           <label className="field">
             <span>Data</span>
