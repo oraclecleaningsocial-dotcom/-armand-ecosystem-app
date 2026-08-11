@@ -9,7 +9,14 @@
          normale (senza bisogno di reinstallare l'icona) basta a vedere l'ultima versione. -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- interactive-widget=resizes-content: senza questo, quando si apre la tastiera
+         (ricerca, promemoria, ecc.) Safari in modalità standalone ridimensiona solo il
+         viewport "visivo" e lascia quello "di layout" invariato — gli elementi
+         position:fixed vengono ancorati a quest'ultimo, che dopo la chiusura della
+         tastiera a volte non torna a combaciare con lo schermo reale, lasciando un gap
+         sotto la tab bar di dimensione variabile. Con resizes-content il layout segue
+         davvero il viewport reale, tastiera aperta o chiusa. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#0e0e14" />
     <title>ScontrinoFacile</title>
     <link rel="manifest" href="/manifest.json" />
