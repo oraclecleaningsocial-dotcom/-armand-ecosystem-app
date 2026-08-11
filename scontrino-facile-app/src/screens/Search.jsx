@@ -35,7 +35,7 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
 
   return (
     <div className="screen">
-      <div className="pad" style={{ paddingTop: 6 }}>
+      <div className="pad" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
         <div className="search-box">
           <Icon name="Search" size={17} className="muted-ic" />
           <input
