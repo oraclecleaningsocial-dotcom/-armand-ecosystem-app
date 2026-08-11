@@ -75,10 +75,11 @@ button{cursor:pointer;}
      fix inseguivano solo l'altezza (100dvh/100svh/standalone) senza toccare questo. */
   min-height:0;
   display:flex;flex-direction:column;
-  /* La tab bar è "position:absolute" e la sua altezza cresce con la safe-area (home
-     indicator): un padding fisso in px non basta sui device con inset grande e lascia
-     l'ultimo contenuto incollato/coperto dalla barra sfocata. Lo includiamo qui. */
-  padding-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
+  /* Niente più padding per "lasciare spazio" alla tab bar: ora che è un elemento normale
+     del flusso invece che sovrapposta con position:fixed, non c'è più nulla da compensare
+     — .screen e .tabbar sono semplicemente due fratelli in fila nello stesso flex-column,
+     senza sovrapposizione possibile. Questo padding resta solo per respiro visivo. */
+  padding-bottom:20px;
   animation:fadein .22s ease;
   /* overscroll-behavior-y:contain è stata tolta apposta: su alcune versioni di iOS Safari,
      combinata con lo scroll a inerzia, è documentata bloccare del tutto lo scroll invece
@@ -188,19 +189,20 @@ button{cursor:pointer;}
 .list-cards .row:hover,.list-cards .row:focus-visible{background:var(--paper-raised);filter:brightness(0.98);}
 
 /* ---------- tab bar ---------- */
-/* position:fixed sull'intero schermo (non absolute dentro .app-viewport): qualunque
-   altezza risulti avere .app-shell/.app-viewport in una data modalità, la tab bar resta
-   comunque incollata al vero bordo inferiore del dispositivo. Elimina il gap alla radice
-   invece di dipendere dal calcolo dell'altezza del contenitore, che si è dimostrato
-   inaffidabile da icona installata in entrambe le direzioni (troppo basso o troppo alto). */
+/* Niente position:fixed: dopo che sia l'ancoraggio diretto alla viewport sia il portale
+   in document.body si sono dimostrati inaffidabili su certi device/versioni di iOS in
+   modalità standalone (gap sotto la barra di dimensione variabile, mai riproducibile in
+   simulazione), la tab bar è tornata un elemento normale del flusso — l'ultimo figlio del
+   flex-column .app-viewport in App.jsx. Qualunque sia l'altezza reale calcolata per
+   .app-viewport, la barra è "l'ultimo pezzo" e resta incollata al fondo per costruzione,
+   senza bisogno di nessun calcolo di viewport separato. */
 .tabbar{
-  position:fixed;left:50%;bottom:0;width:100%;max-width:480px;transform:translateX(-50%);
+  flex-shrink:0;
   display:flex;align-items:flex-end;justify-content:space-around;
   padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 14px);
   background:color-mix(in srgb, var(--paper-raised) 82%, transparent);
   backdrop-filter:blur(14px);
   border-top:1px solid var(--line);
-  z-index:10;
 }
 .tab{
   all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;

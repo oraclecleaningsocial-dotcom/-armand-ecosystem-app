@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
 import TabBar from './components/TabBar'
 import Home from './screens/Home'
 import Search from './screens/Search'
@@ -113,16 +112,17 @@ export default function App() {
         {screen === 'products' && <Products onClose={() => setScreen(tab)} />}
 
         {toast && <div className="toast">{toast}</div>}
-      </div>
 
-      {/* Safari, su alcune versioni, taglia un discendente position:fixed all'altezza
-          del più vicino antenato con overflow:hidden invece di lasciarlo libero fino al
-          vero bordo dello schermo come da specifica — sintomo osservato: la tab bar
-          tagliata a metà invece di essere incollata in fondo. Un portale la rende figlia
-          diretta di <body>, fuori da .app-shell/.app-viewport (entrambi overflow:hidden),
-          eliminando il contenitore che la tagliava. */}
-      {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) &&
-        createPortal(<TabBar active={tab} onNavigate={navigate} />, document.body)}
+        {/* Niente più position:fixed qui (prima direttamente, poi anche via portale in
+            document.body): su alcuni device/versioni di iOS in modalità standalone quella
+            tecnica non si è dimostrata affidabile, con un gap sotto la barra di dimensione
+            variabile che nessun aggiustamento ha risolto in modo definitivo. Come ultimo
+            figlio del flex-column .app-viewport, la tab bar segue il flusso normale del
+            layout: qualunque sia l'altezza reale di .app-viewport, lei è semplicemente
+            "l'ultimo pezzo", incollata al fondo per costruzione, senza calcoli di viewport. */}
+        {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) &&
+          <TabBar active={tab} onNavigate={navigate} />}
+      </div>
     </div>
   )
 }
