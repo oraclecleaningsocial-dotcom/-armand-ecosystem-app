@@ -1,5 +1,5 @@
 import { isQuotaError, reportStorageError } from './storageAlert'
-import { idbGet, idbSet } from './idb'
+import { idbSet, useIdbState } from './idb'
 
 const PIN_KEY = 'scontrino_facile_vault_pin'
 const LEGACY_KEY = 'scontrino_facile_vault' // vecchio formato unico: { pinHash, documents }
@@ -41,31 +41,10 @@ function savePinHash(hash) {
   }
 }
 
-export async function loadVaultDocuments() {
-  try {
-    const fromIdb = await idbGet(IDB_DOCS_KEY)
-    if (fromIdb) return fromIdb
-  } catch {
-    // IndexedDB non disponibile: si prova comunque la migrazione da localStorage sotto.
-  }
-  try {
-    const legacyRaw = localStorage.getItem(LEGACY_KEY)
-    if (legacyRaw) {
-      const legacy = JSON.parse(legacyRaw)
-      if (legacy.documents?.length) {
-        idbSet(IDB_DOCS_KEY, legacy.documents).catch(() => {})
-        return legacy.documents
-      }
-    }
-  } catch {
-    // dato corrotto o storage non disponibile
-  }
-  return []
-}
-
-export function saveVaultDocuments(documents) {
-  idbSet(IDB_DOCS_KEY, documents).catch((err) => {
-    if (isQuotaError(err)) reportStorageError()
+export function useVaultDocuments() {
+  return useIdbState(IDB_DOCS_KEY, [], {
+    legacyKey: LEGACY_KEY,
+    migrateLegacy: (legacy) => (legacy.documents?.length ? legacy.documents : null),
   })
 }
 
@@ -99,8 +78,19 @@ export async function changeVaultPin(currentPin, newPin) {
 }
 
 // Cancella codice e tutti i documenti. Distruttivo per design: va usato solo dopo
-// conferma esplicita dell'utente (es. "codice dimenticato").
+// conferma esplicita dell'utente (es. "codice dimenticato"). Rimuove anche il vecchio
+// formato unico su localStorage: altrimenti, se il salvataggio della lista vuota su
+// IndexedDB fallisse (spazio esaurito, IndexedDB non disponibile), la successiva lettura
+// ripescherebbe i documenti "cancellati" dalla migrazione dal formato legacy, vanificando
+// il reset.
 export function resetVault() {
   savePinHash(null)
-  saveVaultDocuments([])
+  idbSet(IDB_DOCS_KEY, []).catch((err) => {
+    if (isQuotaError(err)) reportStorageError()
+  })
+  try {
+    localStorage.removeItem(LEGACY_KEY)
+  } catch {
+    // storage non disponibile: niente da rimuovere in pratica
+  }
 }

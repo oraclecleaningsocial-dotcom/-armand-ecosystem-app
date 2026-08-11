@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { idbGet, idbSet } from './utils/idb'
-import { isQuotaError, reportStorageError } from './utils/storageAlert'
+import { useCallback } from 'react'
+import { useIdbState } from './utils/idb'
 
 const IDB_KEY = 'todos'
 
@@ -8,38 +7,8 @@ function createId() {
   return `todo_${Date.now()}_${Math.floor(Math.random() * 10000)}`
 }
 
-async function loadTodos() {
-  try {
-    const fromIdb = await idbGet(IDB_KEY)
-    if (fromIdb) return fromIdb
-  } catch {
-    // IndexedDB non disponibile: si riparte da una lista vuota
-  }
-  return []
-}
-
-function saveTodos(todos) {
-  idbSet(IDB_KEY, todos).catch((err) => {
-    if (isQuotaError(err)) reportStorageError()
-  })
-}
-
 export function useTodos() {
-  const [todos, setTodos] = useState([])
-
-  useEffect(() => {
-    let cancelled = false
-    loadTodos().then((loaded) => { if (!cancelled) setTodos(loaded) })
-    return () => { cancelled = true }
-  }, [])
-
-  const update = useCallback((updater) => {
-    setTodos((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater
-      saveTodos(next)
-      return next
-    })
-  }, [])
+  const [todos, update] = useIdbState(IDB_KEY, [])
 
   const addTodo = useCallback((text) => {
     const todo = { id: createId(), text, done: false, createdAt: new Date().toISOString() }

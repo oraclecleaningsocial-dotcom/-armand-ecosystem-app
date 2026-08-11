@@ -1,5 +1,4 @@
-import { isQuotaError, reportStorageError } from './storageAlert'
-import { idbGet, idbSet } from './idb'
+import { useIdbState } from './idb'
 
 const STORAGE_KEY = 'scontrino_facile_products'
 const IDB_KEY = 'products'
@@ -7,30 +6,8 @@ const IDB_KEY = 'products'
 // IndexedDB invece di localStorage (stesso motivo di state.js/idb.js: le immagini dei
 // prodotti da Open Food Facts si accumulano nel tempo), con migrazione una tantum di
 // eventuali prodotti ancora nel vecchio localStorage.
-export async function loadAllProducts() {
-  try {
-    const fromIdb = await idbGet(IDB_KEY)
-    if (fromIdb) return fromIdb
-  } catch {
-    // IndexedDB non disponibile: si prova comunque la migrazione da localStorage sotto.
-  }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const migrated = JSON.parse(raw)
-      idbSet(IDB_KEY, migrated).catch(() => {})
-      return migrated
-    }
-  } catch {
-    // dato corrotto o storage non disponibile: si riparte da una lista vuota
-  }
-  return []
-}
-
-export function saveAllProducts(products) {
-  idbSet(IDB_KEY, products).catch((err) => {
-    if (isQuotaError(err)) reportStorageError()
-  })
+export function useProducts() {
+  return useIdbState(IDB_KEY, [], { legacyKey: STORAGE_KEY })
 }
 
 // Cerca il prodotto su Open Food Facts tramite codice a barre (EAN/UPC): è un database

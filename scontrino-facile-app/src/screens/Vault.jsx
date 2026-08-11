@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { loadVaultDocuments, saveVaultDocuments } from '../utils/vault'
+import { useVaultDocuments } from '../utils/vault'
 import { formatDate } from '../utils/format'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 import { compressImage } from '../utils/compressImage'
@@ -30,7 +30,7 @@ function dataUrlToFile(dataUrl, fileName, mime) {
 }
 
 export default function Vault({ onClose }) {
-  const [documents, setDocuments] = useState([])
+  const [documents, updateDocs] = useVaultDocuments()
   const [label, setLabel] = useState('')
   const [type, setType] = useState('cv')
   const [busy, setBusy] = useState(false)
@@ -39,24 +39,6 @@ export default function Vault({ onClose }) {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState('')
   const fileRef = useRef(null)
-
-  useEffect(() => {
-    let cancelled = false
-    loadVaultDocuments().then((docs) => { if (!cancelled) setDocuments(docs) })
-    return () => { cancelled = true }
-  }, [])
-
-  // Salva dentro la stessa chiamata che aggiorna lo stato React (vedi state.js per la
-  // spiegazione completa), invece di ricaricare e risalvare l'intero elenco ad ogni
-  // mutazione — più sicuro (niente rischio di sovrascrivere un salvataggio concorrente
-  // con dati ormai vecchi) e più semplice.
-  const updateDocs = useCallback((updater) => {
-    setDocuments((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater
-      saveVaultDocuments(next)
-      return next
-    })
-  }, [])
 
   // Il visore PDF nativo dentro un <iframe> apriva a uno zoom fisso e scomodo su iOS in
   // standalone, senza modo affidabile di fare pinch-to-zoom-out per vedere tutta la

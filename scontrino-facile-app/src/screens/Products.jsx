@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { loadAllProducts, lookupBarcode, NOVA_LABELS, saveAllProducts } from '../utils/products'
+import { lookupBarcode, NOVA_LABELS, useProducts } from '../utils/products'
 import { eur } from '../utils/format'
 
 const SCORE_COLORS = { A: '#2f9e5e', B: '#7fb52f', C: '#e0a72e', D: '#e07a2e', E: '#d94f4f' }
@@ -54,7 +54,7 @@ function useBarcodeScanner(onDetected) {
 }
 
 export default function Products({ onClose }) {
-  const [products, setProducts] = useState([])
+  const [products, updateProducts] = useProducts()
   const [barcode, setBarcode] = useState('')
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState('')
@@ -62,23 +62,6 @@ export default function Products({ onClose }) {
   const [price, setPrice] = useState('')
   const [viewing, setViewing] = useState(null)
   const scanInputRef = useRef(null)
-
-  useEffect(() => {
-    let cancelled = false
-    loadAllProducts().then((loaded) => { if (!cancelled) setProducts(loaded) })
-    return () => { cancelled = true }
-  }, [])
-
-  // Salva dentro la stessa chiamata che aggiorna lo stato React (vedi state.js per la
-  // spiegazione completa), invece di ricaricare e risalvare l'intero elenco ad ogni
-  // mutazione.
-  const updateProducts = useCallback((updater) => {
-    setProducts((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater
-      saveAllProducts(next)
-      return next
-    })
-  }, [])
 
   async function runSearch(code) {
     if (!code.trim()) return
