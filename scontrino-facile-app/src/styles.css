@@ -54,6 +54,12 @@ button{cursor:pointer;}
   background:var(--paper);
   overflow:hidden;
 }
+/* Confermato con screenshot: anche position:fixed+inset:0 lascia un vuoto sotto la tab
+   bar quando l'app è aperta da icona sulla Home — solo lì, mai in Safari normale (tab).
+   --standalone-height (main.jsx) usa window.screen.height, la dimensione fisica reale
+   dello schermo che il sistema non può sbagliare, invece di una qualunque misura di
+   "area visibile" che il motore deduce (e che finora, solo in standalone, sbagliava). */
+.is-standalone .app-shell{height:var(--standalone-height, 100dvh);}
 .app-viewport{
   width:100%;
   max-width:480px;
