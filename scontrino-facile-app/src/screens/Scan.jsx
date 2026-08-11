@@ -58,6 +58,13 @@ export default function Scan({ categorize, onSave, onCancel }) {
     onSave({ ...draft, imageDataUrl, sourceType })
   }
 
+  function addManually() {
+    setSourceType('manuale')
+    setImageDataUrl(null)
+    setDraft({ merchant: '', date: toLocalDateKey(), total: 0, totalSource: 'manualOverride', items: [], address: '', phone: '', vat: '', ocrRawText: '', category: 'altro', note: '' })
+    setStep('review')
+  }
+
   if (step === 'review' && draft) {
     return (
       <div className="screen">
@@ -68,16 +75,18 @@ export default function Scan({ categorize, onSave, onCancel }) {
         <div className="pad">
           {notice && <p className="notice">{notice}</p>}
 
-          <div className="thumb-strip">
-            {imageDataUrl ? <img src={imageDataUrl} alt={sourceType === 'screenshot' ? 'Screenshot del pagamento' : 'Scontrino scansionato'} /> : <div className="thumb-strip-empty" />}
-          </div>
+          {sourceType !== 'manuale' && (
+            <div className="thumb-strip">
+              {imageDataUrl ? <img src={imageDataUrl} alt={sourceType === 'screenshot' ? 'Screenshot del pagamento' : 'Scontrino scansionato'} /> : <div className="thumb-strip-empty" />}
+            </div>
+          )}
 
           <label className="field">
             <span>{sourceType === 'screenshot' ? 'Beneficiario' : 'Negozio'}</span>
-            <input value={draft.merchant} onChange={(e) => setDraft({ ...draft, merchant: e.target.value })} />
+            <input value={draft.merchant} onChange={(e) => setDraft({ ...draft, merchant: e.target.value })} placeholder={sourceType === 'manuale' ? 'Es. Negozio, persona, servizio…' : undefined} />
           </label>
 
-          {sourceType !== 'screenshot' && (
+          {sourceType === 'foto' && (
             <>
               <label className="field">
                 <span><Icon name="MapPin" size={13} /> Indirizzo <em>(letto dallo scontrino)</em></span>
@@ -109,7 +118,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
           </label>
 
           <label className="field">
-            <span>Categoria <em>(suggerita)</em></span>
+            <span>Categoria{sourceType !== 'manuale' && <em> (suggerita)</em>}</span>
             <select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
               {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
@@ -165,6 +174,9 @@ export default function Scan({ categorize, onSave, onCancel }) {
           <Icon name="Image" size={15} /> Carica screenshot di un pagamento
           <input ref={galleryRef} type="file" accept="image/*" onChange={(e) => handleFile(e, 'screenshot')} disabled={step === 'processing'} hidden />
         </label>
+        <button className="cam-gallery" onClick={addManually} disabled={step === 'processing'}>
+          <Icon name="Pencil" size={15} /> Aggiungi manualmente
+        </button>
       </div>
     </div>
   )
