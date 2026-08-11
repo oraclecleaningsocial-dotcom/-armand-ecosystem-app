@@ -16,8 +16,8 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
     <div className="screen">
       <div className="pad">
         <div className="hero-card">
-          <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Calcolatrice">
-            <Icon name="Calculator" size={18} />
+          <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Apri calcolatrice">
+            <Icon name="Calculator" size={15} /> Calcolatrice
           </button>
           <p className="greet">Ciao 👋</p>
           <h1 className="hero-total">{eur(current)}</h1>

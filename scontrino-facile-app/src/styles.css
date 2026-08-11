@@ -38,6 +38,7 @@ button{cursor:pointer;}
 
 .app-shell{
   height:100dvh;
+  height:var(--app-height,100dvh);
   display:flex;
   justify-content:center;
   background:var(--paper);
@@ -47,6 +48,7 @@ button{cursor:pointer;}
   width:100%;
   max-width:480px;
   height:100dvh;
+  height:var(--app-height,100dvh);
   background:var(--paper);
   position:relative;
   display:flex;
@@ -59,6 +61,10 @@ button{cursor:pointer;}
   flex:1;display:flex;flex-direction:column;padding-bottom:104px;animation:fadein .22s ease;
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
 }
+/* I contenuti diretti di .screen non devono restringersi: senza questo, in flexbox
+   la mancanza di spazio comprime le sezioni (icone, card) invece di attivare lo
+   scroll interno — sintomo osservato: pagina "bloccata" e icone tagliate. */
+.screen > *{flex-shrink:0;}
 .cam-screen{padding-bottom:0;overflow-y:hidden;}
 @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 @media (prefers-reduced-motion: reduce){.screen{animation:none;}}
@@ -91,8 +97,9 @@ button{cursor:pointer;}
 }
 .hero-icon-btn{
   all:unset;cursor:pointer;position:absolute;top:20px;right:20px;z-index:1;
-  width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.16);color:#fff;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;gap:6px;
+  padding:8px 13px 8px 10px;border-radius:99px;background:rgba(255,255,255,0.16);color:#fff;
+  font-size:11.5px;font-weight:650;white-space:nowrap;
 }
 .hero-card::after{
   content:"";position:absolute;right:-34px;bottom:-46px;width:150px;height:150px;
@@ -192,6 +199,9 @@ button{cursor:pointer;}
 .view-toggle button.is-active{background:var(--ink);color:var(--paper);}
 
 .cal{padding:4px 20px 8px;}
+.cal-modes{display:flex;gap:2px;background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:10px;}
+.cal-mode{all:unset;cursor:pointer;flex:1;box-sizing:border-box;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;font-weight:650;color:var(--ink-soft);}
+.cal-mode.is-active{background:var(--ink);color:var(--paper);}
 .cal-nav{display:flex;align-items:center;justify-content:space-between;padding:6px 0 10px;}
 .cal-arrow{all:unset;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
 .cal-arrow:hover{background:var(--paper-raised);}
@@ -212,6 +222,20 @@ button{cursor:pointer;}
 .cal-day-panel{margin-top:18px;}
 .cal-day-panel .list{margin:0 -20px;}
 .cal-day-total{font-family:var(--f-mono);font-weight:650;color:var(--ink-soft);text-transform:none;letter-spacing:0;}
+
+.cal-year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:4px;}
+.cal-year-cell{
+  all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  padding:16px 6px;border-radius:14px;background:var(--paper-raised);border:1px solid var(--line);
+}
+.cal-year-cell.has-data{background:var(--accent-soft);border-color:transparent;}
+.cal-year-month{font-size:13px;font-weight:700;text-transform:capitalize;color:var(--ink);}
+.cal-year-total{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-soft);}
+.cal-year-cell.has-data .cal-year-total{color:var(--accent-strong);font-weight:650;}
+
+.cal-screen-head{display:flex;align-items:center;justify-content:space-between;}
+.cal-search-btn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--paper-raised);color:var(--ink);}
+.range-search .field-row{margin-top:16px;}
 
 .chips{display:flex;gap:8px;padding:14px 20px 4px;flex-wrap:wrap;}
 .chip{
