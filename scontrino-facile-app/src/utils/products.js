@@ -1,49 +1,36 @@
 import { isQuotaError, reportStorageError } from './storageAlert'
+import { idbGet, idbSet } from './idb'
 
 const STORAGE_KEY = 'scontrino_facile_products'
+const IDB_KEY = 'products'
 
-function loadProducts() {
+// IndexedDB invece di localStorage (stesso motivo di state.js/idb.js: le immagini dei
+// prodotti da Open Food Facts si accumulano nel tempo), con migrazione una tantum di
+// eventuali prodotti ancora nel vecchio localStorage.
+export async function loadAllProducts() {
+  try {
+    const fromIdb = await idbGet(IDB_KEY)
+    if (fromIdb) return fromIdb
+  } catch {
+    // IndexedDB non disponibile: si prova comunque la migrazione da localStorage sotto.
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const migrated = JSON.parse(raw)
+      idbSet(IDB_KEY, migrated).catch(() => {})
+      return migrated
+    }
   } catch {
     // dato corrotto o storage non disponibile: si riparte da una lista vuota
   }
   return []
 }
 
-function saveProducts(products) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products))
-  } catch (err) {
+export function saveAllProducts(products) {
+  idbSet(IDB_KEY, products).catch((err) => {
     if (isQuotaError(err)) reportStorageError()
-  }
-}
-
-export function getProducts() {
-  return loadProducts()
-}
-
-export function addProduct(product) {
-  const products = loadProducts()
-  const entry = {
-    id: `prod_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-    ...product,
-    createdAt: new Date().toISOString(),
-  }
-  saveProducts([entry, ...products])
-  return entry
-}
-
-export function updateProduct(id, patch) {
-  const products = loadProducts()
-  const next = products.map((p) => (p.id === id ? { ...p, ...patch } : p))
-  saveProducts(next)
-  return next.find((p) => p.id === id)
-}
-
-export function deleteProduct(id) {
-  saveProducts(loadProducts().filter((p) => p.id !== id))
+  })
 }
 
 // Cerca il prodotto su Open Food Facts tramite codice a barre (EAN/UPC): è un database

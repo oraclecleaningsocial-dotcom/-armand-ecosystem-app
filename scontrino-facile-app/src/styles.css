@@ -276,6 +276,10 @@ button{cursor:pointer;}
 .cal-cell.is-selected{background:var(--ink);color:var(--paper);}
 .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--accent-strong);}
 .cal-cell.is-selected .cal-dot{background:var(--paper);}
+/* Il colore rosso nel numero del giorno festivo è una convenzione da calendario cartaceo
+   riconoscibile a colpo d'occhio, in più al pallino nella riga sotto. */
+.cal-cell.is-holiday .cal-daynum{color:#e0546b;}
+.cal-cell.is-selected.is-holiday .cal-daynum{color:#ff8fa3;}
 /* Niente altezza massima né overflow proprio qui: un riquadro con scroll indipendente
    annidato dentro lo scroll della pagina (.screen) è esattamente il tipo di doppia
    regione scrollabile che Safari su iOS può non gestire bene, soprattutto dentro la
@@ -628,6 +632,8 @@ button{cursor:pointer;}
 .cal-dot.reminder{background:var(--hero-1);}
 .cal-dot.fiscal{background:#e0a72e;}
 .reminder-row.fiscal{background:rgba(224,167,46,0.14);color:#e0a72e;font-weight:650;}
+.cal-dot.holiday{background:#e0546b;}
+.reminder-row.holiday{background:rgba(224,84,107,0.14);color:#e0546b;font-weight:650;}
 .reminders-label{display:flex;align-items:center;gap:5px;margin-top:18px;}
 .reminder-list{display:flex;flex-direction:column;gap:6px;}
 .reminder-row{
@@ -666,6 +672,32 @@ button{cursor:pointer;}
 .widget-card{padding:16px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);}
 .widget-title{font-weight:650;font-size:13.5px;margin:0 0 12px;}
 .widget-hint{font-size:11px;color:var(--ink-soft);margin:10px 0 0;line-height:1.4;}
+
+/* ---------- note (griglia da bigliettini adesivi) ---------- */
+.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.sticky-note{
+  position:relative;border-radius:10px;padding:12px 10px;min-height:76px;
+  color:#2b2717;font-size:12.5px;font-weight:600;line-height:1.35;
+  box-shadow:0 10px 18px -12px rgba(0,0,0,.5);
+}
+.sticky-note p{margin:0;padding-right:18px;word-break:break-word;white-space:pre-wrap;}
+.sticky-note-del{
+  all:unset;cursor:pointer;position:absolute;top:6px;right:6px;
+  width:18px;height:18px;border-radius:50%;color:#2b2717;opacity:.5;
+  display:flex;align-items:center;justify-content:center;transition:opacity .12s ease;
+}
+.sticky-note-del:active{opacity:1;}
+
+/* ---------- to-do ---------- */
+.todo-list{display:flex;flex-direction:column;margin-top:10px;}
+.todo-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);}
+.todo-row:last-child{border-bottom:none;}
+.todo-check{all:unset;cursor:pointer;color:var(--ink-soft);display:flex;flex:none;}
+.todo-row.is-done .todo-check{color:var(--accent-strong);}
+.todo-row span{flex:1;min-width:0;font-size:13.5px;word-break:break-word;}
+.todo-row.is-done span{color:var(--ink-soft);text-decoration:line-through;}
+.todo-del{all:unset;cursor:pointer;color:var(--ink-soft);opacity:.6;display:flex;flex:none;}
+.todo-del:active{opacity:1;}
 
 .currency-row{display:flex;align-items:center;gap:8px;}
 .currency-amount{

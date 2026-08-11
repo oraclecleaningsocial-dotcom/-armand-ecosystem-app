@@ -1,26 +1,72 @@
 import { isQuotaError, reportStorageError } from './storageAlert'
+import { idbGet, idbSet } from './idb'
 
-const STORAGE_KEY = 'scontrino_facile_vault'
+const PIN_KEY = 'scontrino_facile_vault_pin'
+const LEGACY_KEY = 'scontrino_facile_vault' // vecchio formato unico: { pinHash, documents }
+const IDB_DOCS_KEY = 'vault_documents'
 
-function loadVault() {
+// Il codice PIN resta su localStorage: è un valore minuscolo (una stringa hash), e
+// tenerlo lì permette a isVaultSetUp() di restare una lettura sincrona istantanea, come
+// serve nello useState iniziale di VaultLock.jsx. I documenti invece (spesso PDF/immagini
+// pesanti) vanno su IndexedDB — stesso motivo di state.js/idb.js, e sono la parte che
+// riempie davvero lo spazio.
+function loadPinHash() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(PIN_KEY)
     if (raw) return JSON.parse(raw)
   } catch {
-    // dato corrotto o storage non disponibile: si riparte da un vault vuoto
+    // dato corrotto o storage non disponibile
   }
-  return { pinHash: null, documents: [] }
+  // Migrazione dal vecchio formato unico, se presente.
+  try {
+    const legacyRaw = localStorage.getItem(LEGACY_KEY)
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw)
+      if (legacy.pinHash) {
+        localStorage.setItem(PIN_KEY, JSON.stringify(legacy.pinHash))
+        return legacy.pinHash
+      }
+    }
+  } catch {
+    // dato corrotto o storage non disponibile
+  }
+  return null
 }
 
-function saveVault(vault) {
+function savePinHash(hash) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(vault))
+    localStorage.setItem(PIN_KEY, JSON.stringify(hash))
   } catch (err) {
-    // storage pieno o non disponibile: la sessione continua solo in memoria. I documenti
-    // (PDF/immagini) sono ciò che più facilmente esaurisce lo spazio, quindi qui l'avviso
-    // conta particolarmente.
     if (isQuotaError(err)) reportStorageError()
   }
+}
+
+export async function loadVaultDocuments() {
+  try {
+    const fromIdb = await idbGet(IDB_DOCS_KEY)
+    if (fromIdb) return fromIdb
+  } catch {
+    // IndexedDB non disponibile: si prova comunque la migrazione da localStorage sotto.
+  }
+  try {
+    const legacyRaw = localStorage.getItem(LEGACY_KEY)
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw)
+      if (legacy.documents?.length) {
+        idbSet(IDB_DOCS_KEY, legacy.documents).catch(() => {})
+        return legacy.documents
+      }
+    }
+  } catch {
+    // dato corrotto o storage non disponibile
+  }
+  return []
+}
+
+export function saveVaultDocuments(documents) {
+  idbSet(IDB_DOCS_KEY, documents).catch((err) => {
+    if (isQuotaError(err)) reportStorageError()
+  })
 }
 
 async function hashPin(pin) {
@@ -30,19 +76,17 @@ async function hashPin(pin) {
 }
 
 export function isVaultSetUp() {
-  return !!loadVault().pinHash
+  return !!loadPinHash()
 }
 
 export async function setupVaultPin(pin) {
-  const vault = loadVault()
-  vault.pinHash = await hashPin(pin)
-  saveVault(vault)
+  savePinHash(await hashPin(pin))
 }
 
 export async function verifyVaultPin(pin) {
-  const vault = loadVault()
-  if (!vault.pinHash) return false
-  return (await hashPin(pin)) === vault.pinHash
+  const hash = loadPinHash()
+  if (!hash) return false
+  return (await hashPin(pin)) === hash
 }
 
 // Cambia il codice solo dopo aver verificato quello attuale. Restituisce false (senza
@@ -54,37 +98,9 @@ export async function changeVaultPin(currentPin, newPin) {
   return true
 }
 
-export function getDocuments() {
-  return loadVault().documents
-}
-
-export function addDocument(doc) {
-  const vault = loadVault()
-  const document = {
-    id: `doc_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-    ...doc,
-    createdAt: new Date().toISOString(),
-  }
-  vault.documents = [document, ...vault.documents]
-  saveVault(vault)
-  return document
-}
-
-export function updateDocument(id, patch) {
-  const vault = loadVault()
-  vault.documents = vault.documents.map((d) => (d.id === id ? { ...d, ...patch } : d))
-  saveVault(vault)
-  return vault.documents.find((d) => d.id === id)
-}
-
-export function deleteDocument(id) {
-  const vault = loadVault()
-  vault.documents = vault.documents.filter((d) => d.id !== id)
-  saveVault(vault)
-}
-
 // Cancella codice e tutti i documenti. Distruttivo per design: va usato solo dopo
 // conferma esplicita dell'utente (es. "codice dimenticato").
 export function resetVault() {
-  saveVault({ pinHash: null, documents: [] })
+  savePinHash(null)
+  saveVaultDocuments([])
 }

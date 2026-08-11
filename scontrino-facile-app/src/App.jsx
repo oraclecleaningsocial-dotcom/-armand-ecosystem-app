@@ -15,6 +15,7 @@ import Products from './screens/Products'
 import { useReceipts } from './state'
 import { useReminders } from './reminders'
 import { useNotes } from './notes'
+import { useTodos } from './todos'
 import { isLockEnabled } from './utils/auth'
 import { onStorageError } from './utils/storageAlert'
 
@@ -23,6 +24,7 @@ export default function App() {
   const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
   const { reminders, addReminder, deleteReminder } = useReminders()
   const { notes, addNote, deleteNote } = useNotes()
+  const { todos, addTodo, toggleTodo, deleteTodo } = useTodos()
   const [tab, setTab] = useState('home')
   const [screen, setScreen] = useState('home')
   const [detailId, setDetailId] = useState(null)
@@ -110,6 +112,10 @@ export default function App() {
             notes={notes}
             onAddNote={addNote}
             onDeleteNote={deleteNote}
+            todos={todos}
+            onAddTodo={addTodo}
+            onToggleTodo={toggleTodo}
+            onDeleteTodo={deleteTodo}
           />
         )}
         {screen === 'detail' && (

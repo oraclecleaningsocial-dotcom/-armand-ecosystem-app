@@ -7,10 +7,13 @@ import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import CurrencyWidget from '../components/CurrencyWidget'
 import NotesWidget from '../components/NotesWidget'
+import TodoWidget from '../components/TodoWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
 
-export default function Dashboard({ receipts, onNavigate, onOpen, notes, onAddNote, onDeleteNote }) {
+export default function Dashboard({
+  receipts, onNavigate, onOpen, notes, onAddNote, onDeleteNote, todos, onAddTodo, onToggleTodo, onDeleteTodo,
+}) {
   const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
@@ -165,6 +168,7 @@ export default function Dashboard({ receipts, onNavigate, onOpen, notes, onAddNo
 
       <div className="pad widgets-block">
         <p className="sect-label"><Icon name="LayoutGrid" size={13} /> Widget</p>
+        <TodoWidget todos={todos} onAddTodo={onAddTodo} onToggleTodo={onToggleTodo} onDeleteTodo={onDeleteTodo} />
         <NotesWidget notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />
         <CurrencyWidget />
       </div>

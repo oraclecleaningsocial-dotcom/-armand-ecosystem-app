@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Icon from '../components/Icon'
-import { addDocument, deleteDocument, getDocuments, updateDocument } from '../utils/vault'
+import { loadVaultDocuments, saveVaultDocuments } from '../utils/vault'
 import { formatDate } from '../utils/format'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 import { compressImage } from '../utils/compressImage'
@@ -30,7 +30,7 @@ function dataUrlToFile(dataUrl, fileName, mime) {
 }
 
 export default function Vault({ onClose }) {
-  const [documents, setDocuments] = useState(getDocuments)
+  const [documents, setDocuments] = useState([])
   const [label, setLabel] = useState('')
   const [type, setType] = useState('cv')
   const [busy, setBusy] = useState(false)
@@ -39,6 +39,24 @@ export default function Vault({ onClose }) {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState('')
   const fileRef = useRef(null)
+
+  useEffect(() => {
+    let cancelled = false
+    loadVaultDocuments().then((docs) => { if (!cancelled) setDocuments(docs) })
+    return () => { cancelled = true }
+  }, [])
+
+  // Salva dentro la stessa chiamata che aggiorna lo stato React (vedi state.js per la
+  // spiegazione completa), invece di ricaricare e risalvare l'intero elenco ad ogni
+  // mutazione — più sicuro (niente rischio di sovrascrivere un salvataggio concorrente
+  // con dati ormai vecchi) e più semplice.
+  const updateDocs = useCallback((updater) => {
+    setDocuments((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      saveVaultDocuments(next)
+      return next
+    })
+  }, [])
 
   // Il visore PDF nativo dentro un <iframe> apriva a uno zoom fisso e scomodo su iOS in
   // standalone, senza modo affidabile di fare pinch-to-zoom-out per vedere tutta la
@@ -75,14 +93,16 @@ export default function Vault({ onClose }) {
       // Il nome originale può avere un'estensione diversa (.png, .heic) da quella reale
       // del contenuto ricompresso in JPEG — la teniamo coerente per download/condivisione.
       const fileName = isImage ? file.name.replace(/\.\w+$/, '') + '.jpg' : file.name
-      const doc = addDocument({
+      const doc = {
+        id: `doc_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
         label: label.trim() || DOC_TYPES.find((t) => t.id === type)?.label || 'Documento',
         type,
         fileName,
         fileMime: isImage ? 'image/jpeg' : file.type,
         fileDataUrl,
-      })
-      setDocuments((prev) => [doc, ...prev])
+        createdAt: new Date().toISOString(),
+      }
+      updateDocs((prev) => [doc, ...prev])
       setLabel('')
 
       // Un'anteprima vera della prima pagina invece della sola icona generica — solo per
@@ -92,8 +112,7 @@ export default function Vault({ onClose }) {
       if (file.type === 'application/pdf') {
         try {
           const thumbnailDataUrl = await generatePdfThumbnail(fileDataUrl)
-          const updated = updateDocument(doc.id, { thumbnailDataUrl })
-          setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)))
+          updateDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, thumbnailDataUrl } : d)))
         } catch {
           // niente anteprima: la card resta con l'icona generica, non è un errore bloccante
         }
@@ -105,8 +124,7 @@ export default function Vault({ onClose }) {
 
   function handleDelete(id) {
     if (!window.confirm('Eliminare questo documento?')) return
-    deleteDocument(id)
-    setDocuments((prev) => prev.filter((d) => d.id !== id))
+    updateDocs((prev) => prev.filter((d) => d.id !== id))
     if (viewing?.id === id) setViewing(null)
   }
 

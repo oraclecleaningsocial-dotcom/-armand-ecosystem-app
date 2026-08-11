@@ -3,6 +3,7 @@ import Icon from './Icon'
 import ReceiptRow from './ReceiptRow'
 import { eur, fromLocalDateKey, toLocalDateKey } from '../utils/format'
 import { getDeadlinesForYear } from '../fiscalDeadlines'
+import { getHolidaysForYear } from '../italianHolidays'
 
 const WEEKDAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 const MONTHS_SHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
@@ -75,6 +76,16 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
     return map
   }, [cursor])
 
+  const holidayByDay = useMemo(() => {
+    const map = new Map()
+    for (const h of getHolidaysForYear(cursor.getFullYear())) {
+      const list = map.get(h.date) || []
+      list.push(h)
+      map.set(h.date, list)
+    }
+    return map
+  }, [cursor])
+
   const monthCells = useMemo(() => {
     const year = cursor.getFullYear()
     const month = cursor.getMonth()
@@ -113,6 +124,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
   const selectedReceipts = selected ? (byDay.get(selected) || []) : []
   const selectedReminders = selected ? (remindersByDay.get(selected) || []) : []
   const selectedFiscal = selected ? (fiscalByDay.get(selected) || []) : []
+  const selectedHolidays = selected ? (holidayByDay.get(selected) || []) : []
 
   function changeMonth(delta) {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
@@ -221,10 +233,11 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
               const dayReceipts = byDay.get(key)
               const dayReminders = remindersByDay.get(key)
               const dayFiscal = fiscalByDay.get(key)
+              const dayHoliday = holidayByDay.get(key)
               return (
                 <button
                   key={i}
-                  className={`cal-cell ${key === todayKey ? 'is-today' : ''} ${key === selected ? 'is-selected' : ''} ${dayReceipts ? 'has-data' : ''}`}
+                  className={`cal-cell ${key === todayKey ? 'is-today' : ''} ${key === selected ? 'is-selected' : ''} ${dayReceipts ? 'has-data' : ''} ${dayHoliday ? 'is-holiday' : ''}`}
                   onClick={() => selectDay(key)}
                 >
                   <span className="cal-daynum">{d.getDate()}</span>
@@ -232,6 +245,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
                     {dayReceipts && <span className="cal-dot" />}
                     {dayReminders && <span className="cal-dot reminder" />}
                     {dayFiscal && <span className="cal-dot fiscal" />}
+                    {dayHoliday && <span className="cal-dot holiday" />}
                   </span>
                 </button>
               )
@@ -251,6 +265,19 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
             <div className="list">
               {selectedReceipts.map((r) => <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, from)} />)}
             </div>
+          )}
+
+          {selectedHolidays.length > 0 && (
+            <>
+              <p className="sect-label reminders-label"><Icon name="PartyPopper" size={12} /> Festa</p>
+              <div className="reminder-list">
+                {selectedHolidays.map((h) => (
+                  <div className="reminder-row holiday" key={h.id}>
+                    <span>{h.title}</span>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           {selectedFiscal.length > 0 && (
