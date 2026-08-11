@@ -1,6 +1,7 @@
 import { createWorker } from 'tesseract.js'
 import workerPath from 'tesseract.js/dist/worker.min.js?url'
 import corePath from 'tesseract.js-core/tesseract-core-simd-lstm.wasm.js?url'
+import { toLocalDateKey } from './utils/format'
 
 let workerPromise = null
 
@@ -127,7 +128,10 @@ function toIsoDate(day, month, year) {
   if (y < currentYear - 8 || y > currentYear + 1) return null
   const date = new Date(y, Number(month), Number(day))
   if (Number.isNaN(date.getTime())) return null
-  return date.toISOString().slice(0, 10)
+  // Costruita a mano dai numeri letti sullo scontrino, non da toISOString(): quella
+  // passa per l'UTC e con un fuso avanti (es. Italia) la data letta scivola indietro
+  // di un giorno.
+  return toLocalDateKey(date)
 }
 
 // Estrae negozio/beneficiario, data, totale e voci dal testo grezzo OCR con euristiche su
@@ -268,7 +272,7 @@ export function parseReceiptText(rawText, ocrLines = []) {
 
   return {
     merchant: merchant || 'Esercente sconosciuto',
-    date: date || new Date().toISOString().slice(0, 10),
+    date: date || toLocalDateKey(),
     total,
     totalSource,
     items,

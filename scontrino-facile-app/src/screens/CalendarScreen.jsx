@@ -2,13 +2,11 @@ import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import ReceiptCalendar from '../components/ReceiptCalendar'
 import ReceiptRow from '../components/ReceiptRow'
-import { eur } from '../utils/format'
+import { eur, toLocalDateKey } from '../utils/format'
 import { useReminders } from '../reminders'
 import { useScrollRestore } from '../utils/scrollRestore'
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10)
-}
+const todayIso = toLocalDateKey
 
 export default function CalendarScreen({ receipts, onOpen }) {
   const scrollRef = useScrollRestore('calendar')

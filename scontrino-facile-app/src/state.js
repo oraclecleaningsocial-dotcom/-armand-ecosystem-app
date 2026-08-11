@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { guessCategory, normalizeMerchant } from './categories'
+import { fromLocalDateKey, toLocalDateKey } from './utils/format'
 
 const STORAGE_KEY = 'scontrino_facile_state'
 
@@ -46,7 +47,7 @@ function seedReceipts() {
 function isoDaysAgo(n) {
   const d = new Date()
   d.setDate(d.getDate() - n)
-  return d.toISOString().slice(0, 10)
+  return toLocalDateKey(d)
 }
 
 export function useReceipts() {
@@ -60,7 +61,7 @@ export function useReceipts() {
     const receipt = {
       id: createId(),
       merchant: draft.merchant || 'Esercente sconosciuto',
-      date: draft.date || new Date().toISOString().slice(0, 10),
+      date: draft.date || toLocalDateKey(),
       total: Number(draft.total) || 0,
       totalSource: draft.totalSource || 'manualOverride',
       category: draft.category || 'altro',
@@ -124,7 +125,7 @@ export function useReceipts() {
 
 export function totalsByPeriod(receipts, { year, month }) {
   const inPeriod = receipts.filter((r) => {
-    const d = new Date(r.date)
+    const d = fromLocalDateKey(r.date)
     return d.getFullYear() === year && (month == null || d.getMonth() === month)
   })
   const total = inPeriod.reduce((s, r) => s + r.total, 0)

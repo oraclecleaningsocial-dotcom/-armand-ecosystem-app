@@ -3,6 +3,7 @@ import Icon from '../components/Icon'
 import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 import { changeVaultPin, isVaultSetUp } from '../utils/vault'
+import { toLocalDateKey } from '../utils/format'
 
 export default function Settings({ receipts, merchantCategoryMap, onRestore, onClose }) {
   const [lockOn, setLockOn] = useState(isLockEnabled)
@@ -19,7 +20,7 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
 
   function exportBackup() {
     const json = serializeBackup(receipts, merchantCategoryMap)
-    downloadJson(`scontrinofacile-backup-${new Date().toISOString().slice(0, 10)}.json`, json)
+    downloadJson(`scontrinofacile-backup-${toLocalDateKey()}.json`, json)
   }
 
   async function handleImportFile(e) {

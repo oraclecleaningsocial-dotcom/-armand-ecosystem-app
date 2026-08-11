@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Icon from './Icon'
 import ReceiptRow from './ReceiptRow'
-import { eur } from '../utils/format'
+import { eur, fromLocalDateKey, toLocalDateKey } from '../utils/format'
 import { getDeadlinesForYear } from '../fiscalDeadlines'
 
 const WEEKDAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
@@ -12,9 +12,7 @@ const VIEW_MODES = [
   { id: 'year', label: 'Anno' },
 ]
 
-function toKey(d) {
-  return d.toISOString().slice(0, 10)
-}
+const toKey = toLocalDateKey
 
 function startOfWeek(d) {
   const offset = (d.getDay() + 6) % 7 // lunedì = 0
@@ -95,7 +93,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
       let total = 0
       let count = 0
       for (const r of receipts) {
-        const d = new Date(r.date)
+        const d = fromLocalDateKey(r.date)
         if (d.getFullYear() === year && d.getMonth() === m) { total += r.total; count += 1 }
       }
       return { m, total, count }
@@ -236,7 +234,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
       {selected && (
         <div className="cal-day-panel">
           <p className="sect-label">
-            {new Date(selected).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {fromLocalDateKey(selected).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
             {selectedReceipts.length > 0 && <span className="cal-day-total"> · {eur(selectedReceipts.reduce((s, r) => s + r.total, 0))}</span>}
           </p>
 

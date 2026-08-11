@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { CATEGORIES } from '../categories'
 import { recognizeReceipt } from '../ocr'
-import { eur } from '../utils/format'
+import { eur, toLocalDateKey } from '../utils/format'
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
       setNotice(source === 'screenshot'
         ? 'Non sono riuscito a leggere lo screenshot: compila i campi a mano.'
         : 'Non sono riuscito a leggere lo scontrino: compila i campi a mano.')
-      setDraft({ merchant: '', date: new Date().toISOString().slice(0, 10), total: 0, totalSource: 'manualOverride', items: [], address: '', phone: '', vat: '', ocrRawText: '', category: 'altro', note: '' })
+      setDraft({ merchant: '', date: toLocalDateKey(), total: 0, totalSource: 'manualOverride', items: [], address: '', phone: '', vat: '', ocrRawText: '', category: 'altro', note: '' })
     } finally {
       removeGuard()
     }

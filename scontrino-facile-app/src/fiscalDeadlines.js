@@ -1,3 +1,5 @@
+import { toLocalDateKey } from './utils/format'
+
 // Scadenze fiscali italiane più comuni per una persona fisica. Elenco curato a mano:
 // non esiste una fonte pubblica interrogabile "in tempo reale" da un'app client-only
 // (niente backend, niente scraping affidabile del sito dell'Agenzia delle Entrate),
@@ -65,7 +67,7 @@ export function getUpcomingDeadlines(from = new Date()) {
 }
 
 function isoDate(year, monthIndex, day) {
-  return new Date(year, monthIndex, day).toISOString().slice(0, 10)
+  return toLocalDateKey(new Date(year, monthIndex, day))
 }
 
 // Tutte le occorrenze delle scadenze fiscali in un dato anno solare, come semplici coppie
