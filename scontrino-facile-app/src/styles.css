@@ -39,6 +39,14 @@ input,select,textarea{font-size:16px;}
 button{cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
+/* Feedback tattile minimo su ogni bottone: un leggero rimpicciolimento al tocco. Le classi
+   che usano all:unset (righe liste, card, tool) tolgono "transition" dal proprio stato
+   base, quindi qui sotto viene riaggiunto puntualmente dove serve di più (liste, card,
+   pulsanti principali) così il rientro a fine tocco resta morbido invece che a scatto. */
+@media (prefers-reduced-motion: no-preference){
+  button:active{transform:scale(.96);}
+}
+
 /* Nessun calcolo di altezza qui (100vh/100dvh/100svh/JS/visualViewport/screen.height
    sono tutti stati provati e, da icona installata, hanno sbagliato in una direzione o
    nell'altra). position:fixed+inset:0 ancora la shell ai quattro bordi del viewport senza
@@ -159,6 +167,7 @@ button{cursor:pointer;}
 .quick-cat{
   all:unset;cursor:pointer;flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;
   font-size:10.5px;font-weight:650;color:var(--ink-soft);width:56px;text-align:center;
+  transition:transform .12s ease;
 }
 .quick-cat-ic{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;}
 
@@ -172,9 +181,22 @@ button{cursor:pointer;}
 .row{
   all:unset;cursor:pointer;box-sizing:border-box;
   display:flex;align-items:center;gap:12px;width:100%;padding:11px 20px;
-  transition:background .12s ease;
+  transition:background .12s ease, transform .12s ease;
 }
 .row:hover,.row:focus-visible{background:var(--paper-raised);}
+/* Le righe entrano con un piccolo sfalsamento invece di comparire tutte insieme di
+   scatto — si applica solo al montaggio vero (una entry con la stessa key non la
+   ripete ad ogni render, solo quando la lista compare/cambia davvero). */
+@keyframes rowIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion: no-preference){
+  .list .row{animation:rowIn .32s ease backwards;}
+  .list .row:nth-child(2){animation-delay:.03s;}
+  .list .row:nth-child(3){animation-delay:.06s;}
+  .list .row:nth-child(4){animation-delay:.09s;}
+  .list .row:nth-child(5){animation-delay:.12s;}
+  .list .row:nth-child(6){animation-delay:.15s;}
+  .list .row:nth-child(n+7){animation-delay:.18s;}
+}
 .row-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;}
 .row-mid{flex:1;min-width:0;text-align:left;}
 .row-name{display:block;font-size:14.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -324,7 +346,7 @@ button{cursor:pointer;}
 .export-btn{
   all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;
   margin:26px 20px 0;padding:14px;border-radius:14px;background:var(--ink);color:var(--paper);
-  font-weight:650;font-size:14px;
+  font-weight:650;font-size:14px;transition:transform .12s ease;
 }
 .export-btn:disabled{opacity:.4;cursor:default;}
 
@@ -385,7 +407,7 @@ button{cursor:pointer;}
 .item-qty{color:var(--accent-strong);font-weight:700;}
 .src-line{margin:16px 0 0;font-size:11.5px;color:var(--ink-soft);font-style:italic;}
 .det-actions{display:flex;gap:10px;margin:18px 0 24px;}
-.btn{all:unset;cursor:pointer;flex:1;box-sizing:border-box;text-align:center;padding:12px;border-radius:12px;font-size:13.5px;font-weight:650;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn{all:unset;cursor:pointer;flex:1;box-sizing:border-box;text-align:center;padding:12px;border-radius:12px;font-size:13.5px;font-weight:650;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .12s ease;}
 .btn.danger{color:var(--negative);border-color:var(--negative-soft);}
 
 /* ---------- scan / camera ---------- */
@@ -619,6 +641,7 @@ button{cursor:pointer;}
   all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:8px;
   padding:16px 8px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);
   font-size:11.5px;font-weight:650;color:var(--ink);text-align:center;min-width:0;
+  transition:transform .12s ease;
 }
 .tool-card-ic{
   width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);

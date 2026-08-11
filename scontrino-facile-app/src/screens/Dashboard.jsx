@@ -7,12 +7,14 @@ import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import CurrencyWidget from '../components/CurrencyWidget'
 import RemindersWidget from '../components/RemindersWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
+import { useCountUp } from '../utils/useCountUp'
 
 export default function Dashboard({ receipts, onNavigate, reminders, onDeleteReminder }) {
   const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
+  const animatedTotal = useCountUp(total)
   const trend = useMemo(() => last6MonthsTrend(receipts), [receipts])
   const previous = trend[trend.length - 2]?.total ?? 0
   const up = total >= previous
@@ -46,7 +48,7 @@ export default function Dashboard({ receipts, onNavigate, reminders, onDeleteRem
       </div>
 
       <div className="pad">
-        <h2 className="hero-total sm">{eur(total)}</h2>
+        <h2 className="hero-total sm">{eur(animatedTotal)}</h2>
         {previous > 0 && (
           <span className={`delta ${up ? 'up' : 'down'}`}>
             {up ? '▲' : '▼'} {pct}% rispetto al mese scorso

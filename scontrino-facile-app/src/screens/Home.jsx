@@ -4,11 +4,13 @@ import { CATEGORIES } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend } from '../state'
 import { useScrollRestore } from '../utils/scrollRestore'
+import { useCountUp } from '../utils/useCountUp'
 
 export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
   const scrollRef = useScrollRestore('home')
   const trend = last6MonthsTrend(receipts)
   const current = trend[trend.length - 1].total
+  const animatedCurrent = useCountUp(current)
   const previous = trend[trend.length - 2].total
   const up = current >= previous
   const pct = previous > 0 ? Math.round((Math.abs(current - previous) / previous) * 100) : 0
@@ -22,7 +24,7 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
             <Icon name="Calculator" size={15} /> Calcolatrice
           </button>
           <p className="greet">Ciao 👋</p>
-          <h1 className="hero-total">{eur(current)}</h1>
+          <h1 className="hero-total">{eur(animatedCurrent)}</h1>
           <p className="hero-caption">speso questo mese</p>
           {previous > 0 && (
             <span className={`delta ${up ? 'up' : 'down'}`}>
