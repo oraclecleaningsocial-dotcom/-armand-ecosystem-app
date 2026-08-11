@@ -27,6 +27,11 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
     setEditing(false)
   }
 
+  function cancelEdit() {
+    setDraft(receipt)
+    setEditing(false)
+  }
+
   async function dataUrlToFile(dataUrl, baseName) {
     const res = await fetch(dataUrl)
     const blob = await res.blob()
@@ -63,7 +68,11 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
   return (
     <div className="screen">
       <div className="det-top">
-        <button className="link-btn" onClick={onBack}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+        {editing ? (
+          <button className="link-btn" onClick={cancelEdit}><Icon name="X" size={16} /> Annulla</button>
+        ) : (
+          <button className="link-btn" onClick={onBack}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+        )}
         <button className="link-btn" onClick={() => (editing ? save() : setEditing(true))}>
           {editing ? <>Salva <Icon name="Check" size={15} /></> : <>Modifica <Icon name="Pencil" size={14} /></>}
         </button>
@@ -146,13 +155,17 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           Fonte input: {receipt.ocrRawText ? (receipt.sourceType === 'screenshot' ? 'screenshot pagamento' : 'scansione scontrino') : 'inserimento manuale'} del {formatDate(receipt.date)}
         </p>
 
-        {!editing && (
-          <div className="det-actions no-print">
-            <button className="btn" onClick={share}><Icon name="Share2" size={15} /> Condividi</button>
-            <button className="btn" onClick={exportPdf}><Icon name="Download" size={15} /> PDF</button>
-            <button className="btn danger" onClick={() => onDelete(receipt.id)}>Elimina</button>
-          </div>
-        )}
+        <div className="det-actions no-print">
+          {!editing && (
+            <>
+              <button className="btn" onClick={share}><Icon name="Share2" size={15} /> Condividi</button>
+              <button className="btn" onClick={exportPdf}><Icon name="Download" size={15} /> PDF</button>
+            </>
+          )}
+          <button className="btn danger" onClick={() => onDelete(receipt.id)}>
+            <Icon name="Trash2" size={15} /> Elimina
+          </button>
+        </div>
 
         {!editing && (
           <div className="map-block no-print">

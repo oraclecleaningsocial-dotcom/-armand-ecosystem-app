@@ -50,10 +50,16 @@ function toNumber(str) {
   return Number(str.replace(/\./g, '').replace(',', '.'))
 }
 
+// Restituisce null (invece di una data "a caso") se l'OCR ha letto rumore che assomiglia
+// a una data ma con un anno non plausibile — es. scontrini sgualciti o poco leggibili,
+// dove una cifra fraintesa può produrre anni assurdi tipo "1095" o "3062".
 function toIsoDate(day, month, year) {
   if (String(year).length === 2) year = `20${year}`
-  const date = new Date(Number(year), Number(month), Number(day))
-  if (Number.isNaN(date.getTime())) return new Date().toISOString().slice(0, 10)
+  const y = Number(year)
+  const currentYear = new Date().getFullYear()
+  if (y < currentYear - 8 || y > currentYear + 1) return null
+  const date = new Date(y, Number(month), Number(day))
+  if (Number.isNaN(date.getTime())) return null
   return date.toISOString().slice(0, 10)
 }
 
@@ -73,9 +79,9 @@ export function parseReceiptText(rawText) {
   let date = null
   for (const line of lines) {
     const m = line.match(DATE_PATTERN)
-    if (m) { date = toIsoDate(m[1], Number(m[2]) - 1, m[3]); break }
+    if (m) { date = toIsoDate(m[1], Number(m[2]) - 1, m[3]); if (date) break }
     const lm = line.match(LONG_DATE_PATTERN)
-    if (lm) { date = toIsoDate(lm[1], MONTHS_IT[lm[2].toLowerCase()], lm[3]); break }
+    if (lm) { date = toIsoDate(lm[1], MONTHS_IT[lm[2].toLowerCase()], lm[3]); if (date) break }
   }
 
   let total = null
