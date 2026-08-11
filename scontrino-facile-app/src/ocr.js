@@ -114,8 +114,26 @@ const CF_LINE = /c\.?\s?f\.?\s*[:\-]?\s*([A-Z0-9]{11,16})/i
 const QTY_PREFIX = /^(\d{1,3})\s*[x×]\s*(.+)/i
 const QTY_SUFFIX = /(.+?)\s*[x×]\s*(\d{1,3})$/i
 
+// Tutti i pattern che catturano un importo (AMOUNT_ON_LINE, PRICE_AT_END,
+// STANDALONE_AMOUNT) richiedono esattamente due cifre dopo UN SOLO separatore — quindi
+// quel separatore è sempre quello decimale, mai un raggruppamento delle migliaia
+// (che avrebbe tre cifre dopo, non due). Il vecchio codice rimuoveva comunque ogni "."
+// assumendo fosse sempre un separatore delle migliaia: corretto per "1.234,56", ma
+// sbagliato per un importo come "22.00" — che l'OCR produce spesso leggendo una virgola
+// decimale sfocata come un punto sulle stampe termiche — trasformandolo in "2200" invece
+// di 22. Qui si gestisce anche il caso raro con entrambi i separatori (un vero importo a
+// quattro cifre), guardando quale dei due compare per ultimo per capire qual è quello
+// decimale, mentre con un solo tipo di separatore lo si tratta sempre come decimale.
 function toNumber(str) {
-  return Number(str.replace(/\./g, '').replace(',', '.'))
+  const hasComma = str.includes(',')
+  const hasDot = str.includes('.')
+  if (hasComma && hasDot) {
+    if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+      return Number(str.replace(/\./g, '').replace(',', '.'))
+    }
+    return Number(str.replace(/,/g, ''))
+  }
+  return Number(str.replace(',', '.'))
 }
 
 // Restituisce null (invece di una data "a caso") se l'OCR ha letto rumore che assomiglia
