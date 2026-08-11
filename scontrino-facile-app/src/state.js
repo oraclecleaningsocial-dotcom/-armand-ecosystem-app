@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { guessCategory, normalizeMerchant } from './categories'
 import { fromLocalDateKey, toLocalDateKey } from './utils/format'
 import { isQuotaError, reportStorageError } from './utils/storageAlert'
@@ -56,8 +56,17 @@ function isoDaysAgo(n) {
 
 export function useReceipts() {
   const [state, setState] = useState(loadState)
+  // Al primo mount questo effect scriverebbe comunque su localStorage lo stato appena
+  // letto — utile finché è tutto normale, ma se quella primissima lettura in un'app
+  // standalone appena (ri)avviata da iOS trova lo storage temporaneamente vuoto o non
+  // ancora pronto, loadState() ripiega sui dati demo e questo effect li salverebbe subito
+  // sopra i dati veri dell'utente, cancellandoli per sempre. Saltare il salvataggio al
+  // primo giro e scrivere solo dalle mutazioni vere (addReceipt, updateReceipt, ecc.)
+  // toglie questo rischio.
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
     saveState(state)
   }, [state])
 
