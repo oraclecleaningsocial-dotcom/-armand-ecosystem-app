@@ -1,18 +1,20 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
+import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORY_MAP } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import CurrencyWidget from '../components/CurrencyWidget'
-import RemindersWidget from '../components/RemindersWidget'
+import NotesWidget from '../components/NotesWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
 
-export default function Dashboard({ receipts, onNavigate, reminders, onDeleteReminder }) {
+export default function Dashboard({ receipts, onNavigate, onOpen, notes, onAddNote, onDeleteNote }) {
   const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
+  const [expandedCat, setExpandedCat] = useState(null)
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
   const animatedTotal = useCountUp(total)
   const trend = useMemo(() => last6MonthsTrend(receipts), [receipts])
@@ -34,10 +36,15 @@ export default function Dashboard({ receipts, onNavigate, reminders, onDeleteRem
 
   const maxTrend = Math.max(1, ...trend.map((t) => t.total))
   const monthName = new Date(period.year, period.month).toLocaleDateString('it-IT', { month: 'long' })
+  const expandedReceipts = expandedCat ? periodReceipts.filter((r) => r.category === expandedCat) : []
 
   function exportCsv() {
     const csv = receiptsToCsv(periodReceipts, (id) => CATEGORY_MAP[id]?.label || id)
     downloadCsv(`scontrinofacile-${monthName}-${period.year}.csv`, csv)
+  }
+
+  function toggleCat(id) {
+    setExpandedCat((prev) => (prev === id ? null : id))
   }
 
   return (
@@ -71,15 +78,41 @@ export default function Dashboard({ receipts, onNavigate, reminders, onDeleteRem
 
           <div className="pad cat-grid">
             {breakdown.map(({ id, amount, pct, cat }) => (
-              <div className="cat-card" key={id} style={{ background: `${cat.color}2e` }}>
+              <button
+                className={`cat-card ${expandedCat === id ? 'is-selected' : ''}`}
+                key={id}
+                style={{ background: `${cat.color}2e` }}
+                onClick={() => toggleCat(id)}
+              >
                 <span className="cat-card-ic" style={{ background: `${cat.color}45`, color: cat.color }}>
                   <Icon name={cat.icon} size={16} />
                 </span>
                 <span className="cat-card-label">{cat.label}</span>
                 <span className="cat-card-amt">{eur(amount)}</span>
                 <span className="cat-card-pct" style={{ color: cat.color }}>{pct}%</span>
-              </div>
+              </button>
             ))}
+          </div>
+
+          <div className={`cat-expand ${expandedCat ? 'is-open' : ''}`}>
+            <div className="cat-expand-inner">
+              {expandedCat && (
+                <div className="pad">
+                  <p className="sect-label" style={{ margin: '0 0 10px' }}>
+                    Scontrini · {CATEGORY_MAP[expandedCat]?.label}
+                  </p>
+                  {expandedReceipts.length === 0 ? (
+                    <p className="empty">Nessuno scontrino in questa categoria.</p>
+                  ) : (
+                    <div className="list list-cards">
+                      {expandedReceipts.map((r) => (
+                        <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen?.(id, 'dashboard')} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
@@ -132,7 +165,7 @@ export default function Dashboard({ receipts, onNavigate, reminders, onDeleteRem
 
       <div className="pad widgets-block">
         <p className="sect-label"><Icon name="LayoutGrid" size={13} /> Widget</p>
-        <RemindersWidget reminders={reminders} onDeleteReminder={onDeleteReminder} onNavigate={onNavigate} />
+        <NotesWidget notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />
         <CurrencyWidget />
       </div>
     </div>

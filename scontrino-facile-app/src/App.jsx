@@ -14,12 +14,14 @@ import Settings from './screens/Settings'
 import Products from './screens/Products'
 import { useReceipts } from './state'
 import { useReminders } from './reminders'
+import { useNotes } from './notes'
 import { isLockEnabled } from './utils/auth'
 
 export default function App() {
   const [locked, setLocked] = useState(isLockEnabled)
   const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
   const { reminders, addReminder, deleteReminder } = useReminders()
+  const { notes, addNote, deleteNote } = useNotes()
   const [tab, setTab] = useState('home')
   const [screen, setScreen] = useState('home')
   const [detailId, setDetailId] = useState(null)
@@ -93,8 +95,10 @@ export default function App() {
             merchantCategoryMap={merchantCategoryMap}
             onRestore={handleRestore}
             onNavigate={navigate}
-            reminders={reminders}
-            onDeleteReminder={deleteReminder}
+            onOpen={openDetail}
+            notes={notes}
+            onAddNote={addNote}
+            onDeleteNote={deleteNote}
           />
         )}
         {screen === 'detail' && (

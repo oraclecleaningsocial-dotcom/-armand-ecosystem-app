@@ -328,12 +328,22 @@ button{cursor:pointer;}
 
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px;}
 .cat-card{
+  all:unset;cursor:pointer;box-sizing:border-box;
   border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:6px;
+  text-align:left;transition:transform .12s ease,box-shadow .15s ease;
 }
+.cat-card.is-selected{box-shadow:inset 0 0 0 2px var(--ink);}
 .cat-card-ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
 .cat-card-label{font-size:12.5px;font-weight:650;color:var(--ink-soft);}
 .cat-card-amt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:16px;font-weight:650;}
 .cat-card-pct{font-size:11.5px;font-weight:700;}
+
+/* Trucco grid-template-rows 0fr/1fr per un'espansione morbida senza dover misurare
+   l'altezza del contenuto in JS: funziona perché anima la riga della grid, non
+   un'altezza in px che andrebbe ricalcolata ad ogni cambio di contenuto. */
+.cat-expand{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;}
+.cat-expand.is-open{grid-template-rows:1fr;}
+.cat-expand-inner{overflow:hidden;min-height:0;}
 
 .trend-block{margin-top:28px;}
 .bars{display:flex;align-items:flex-end;gap:8px;height:104px;margin-top:14px;}
@@ -590,9 +600,13 @@ button{cursor:pointer;}
   all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;color:#fff;
   display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);
 }
-.vault-viewer-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;}
+.vault-viewer-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;padding:14px;box-sizing:border-box;}
 .vault-viewer-body img{max-width:100%;max-height:100%;object-fit:contain;}
-.vault-viewer-body iframe{width:100%;height:100%;border:0;background:#fff;}
+/* align-self invece di cambiare align-items del genitore: le pagine, potendo essere più
+   alte del contenitore, devono partire dall'alto (lettura naturale) mentre lo spinner e
+   il messaggio d'errore restano centrati come prima. */
+.pdf-pages{display:flex;flex-direction:column;gap:10px;width:100%;align-self:flex-start;}
+.pdf-pages img{width:100%;max-width:100%;height:auto;border-radius:10px;display:block;}
 
 /* ---------- scadenze fiscali ---------- */
 .fiscal-list{margin-top:16px;display:flex;flex-direction:column;gap:10px;}

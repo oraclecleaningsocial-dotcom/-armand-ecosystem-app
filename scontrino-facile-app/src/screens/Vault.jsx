@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { addDocument, deleteDocument, getDocuments, updateDocument } from '../utils/vault'
 import { formatDate } from '../utils/format'
-import { generatePdfThumbnail } from '../utils/pdfThumbnail'
+import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 
 const DOC_TYPES = [
   { id: 'cv', label: 'Curriculum', icon: 'Briefcase' },
@@ -34,7 +34,27 @@ export default function Vault({ onClose }) {
   const [type, setType] = useState('cv')
   const [busy, setBusy] = useState(false)
   const [viewing, setViewing] = useState(null)
+  const [pdfPages, setPdfPages] = useState(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState('')
   const fileRef = useRef(null)
+
+  // Il visore PDF nativo dentro un <iframe> apriva a uno zoom fisso e scomodo su iOS in
+  // standalone, senza modo affidabile di fare pinch-to-zoom-out per vedere tutta la
+  // pagina. Renderizzando ogni pagina come immagine larga quanto il contenitore, il
+  // documento si legge intero da subito, semplice scroll verticale, niente zoom da gestire.
+  useEffect(() => {
+    if (!viewing || viewing.fileMime?.startsWith('image/')) { setPdfPages(null); return }
+    let cancelled = false
+    setPdfLoading(true)
+    setPdfError('')
+    setPdfPages(null)
+    renderPdfPages(viewing.fileDataUrl)
+      .then((pages) => { if (!cancelled) setPdfPages(pages) })
+      .catch(() => { if (!cancelled) setPdfError('Non riesco a visualizzare questo documento qui. Puoi comunque scaricarlo o condividerlo.') })
+      .finally(() => { if (!cancelled) setPdfLoading(false) })
+    return () => { cancelled = true }
+  }, [viewing])
 
   async function handleFile(e) {
     const file = e.target.files?.[0]
@@ -165,8 +185,14 @@ export default function Vault({ onClose }) {
             <div className="vault-viewer-body">
               {viewing.fileMime?.startsWith('image/') ? (
                 <img src={viewing.fileDataUrl} alt={viewing.label} />
+              ) : pdfLoading ? (
+                <Icon name="Loader2" size={26} className="spin" />
+              ) : pdfError ? (
+                <p className="notice">{pdfError}</p>
               ) : (
-                <iframe src={viewing.fileDataUrl} title={viewing.label} />
+                <div className="pdf-pages">
+                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={`Pagina ${i + 1}`} />)}
+                </div>
               )}
             </div>
           </div>

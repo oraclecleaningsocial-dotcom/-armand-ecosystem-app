@@ -126,6 +126,8 @@ export default function CalendarScreen({ receipts, onOpen, reminders, onAddRemin
           receipts={receipts}
           onOpen={onOpen}
           reminders={reminders}
+          onAddReminder={onAddReminder}
+          onDeleteReminder={onDeleteReminder}
           scrollRef={scrollRef}
         />
       )}
