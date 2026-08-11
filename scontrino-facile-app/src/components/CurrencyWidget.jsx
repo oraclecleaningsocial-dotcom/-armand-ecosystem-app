@@ -52,7 +52,7 @@ export default function CurrencyWidget() {
           min="0"
           step="0.01"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => { setAmount(e.target.value); setResult(null) }}
         />
         <select className="currency-select" value={from} onChange={(e) => { setFrom(e.target.value); convert(e.target.value, to, amount) }}>
           {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}

@@ -65,6 +65,13 @@ export function addDocument(doc) {
   return document
 }
 
+export function updateDocument(id, patch) {
+  const vault = loadVault()
+  vault.documents = vault.documents.map((d) => (d.id === id ? { ...d, ...patch } : d))
+  saveVault(vault)
+  return vault.documents.find((d) => d.id === id)
+}
+
 export function deleteDocument(id) {
   const vault = loadVault()
   vault.documents = vault.documents.filter((d) => d.id !== id)

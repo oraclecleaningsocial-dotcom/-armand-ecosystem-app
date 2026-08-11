@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { addDocument, deleteDocument, getDocuments } from '../utils/vault'
+import { addDocument, deleteDocument, getDocuments, updateDocument } from '../utils/vault'
 import { formatDate } from '../utils/format'
+import { generatePdfThumbnail } from '../utils/pdfThumbnail'
 
 const DOC_TYPES = [
   { id: 'cv', label: 'Curriculum', icon: 'Briefcase' },
@@ -51,6 +52,20 @@ export default function Vault({ onClose }) {
       })
       setDocuments((prev) => [doc, ...prev])
       setLabel('')
+
+      // Un'anteprima vera della prima pagina invece della sola icona generica — solo per
+      // i PDF (le immagini si mostrano già direttamente). Genera dopo il salvataggio,
+      // così un PDF che pdf.js non riesce a renderizzare (raro, ma possibile) non blocca
+      // comunque il caricamento del documento stesso.
+      if (file.type === 'application/pdf') {
+        try {
+          const thumbnailDataUrl = await generatePdfThumbnail(fileDataUrl)
+          const updated = updateDocument(doc.id, { thumbnailDataUrl })
+          setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)))
+        } catch {
+          // niente anteprima: la card resta con l'icona generica, non è un errore bloccante
+        }
+      }
     } finally {
       setBusy(false)
     }
@@ -112,11 +127,12 @@ export default function Vault({ onClose }) {
             {documents.map((doc) => {
               const meta = DOC_TYPES.find((t) => t.id === doc.type) || DOC_TYPES[3]
               const isImage = doc.fileMime?.startsWith('image/')
+              const previewSrc = isImage ? doc.fileDataUrl : doc.thumbnailDataUrl
               return (
                 <div className="vault-doc-card" key={doc.id}>
                   <button className="vault-doc-thumb" onClick={() => setViewing(doc)} aria-label={`Apri ${doc.label}`}>
-                    {isImage ? (
-                      <img src={doc.fileDataUrl} alt={doc.label} />
+                    {previewSrc ? (
+                      <img src={previewSrc} alt={doc.label} />
                     ) : (
                       <span className="vault-doc-thumb-ic"><Icon name={meta.icon} size={26} /></span>
                     )}

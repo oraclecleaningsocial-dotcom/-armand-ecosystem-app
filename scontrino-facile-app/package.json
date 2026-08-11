@@ -12,6 +12,7 @@
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",
     "lucide-react": "^0.462.0",
+    "pdfjs-dist": "^5.4.624",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tesseract.js": "^5.1.1"
