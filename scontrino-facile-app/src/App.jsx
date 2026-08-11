@@ -8,6 +8,8 @@ import Detail from './screens/Detail'
 import Scan from './screens/Scan'
 import Calculator from './screens/Calculator'
 import LockScreen from './screens/LockScreen'
+import VaultScreen from './screens/VaultScreen'
+import FiscalDeadlines from './screens/FiscalDeadlines'
 import { useReceipts } from './state'
 import { isLockEnabled } from './utils/auth'
 
@@ -80,7 +82,7 @@ export default function App() {
         )}
         {screen === 'calendar' && <CalendarScreen receipts={receipts} onOpen={openDetail} />}
         {screen === 'dashboard' && (
-          <Dashboard receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} />
+          <Dashboard receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onNavigate={navigate} />
         )}
         {screen === 'detail' && (
           <Detail receipt={activeReceipt} onBack={() => setScreen(detailBack)} onUpdate={updateReceipt} onDelete={handleDelete} />
@@ -89,6 +91,8 @@ export default function App() {
           <Scan categorize={categorize} onSave={handleSave} onCancel={() => navigate('home')} />
         )}
         {screen === 'calculator' && <Calculator onClose={() => setScreen(tab)} />}
+        {screen === 'vault' && <VaultScreen onClose={() => setScreen(tab)} />}
+        {screen === 'fiscal' && <FiscalDeadlines onClose={() => setScreen(tab)} />}
 
         {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
           <TabBar active={tab} onNavigate={navigate} />

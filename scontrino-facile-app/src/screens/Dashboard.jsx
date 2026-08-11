@@ -6,8 +6,11 @@ import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
+import CurrencyWidget from '../components/CurrencyWidget'
+import CryptoWidget from '../components/CryptoWidget'
+import WatchlistWidget from '../components/WatchlistWidget'
 
-export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) {
+export default function Dashboard({ receipts, merchantCategoryMap, onRestore, onNavigate }) {
   const now = new Date()
   const [lockOn, setLockOn] = useState(isLockEnabled)
   const [lockError, setLockError] = useState('')
@@ -167,6 +170,31 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore }) 
           {lockError && <p className="notice">{lockError}</p>}
         </div>
       )}
+
+      <div className="pad tools-block">
+        <p className="sect-label">Strumenti</p>
+        <div className="tool-cards">
+          <button className="tool-card" onClick={() => onNavigate?.('calculator')}>
+            <span className="tool-card-ic"><Icon name="Calculator" size={19} /></span>
+            Calcolatrice
+          </button>
+          <button className="tool-card" onClick={() => onNavigate?.('vault')}>
+            <span className="tool-card-ic"><Icon name="Lock" size={19} /></span>
+            Documenti
+          </button>
+          <button className="tool-card" onClick={() => onNavigate?.('fiscal')}>
+            <span className="tool-card-ic"><Icon name="Landmark" size={19} /></span>
+            Scadenze fiscali
+          </button>
+        </div>
+      </div>
+
+      <div className="pad widgets-block">
+        <p className="sect-label"><Icon name="LayoutGrid" size={13} /> Widget</p>
+        <CurrencyWidget />
+        <CryptoWidget />
+        <WatchlistWidget />
+      </div>
     </div>
   )
 }

@@ -3,8 +3,10 @@ import Icon from '../components/Icon'
 import ReceiptCalendar from '../components/ReceiptCalendar'
 import ReceiptRow from '../components/ReceiptRow'
 import { eur } from '../utils/format'
+import { useReminders } from '../reminders'
 
 export default function CalendarScreen({ receipts, onOpen }) {
+  const { reminders, addReminder, deleteReminder } = useReminders()
   const [rangeOpen, setRangeOpen] = useState(false)
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -62,7 +64,13 @@ export default function CalendarScreen({ receipts, onOpen }) {
           )}
         </div>
       ) : (
-        <ReceiptCalendar receipts={receipts} onOpen={onOpen} />
+        <ReceiptCalendar
+          receipts={receipts}
+          onOpen={onOpen}
+          reminders={reminders}
+          onAddReminder={addReminder}
+          onDeleteReminder={deleteReminder}
+        />
       )}
     </div>
   )

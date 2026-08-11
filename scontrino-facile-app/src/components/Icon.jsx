@@ -3,6 +3,7 @@ import {
   Camera, Search, PieChart, ChevronLeft, Check, Pencil, Plus, Share2, Download,
   X, Loader2, ScanLine, ChevronDown, ChevronRight, StickyNote, Image,
   List, Calendar, Upload, ScanFace, Calculator, MapPin, Phone, FileText, ExternalLink,
+  Lock, Unlock, Bell, TrendingUp, Landmark, Briefcase, Trash2, ArrowLeftRight, LayoutGrid,
 } from 'lucide-react'
 
 const ICONS = {
@@ -10,6 +11,7 @@ const ICONS = {
   Camera, Search, PieChart, ChevronLeft, Check, Pencil, Plus, Share2, Download,
   X, Loader2, ScanLine, ChevronDown, ChevronRight, StickyNote, Image,
   List, Calendar, Upload, ScanFace, Calculator, MapPin, Phone, FileText, ExternalLink,
+  Lock, Unlock, Bell, TrendingUp, Landmark, Briefcase, Trash2, ArrowLeftRight, LayoutGrid,
 }
 
 export default function Icon({ name, size = 18, className = '', strokeWidth = 2 }) {

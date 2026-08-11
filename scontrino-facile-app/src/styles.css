@@ -37,12 +37,12 @@ button{cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
 .app-shell{
-  /* 100svh (small viewport height) invece di 100dvh: assume sempre la barra del
-     browser/sistema espansa, quindi non trabocca mai e non lascia mai spazio vuoto
-     sotto per un calcolo dinamico sbagliato — il compromesso più sicuro per PWA
-     installate su dispositivi diversi. */
+  /* 100svh lasciava un vuoto sotto la tab bar quando la barra del browser si
+     nascondeva (assume sempre lo spazio minimo). 100dvh segue invece l'altezza
+     reale e attuale del viewport: niente più vuoto, e il contenuto non si
+     schiaccia più grazie a .screen > *{flex-shrink:0} qui sotto. */
   height:100vh;
-  height:100svh;
+  height:100dvh;
   display:flex;
   justify-content:center;
   background:var(--paper);
@@ -52,7 +52,7 @@ button{cursor:pointer;}
   width:100%;
   max-width:480px;
   height:100vh;
-  height:100svh;
+  height:100dvh;
   background:var(--paper);
   position:relative;
   display:flex;
@@ -447,6 +447,147 @@ button{cursor:pointer;}
 .calc-key.is-wide{flex:2.15;aspect-ratio:auto;border-radius:32px;justify-content:flex-start;padding-left:28px;}
 .calc-key.is-op{background:var(--accent);color:var(--accent-ink);}
 .calc-key.is-clear{background:var(--negative-soft);color:var(--negative);font-size:16px;}
+
+/* ---------- vault (documenti protetti) ---------- */
+.vault-lock-top{padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 0;}
+.vault-lock-body{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:32px;text-align:center;
+}
+.vault-lock-icon{
+  width:72px;height:72px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
+  display:flex;align-items:center;justify-content:center;margin-bottom:6px;
+}
+.vault-lock-body h1{font-size:19px;margin:0;font-weight:700;}
+.vault-lock-body p{margin:2px 0 0;color:var(--ink-soft);font-size:13.5px;max-width:280px;}
+.vault-lock-body form{width:100%;max-width:280px;display:flex;flex-direction:column;gap:10px;margin-top:22px;}
+.vault-pin-input{
+  width:100%;box-sizing:border-box;background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;
+  padding:13px 14px;font-size:20px;letter-spacing:.3em;text-align:center;color:var(--ink);
+}
+.vault-pin-input:focus{border-color:var(--accent);}
+.vault-lock-error{color:var(--negative);font-size:12.5px;margin:0;}
+.vault-lock-btn{
+  all:unset;cursor:pointer;box-sizing:border-box;width:100%;padding:14px;border-radius:12px;
+  background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14.5px;text-align:center;
+}
+.vault-lock-btn:disabled{opacity:.6;}
+.vault-lock-fallback{all:unset;cursor:pointer;margin-top:18px;font-size:12px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px;}
+.vault-reset-confirm{margin-top:14px;max-width:280px;}
+.vault-reset-confirm p{font-size:12.5px;color:var(--ink-soft);}
+.vault-reset-actions{display:flex;gap:10px;margin-top:8px;}
+.vault-header-lock{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:650;color:var(--ink-soft);padding:8px;}
+
+.vault-upload{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.vault-upload-btn{justify-content:center;}
+.vault-upload-btn.is-busy{opacity:.7;}
+.vault-doc-list{margin-top:18px;display:flex;flex-direction:column;gap:10px;}
+.vault-doc-row{display:flex;align-items:center;gap:8px;}
+.vault-doc-main{
+  all:unset;cursor:pointer;flex:1;min-width:0;display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:14px;background:var(--paper-raised);
+}
+.vault-doc-ic{
+  flex:none;width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
+  display:flex;align-items:center;justify-content:center;
+}
+.vault-doc-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13.5px;}
+.vault-doc-text b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vault-doc-text span{color:var(--ink-soft);font-size:11.5px;}
+.vault-doc-del{all:unset;cursor:pointer;flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--negative);}
+
+/* ---------- scadenze fiscali ---------- */
+.fiscal-list{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
+.fiscal-card{display:flex;gap:12px;padding:14px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);}
+.fiscal-card.is-active{background:var(--accent-soft);border-color:transparent;}
+.fiscal-card-ic{
+  flex:none;width:36px;height:36px;border-radius:50%;background:var(--paper);color:var(--ink-soft);
+  display:flex;align-items:center;justify-content:center;
+}
+.fiscal-card.is-active .fiscal-card-ic{background:var(--accent);color:var(--accent-ink);}
+.fiscal-card-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:13.5px;}
+.fiscal-card-text b{font-weight:650;}
+.fiscal-card-date{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-soft);}
+.fiscal-card.is-active .fiscal-card-date{color:var(--accent-strong);font-weight:650;}
+.fiscal-card-desc{color:var(--ink-soft);font-size:12px;line-height:1.4;}
+
+/* ---------- promemoria calendario ---------- */
+.cal-dots{display:flex;gap:3px;height:4px;align-items:center;}
+.cal-dot.reminder{background:var(--hero-1);}
+.reminders-label{display:flex;align-items:center;gap:5px;margin-top:18px;}
+.reminder-list{display:flex;flex-direction:column;gap:6px;}
+.reminder-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 12px;border-radius:10px;background:var(--paper-raised);font-size:13px;
+}
+.reminder-row button{all:unset;cursor:pointer;color:var(--ink-soft);display:flex;}
+.reminder-add{display:flex;gap:8px;margin-top:10px;}
+.reminder-add input{
+  flex:1;background:var(--paper-raised);border:1px solid var(--line);border-radius:10px;
+  padding:9px 12px;font-size:13px;color:var(--ink);
+}
+.reminder-add input:focus{border-color:var(--accent);}
+.reminder-add button{
+  all:unset;cursor:pointer;width:36px;height:36px;border-radius:10px;flex:none;
+  background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;
+}
+
+/* ---------- strumenti / widget (report) ---------- */
+.tools-block{margin-top:26px;}
+.tool-cards{display:flex;gap:10px;margin-top:10px;}
+.tool-card{
+  all:unset;cursor:pointer;flex:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px 8px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);
+  font-size:11.5px;font-weight:650;color:var(--ink);text-align:center;
+}
+.tool-card-ic{
+  width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
+  display:flex;align-items:center;justify-content:center;
+}
+.widgets-block{margin-top:26px;display:flex;flex-direction:column;gap:14px;}
+.widgets-block .sect-label{display:flex;align-items:center;gap:5px;margin-bottom:0;}
+.widget-card{padding:16px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);}
+.widget-title{font-weight:650;font-size:13.5px;margin:0 0 12px;}
+.widget-hint{font-size:11px;color:var(--ink-soft);margin:10px 0 0;line-height:1.4;}
+
+.currency-row{display:flex;align-items:center;gap:8px;}
+.currency-amount{
+  width:64px;flex:none;background:var(--paper);border:1px solid var(--line);border-radius:10px;
+  padding:9px 8px;font-size:13.5px;color:var(--ink);font-family:var(--f-mono);
+}
+.currency-select{
+  flex:1;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:10px;
+  padding:9px 6px;font-size:13px;font-weight:650;color:var(--ink);
+}
+.currency-swap{all:unset;cursor:pointer;flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
+.currency-convert-btn{width:100%;margin-top:10px;border-radius:10px;padding:10px;}
+.currency-result{margin:12px 0 0;font-family:var(--f-mono);font-size:15px;text-align:center;}
+
+.crypto-list{display:flex;flex-direction:column;gap:8px;}
+.crypto-row{display:flex;align-items:center;gap:8px;font-size:13px;}
+.crypto-name{flex:1;font-weight:650;}
+.crypto-name em{font-style:normal;color:var(--ink-soft);font-weight:500;margin-left:4px;}
+.crypto-price{font-family:var(--f-mono);}
+.crypto-change{display:flex;align-items:center;gap:2px;font-family:var(--f-mono);font-size:11.5px;font-weight:650;width:52px;justify-content:flex-end;}
+.crypto-change.up{color:var(--positive);}
+.crypto-change.down{color:var(--negative);}
+.crypto-change .flip{transform:rotate(180deg);}
+
+.watchlist-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.watchlist-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--paper);font-size:13px;}
+.watchlist-ticker{font-weight:650;flex:1;}
+.watchlist-price{font-family:var(--f-mono);color:var(--ink-soft);}
+.watchlist-row button{all:unset;cursor:pointer;color:var(--ink-soft);display:flex;}
+.watchlist-add{display:flex;gap:8px;}
+.watchlist-add input{
+  flex:1;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:10px;
+  padding:9px 10px;font-size:13px;color:var(--ink);
+}
+.watchlist-add input:focus{border-color:var(--accent);}
+.watchlist-add button{
+  all:unset;cursor:pointer;width:36px;height:36px;border-radius:10px;flex:none;
+  background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;
+}
 
 /* ---------- toast ---------- */
 .toast{

@@ -23,10 +23,11 @@ function startOfWeek(d) {
   return out
 }
 
-export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' }) {
+export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder }) {
   const [viewMode, setViewMode] = useState('month')
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })
   const [selected, setSelected] = useState(null)
+  const [reminderTitle, setReminderTitle] = useState('')
 
   const byDay = useMemo(() => {
     const map = new Map()
@@ -37,6 +38,16 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' })
     }
     return map
   }, [receipts])
+
+  const remindersByDay = useMemo(() => {
+    const map = new Map()
+    for (const r of reminders) {
+      const list = map.get(r.date) || []
+      list.push(r)
+      map.set(r.date, list)
+    }
+    return map
+  }, [reminders])
 
   const monthCells = useMemo(() => {
     const year = cursor.getFullYear()
@@ -74,6 +85,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' })
 
   const todayKey = toKey(new Date())
   const selectedReceipts = selected ? (byDay.get(selected) || []) : []
+  const selectedReminders = selected ? (remindersByDay.get(selected) || []) : []
 
   function changeMonth(delta) {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
@@ -107,6 +119,18 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' })
   function switchMode(id) {
     setViewMode(id)
     setSelected(null)
+  }
+
+  function selectDay(key) {
+    setSelected((prev) => (prev === key ? null : key))
+    setReminderTitle('')
+  }
+
+  function submitReminder(e) {
+    e.preventDefault()
+    if (!reminderTitle.trim() || !selected) return
+    onAddReminder?.({ date: selected, title: reminderTitle.trim() })
+    setReminderTitle('')
   }
 
   let headerLabel
@@ -158,15 +182,18 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' })
               if (!d) return <span key={i} className="cal-cell empty" />
               const key = toKey(d)
               const dayReceipts = byDay.get(key)
+              const dayReminders = remindersByDay.get(key)
               return (
                 <button
                   key={i}
                   className={`cal-cell ${key === todayKey ? 'is-today' : ''} ${key === selected ? 'is-selected' : ''} ${dayReceipts ? 'has-data' : ''}`}
-                  onClick={() => dayReceipts && setSelected(key === selected ? null : key)}
-                  disabled={!dayReceipts}
+                  onClick={() => selectDay(key)}
                 >
                   <span className="cal-daynum">{d.getDate()}</span>
-                  {dayReceipts && <span className="cal-dot" />}
+                  <span className="cal-dots">
+                    {dayReceipts && <span className="cal-dot" />}
+                    {dayReminders && <span className="cal-dot reminder" />}
+                  </span>
                 </button>
               )
             })}
@@ -180,9 +207,32 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar' })
             {new Date(selected).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
             {selectedReceipts.length > 0 && <span className="cal-day-total"> · {eur(selectedReceipts.reduce((s, r) => s + r.total, 0))}</span>}
           </p>
-          <div className="list">
-            {selectedReceipts.map((r) => <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, from)} />)}
-          </div>
+
+          {selectedReceipts.length > 0 && (
+            <div className="list">
+              {selectedReceipts.map((r) => <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, from)} />)}
+            </div>
+          )}
+
+          <p className="sect-label reminders-label"><Icon name="Bell" size={12} /> Promemoria</p>
+          {selectedReminders.length > 0 && (
+            <div className="reminder-list">
+              {selectedReminders.map((r) => (
+                <div className="reminder-row" key={r.id}>
+                  <span>{r.title}</span>
+                  <button onClick={() => onDeleteReminder?.(r.id)} aria-label="Elimina promemoria"><Icon name="X" size={13} /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <form className="reminder-add" onSubmit={submitReminder}>
+            <input
+              placeholder="Aggiungi promemoria…"
+              value={reminderTitle}
+              onChange={(e) => setReminderTitle(e.target.value)}
+            />
+            <button type="submit" aria-label="Aggiungi"><Icon name="Plus" size={15} /></button>
+          </form>
         </div>
       )}
     </div>
