@@ -1,11 +1,46 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 import { changeVaultPin, isVaultSetUp } from '../utils/vault'
 import { toLocalDateKey } from '../utils/format'
 
+function bytesToKb(n) {
+  return (n / 1024).toFixed(1)
+}
+
+// Diagnostica visibile per il problema più insistito di questa app: dati che sembrano
+// non restare salvati da icona installata su iOS. Invece di continuare a indovinare
+// aggiustamenti alla cieca, questo mostra dati reali dal dispositivo dell'utente —
+// quanto storage è davvero occupato, se il browser ha concesso la persistenza.
+function useStorageDiagnostics() {
+  const [info, setInfo] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function run() {
+      let persisted = null
+      try { persisted = (await navigator.storage?.persisted?.()) ?? null } catch { /* non supportato */ }
+      let estimate = null
+      try { estimate = (await navigator.storage?.estimate?.()) ?? null } catch { /* non supportato */ }
+      let localStorageBytes = 0
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          localStorageBytes += (key?.length || 0) + (localStorage.getItem(key)?.length || 0)
+        }
+      } catch { /* localStorage non disponibile */ }
+      if (!cancelled) setInfo({ persisted, estimate, localStorageBytes })
+    }
+    run()
+    return () => { cancelled = true }
+  }, [])
+
+  return info
+}
+
 export default function Settings({ receipts, merchantCategoryMap, onRestore, onClose }) {
+  const storageInfo = useStorageDiagnostics()
   const [lockOn, setLockOn] = useState(isLockEnabled)
   const [lockError, setLockError] = useState('')
   const fileInputRef = useRef(null)
@@ -84,6 +119,26 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
         <p className="backup-hint" style={{ marginTop: 4 }}>
           Versione app: {new Date(__BUILD_TIME__).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
         </p>
+      </div>
+
+      <div className="pad backup-block">
+        <p className="sect-label">Diagnostica archiviazione</p>
+        <p className="backup-hint">
+          {receipts.length} {receipts.length === 1 ? 'ricevuta' : 'ricevute'} salvate
+          {storageInfo && ` · ${bytesToKb(storageInfo.localStorageBytes)} KB usati su questo dispositivo`}
+        </p>
+        <p className="backup-hint">
+          Archiviazione persistente: {storageInfo == null
+            ? '…'
+            : storageInfo.persisted == null
+              ? 'non supportata da questo browser'
+              : storageInfo.persisted ? 'attiva' : 'non concessa dal browser'}
+        </p>
+        {storageInfo?.estimate?.quota != null && (
+          <p className="backup-hint">
+            Spazio totale stimato dal browser: {bytesToKb(storageInfo.estimate.usage || 0)} KB su {Math.round(storageInfo.estimate.quota / 1024 / 1024)} MB disponibili
+          </p>
+        )}
       </div>
 
       <div className="pad backup-block">
