@@ -33,6 +33,9 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 button,input,select,textarea{font-family:inherit;color:inherit;}
+/* iOS Safari ingrandisce automaticamente la pagina quando metti a fuoco un campo con
+   font-size sotto i 16px: da qui in giù nessun input/select scende sotto quella soglia. */
+input,select,textarea{font-size:16px;}
 button{cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
@@ -214,7 +217,7 @@ button{cursor:pointer;}
   display:flex;align-items:center;gap:9px;background:var(--paper-raised);
   border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-top:14px;
 }
-.search-box input{all:unset;flex:1;font-size:14.5px;}
+.search-box input{all:unset;flex:1;font-size:16px;}
 .muted-ic{color:var(--ink-soft);}
 .view-row{display:flex;align-items:center;justify-content:space-between;}
 .view-toggle{display:flex;gap:2px;background:var(--paper-raised);border:1px solid var(--line);border-radius:10px;padding:2px;}
@@ -357,7 +360,7 @@ button{cursor:pointer;}
 }
 .edit-input{
   width:100%;background:var(--paper-raised);border:1px solid var(--line);border-radius:10px;
-  padding:10px 12px;font-size:15px;margin:4px 0;
+  padding:10px 12px;font-size:16px;margin:4px 0;
 }
 .edit-input.title{font-size:18px;font-weight:650;}
 .edit-input.total{font-family:var(--f-mono);font-size:20px;}
@@ -411,7 +414,7 @@ button{cursor:pointer;}
 .field input:focus,.field select:focus{border-color:var(--accent);}
 .note-input{
   width:100%;box-sizing:border-box;background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;
-  padding:10px 12px;font-size:14px;font-weight:500;font-family:inherit;color:var(--ink);resize:vertical;
+  padding:10px 12px;font-size:16px;font-weight:500;font-family:inherit;color:var(--ink);resize:vertical;
 }
 .note-input:focus{border-color:var(--accent);}
 .det-note{margin-top:22px;}
@@ -584,7 +587,7 @@ button{cursor:pointer;}
 .reminder-add{display:flex;gap:8px;margin-top:10px;}
 .reminder-add input{
   flex:1;background:var(--paper-raised);border:1px solid var(--line);border-radius:10px;
-  padding:9px 12px;font-size:13px;color:var(--ink);
+  padding:9px 12px;font-size:16px;color:var(--ink);
 }
 .reminder-add input:focus{border-color:var(--accent);}
 .reminder-add button{
@@ -614,12 +617,12 @@ button{cursor:pointer;}
 
 .currency-row{display:flex;align-items:center;gap:8px;}
 .currency-amount{
-  width:64px;flex:none;background:var(--paper);border:1px solid var(--line);border-radius:10px;
-  padding:9px 8px;font-size:13.5px;color:var(--ink);font-family:var(--f-mono);
+  width:72px;flex:none;background:var(--paper);border:1px solid var(--line);border-radius:10px;
+  padding:9px 6px;font-size:16px;color:var(--ink);font-family:var(--f-mono);
 }
 .currency-select{
   flex:1;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:10px;
-  padding:9px 6px;font-size:13px;font-weight:650;color:var(--ink);
+  padding:9px 6px;font-size:16px;font-weight:650;color:var(--ink);
 }
 .currency-swap{all:unset;cursor:pointer;flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
 .currency-convert-btn{width:100%;margin-top:10px;border-radius:10px;padding:10px;}
