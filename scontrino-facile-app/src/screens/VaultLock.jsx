@@ -13,7 +13,7 @@ export default function VaultLock({ onUnlock, onCancel }) {
   async function handleSetup(e) {
     e.preventDefault()
     setError('')
-    if (pin.length < 4) { setError('Il codice deve avere almeno 4 cifre.'); return }
+    if (pin.length !== 4) { setError('Il codice deve avere 4 cifre.'); return }
     if (pin !== confirmPin) { setError('I due codici non coincidono.'); return }
     setBusy(true)
     await setupVaultPin(pin)
@@ -56,7 +56,7 @@ export default function VaultLock({ onUnlock, onCancel }) {
             type="password"
             inputMode="numeric"
             pattern="[0-9]*"
-            maxLength={8}
+            maxLength={4}
             placeholder="Codice"
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
@@ -68,7 +68,7 @@ export default function VaultLock({ onUnlock, onCancel }) {
               type="password"
               inputMode="numeric"
               pattern="[0-9]*"
-              maxLength={8}
+              maxLength={4}
               placeholder="Conferma codice"
               value={confirmPin}
               onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}

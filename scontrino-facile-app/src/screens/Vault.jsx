@@ -19,11 +19,20 @@ function readAsDataUrl(file) {
   })
 }
 
+function dataUrlToFile(dataUrl, fileName, mime) {
+  const [, base64] = dataUrl.split(',')
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new File([bytes], fileName, { type: mime })
+}
+
 export default function Vault({ onClose }) {
   const [documents, setDocuments] = useState(getDocuments)
   const [label, setLabel] = useState('')
   const [type, setType] = useState('cv')
   const [busy, setBusy] = useState(false)
+  const [viewing, setViewing] = useState(null)
   const fileRef = useRef(null)
 
   async function handleFile(e) {
@@ -51,16 +60,27 @@ export default function Vault({ onClose }) {
     if (!window.confirm('Eliminare questo documento?')) return
     deleteDocument(id)
     setDocuments((prev) => prev.filter((d) => d.id !== id))
+    if (viewing?.id === id) setViewing(null)
   }
 
-  function openDoc(doc) {
-    const w = window.open()
-    if (!w) return
-    if (doc.fileMime?.startsWith('image/')) {
-      w.document.write(`<title>${doc.label}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${doc.fileDataUrl}" style="max-width:100%;max-height:100vh;"/></body>`)
-    } else {
-      w.document.write(`<title>${doc.label}</title><iframe src="${doc.fileDataUrl}" style="border:0;width:100%;height:100vh;"></iframe>`)
+  function downloadDoc(doc) {
+    const a = document.createElement('a')
+    a.href = doc.fileDataUrl
+    a.download = doc.fileName || doc.label
+    a.click()
+  }
+
+  async function shareDoc(doc) {
+    try {
+      const file = dataUrlToFile(doc.fileDataUrl, doc.fileName || doc.label, doc.fileMime)
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: doc.label })
+        return
+      }
+    } catch {
+      // condivisione annullata o non supportata: si ripiega sul download
     }
+    downloadDoc(doc)
   }
 
   return (
@@ -88,27 +108,54 @@ export default function Vault({ onClose }) {
         {documents.length === 0 ? (
           <p className="empty">Nessun documento salvato.</p>
         ) : (
-          <div className="vault-doc-list">
+          <div className="vault-doc-grid">
             {documents.map((doc) => {
               const meta = DOC_TYPES.find((t) => t.id === doc.type) || DOC_TYPES[3]
+              const isImage = doc.fileMime?.startsWith('image/')
               return (
-                <div className="vault-doc-row" key={doc.id}>
-                  <button className="vault-doc-main" onClick={() => openDoc(doc)}>
-                    <span className="vault-doc-ic"><Icon name={meta.icon} size={18} /></span>
-                    <span className="vault-doc-text">
-                      <b>{doc.label}</b>
-                      <span>{meta.label} · {formatDate(doc.createdAt)}</span>
-                    </span>
+                <div className="vault-doc-card" key={doc.id}>
+                  <button className="vault-doc-thumb" onClick={() => setViewing(doc)} aria-label={`Apri ${doc.label}`}>
+                    {isImage ? (
+                      <img src={doc.fileDataUrl} alt={doc.label} />
+                    ) : (
+                      <span className="vault-doc-thumb-ic"><Icon name={meta.icon} size={26} /></span>
+                    )}
                   </button>
                   <button className="vault-doc-del" onClick={() => handleDelete(doc.id)} aria-label="Elimina documento">
-                    <Icon name="Trash2" size={16} />
+                    <Icon name="Trash2" size={14} />
                   </button>
+                  <div className="vault-doc-card-text">
+                    <b>{doc.label}</b>
+                    <span>{formatDate(doc.createdAt)}</span>
+                  </div>
                 </div>
               )
             })}
           </div>
         )}
       </div>
+
+      {viewing && (
+        <div className="vault-viewer-overlay" onClick={() => setViewing(null)}>
+          <div className="vault-viewer" onClick={(e) => e.stopPropagation()}>
+            <div className="vault-viewer-head">
+              <span className="vault-viewer-title">{viewing.label}</span>
+              <div className="vault-viewer-actions">
+                <button onClick={() => shareDoc(viewing)} aria-label="Condividi"><Icon name="Share2" size={17} /></button>
+                <button onClick={() => downloadDoc(viewing)} aria-label="Esporta"><Icon name="Download" size={17} /></button>
+                <button onClick={() => setViewing(null)} aria-label="Chiudi"><Icon name="X" size={19} /></button>
+              </div>
+            </div>
+            <div className="vault-viewer-body">
+              {viewing.fileMime?.startsWith('image/') ? (
+                <img src={viewing.fileDataUrl} alt={viewing.label} />
+              ) : (
+                <iframe src={viewing.fileDataUrl} title={viewing.label} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

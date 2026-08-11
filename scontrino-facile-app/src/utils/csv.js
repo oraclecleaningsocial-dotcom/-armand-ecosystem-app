@@ -10,7 +10,7 @@ export function receiptsToCsv(receipts, categoryLabel) {
     r.merchant,
     categoryLabel(r.category),
     r.total.toFixed(2).replace('.', ','),
-    r.items.map((it) => `${it.name} ${it.amount.toFixed(2)}`).join(' | '),
+    r.items.map((it) => `${it.qty > 1 ? `${it.qty}x ` : ''}${it.name} ${it.amount.toFixed(2)}`).join(' | '),
   ])
   return [header, ...rows].map((row) => row.map(csvEscape).join(';')).join('\n')
 }

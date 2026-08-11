@@ -3,8 +3,10 @@ import Icon from '../components/Icon'
 import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORIES } from '../categories'
 import { normalizeMerchant } from '../categories'
+import { useScrollRestore } from '../utils/scrollRestore'
 
 export default function Search({ receipts, onOpen, presetCategory, onConsumePreset }) {
+  const scrollRef = useScrollRestore('search')
   const [query, setQuery] = useState('')
   const [activeCats, setActiveCats] = useState(() => (presetCategory ? new Set([presetCategory]) : new Set()))
 
@@ -34,7 +36,7 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
   }
 
   return (
-    <div className="screen">
+    <div className="screen" ref={scrollRef}>
       <div className="pad" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
         <div className="search-box">
           <Icon name="Search" size={17} className="muted-ic" />

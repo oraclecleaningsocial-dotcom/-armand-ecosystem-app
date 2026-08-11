@@ -61,7 +61,7 @@ export async function recognizeReceipt(imageSource) {
   const worker = await withTimeout(getWorker(), 30000)
   const processed = await preprocessImage(imageSource)
   const { data } = await withTimeout(worker.recognize(processed), 30000)
-  return parseReceiptText(data.text || '')
+  return parseReceiptText(data.text || '', data.lines || [])
 }
 
 // Simboli e codici valuta riconosciuti nell'importo — non solo l'euro, così gli scontrini
@@ -76,6 +76,9 @@ const STANDALONE_AMOUNT = new RegExp(`^[+\\-]?\\s*(?:${CUR})?\\s*(?<amount>\\d{1
 // "Inviato a Mario Rossi", "Pagato a: Bar Centrale", "Destinatario Esselunga" — il beneficiario
 // di un pagamento digitale conta più della prima riga di testo (che è spesso l'header dell'app).
 const RECIPIENT_LINE = /(?:inviato a|pagato a|destinatario|beneficiario|ricevuto da|sent to|paid to|a:)\s*[:\-]?\s*(.+)/i
+// Formato ISO (AAAA-MM-GG), comune in screenshot/ricevute digitali: controllato prima del
+// pattern generico GG/MM/AA per evitare di scambiare l'ordine dei campi.
+const ISO_DATE_PATTERN = /(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/
 const DATE_PATTERN = /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/
 const MONTHS_IT = {
   gennaio: 0, gen: 0, febbraio: 1, feb: 1, marzo: 2, mar: 2, aprile: 3, apr: 3, maggio: 4, mag: 4,
@@ -87,10 +90,21 @@ const MONTHS_IT = {
 }
 const LONG_DATE_PATTERN = new RegExp(`(\\d{1,2})\\s+(${Object.keys(MONTHS_IT).join('|')})\\.?\\s+(\\d{4})`, 'i')
 const NOISE_LINE = /^(p\.?\s?iva|c\.?\s?f\.?|cod\.?\s?fisc|via |viale |corso |tel\.?|phone|scontrino|receipt|documento|n\.\s?\d|iban|causale|completat|inviat|in corso)/i
-const ADDRESS_LINE = /^(via|viale|v\.le|corso|c\.so|piazza|p\.zza|largo|vicolo|strada|contrada|street|st\.|road|rd\.|avenue|ave\.|lane|ln\.|boulevard|blvd\.|drive|dr\.)\s+.+/i
+// Non ancorata all'inizio riga: molti scontrini scrivono l'indirizzo dopo un'etichetta
+// ("Sede: Via Roma 12") o preceduto da altro testo scansionato sulla stessa riga.
+const ADDRESS_WORD = /\b(via|viale|v\.le|corso|c\.so|piazza|p\.zza|largo|vicolo|strada|contrada|street|st\.|road|rd\.|avenue|ave\.|lane|ln\.|boulevard|blvd\.|drive|dr\.)\s+\S.*/i
+const ADDRESS_LINE = new RegExp(`^${ADDRESS_WORD.source}`, 'i')
+// Riga successiva a un indirizzo che sembra un CAP + città ("20100 Milano (MI)"): va
+// accodata per avere un indirizzo completo invece che solo il nome della via.
+const CITY_LINE = /^\d{4,6}\s+[a-zà-ÿ]/i
 const PHONE_LINE = /(?:tel|phone|ph|mobile|cell|contact)\.?\s*[:\-]?\s*(\+?\d[\d\s\/\-]{6,15}\d)/i
-const VAT_LINE = /p\.?\s?iva\s*[:\-]?\s*(\d{11})/i
+// Partita IVA: numero di 11 cifre, spesso con prefisso "IT" e/o cifre separate da spazi
+// nell'OCR ("P.IVA IT 012 345 6789"). Accetta anche solo "IVA" o "Partita IVA" come etichetta.
+const VAT_LINE = /(?:p\.?\s*iva|partita\s+iva|iva)\s*[:\-]?\s*(?:it)?\s*((?:\d[\s.]?){11})/i
 const CF_LINE = /c\.?\s?f\.?\s*[:\-]?\s*([A-Z0-9]{11,16})/i
+// Quantità davanti o dietro al nome della voce: "2x Pane", "2 X Pane", "Pane x2", "Pane X 3".
+const QTY_PREFIX = /^(\d{1,3})\s*[x×]\s*(.+)/i
+const QTY_SUFFIX = /(.+?)\s*[x×]\s*(\d{1,3})$/i
 
 function toNumber(str) {
   return Number(str.replace(/\./g, '').replace(',', '.'))
@@ -112,18 +126,37 @@ function toIsoDate(day, month, year) {
 // Estrae negozio/beneficiario, data, totale e voci dal testo grezzo OCR con euristiche su
 // posizione e pattern — valide sia per scontrini cartacei sia per screenshot di pagamenti
 // digitali (PayPal, Satispay, bonifici, app bancarie), che non hanno una riga "TOTALE" esplicita.
-export function parseReceiptText(rawText) {
+// `ocrLines` (opzionale) sono le righe con bounding box di Tesseract (`data.lines`): usate per
+// individuare il logo/nome negozio, di solito il testo più alto tra le prime righe scansionate.
+export function parseReceiptText(rawText, ocrLines = []) {
   const lines = rawText
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean)
 
+  function lineHeight(text) {
+    const found = ocrLines.find((l) => l.text && l.text.trim() === text)
+    return found?.bbox ? found.bbox.y1 - found.bbox.y0 : 0
+  }
+
   const recipientLine = lines.map((l) => l.match(RECIPIENT_LINE)).find(Boolean)
-  let merchant = recipientLine ? recipientLine[1] : (lines.find((l) => !NOISE_LINE.test(l) && !/^\d+$/.test(l) && l.length > 2) || '')
+  let merchant
+  if (recipientLine) {
+    merchant = recipientLine[1]
+  } else {
+    const candidates = lines
+      .slice(0, 8)
+      .filter((l) => !NOISE_LINE.test(l) && !ADDRESS_LINE.test(l) && !PHONE_LINE.test(l) && !VAT_LINE.test(l) && !/^\d+$/.test(l) && l.length > 2)
+    // Tra le prime righe utili, quella scritta più in grande è di solito il logo/nome
+    // dell'esercente. Senza bounding box (o tutte uguali) resta la prima, come prima.
+    merchant = candidates.reduce((best, l) => (lineHeight(l) > lineHeight(best) ? l : best), candidates[0] || '')
+  }
   merchant = merchant.replace(/\s{2,}/g, ' ').replace(/[.\-*€\d\s]+$/, '').trim().slice(0, 40)
 
   let date = null
   for (const line of lines) {
+    const im = line.match(ISO_DATE_PATTERN)
+    if (im) { date = toIsoDate(im[3], Number(im[2]) - 1, im[1]); if (date) break }
     const m = line.match(DATE_PATTERN)
     if (m) { date = toIsoDate(m[1], Number(m[2]) - 1, m[3]); if (date) break }
     const lm = line.match(LONG_DATE_PATTERN)
@@ -146,15 +179,28 @@ export function parseReceiptText(rawText) {
   let address = null
   let phone = null
   let vat = null
-  for (const line of lines) {
-    if (!address && ADDRESS_LINE.test(line)) address = line.replace(/\s{2,}/g, ' ').trim().slice(0, 60)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (!address) {
+      const m = line.match(ADDRESS_WORD)
+      if (m) {
+        let full = line.slice(m.index)
+        // Riga successiva con CAP + città: fa parte dello stesso indirizzo.
+        if (lines[i + 1] && CITY_LINE.test(lines[i + 1])) full += `, ${lines[i + 1]}`
+        address = full.replace(/\s{2,}/g, ' ').trim().slice(0, 80)
+      }
+    }
     if (!phone) {
       const m = line.match(PHONE_LINE)
       if (m) phone = m[1].replace(/\s{2,}/g, ' ').trim()
     }
     if (!vat) {
-      const m = line.match(VAT_LINE) || line.match(CF_LINE)
-      if (m) vat = m[1].toUpperCase()
+      const m = line.match(VAT_LINE)
+      if (m) vat = m[1].replace(/[\s.]/g, '')
+      else {
+        const cf = line.match(CF_LINE)
+        if (cf) vat = cf[1].toUpperCase()
+      }
     }
   }
 
@@ -164,8 +210,20 @@ export function parseReceiptText(rawText) {
     const m = line.match(PRICE_AT_END)
     if (!m) continue
     const amount = toNumber(m.groups.amount)
-    const name = line.slice(0, m.index).trim().replace(/[.\-*]+$/, '').trim()
-    if (name && amount > 0 && amount < 1000) items.push({ name: name.slice(0, 40), amount })
+    let name = line.slice(0, m.index).trim().replace(/[.\-*]+$/, '').trim()
+    let qty = 1
+    const qtyPrefix = name.match(QTY_PREFIX)
+    if (qtyPrefix) {
+      qty = Number(qtyPrefix[1])
+      name = qtyPrefix[2].trim()
+    } else {
+      const qtySuffix = name.match(QTY_SUFFIX)
+      if (qtySuffix) {
+        qty = Number(qtySuffix[2])
+        name = qtySuffix[1].trim()
+      }
+    }
+    if (name && amount > 0 && amount < 1000) items.push({ name: name.slice(0, 40), amount, qty: qty > 0 && qty < 100 ? qty : 1 })
   }
 
   // Nessuna riga "TOTALE"/"IMPORTO" trovata: probabile screenshot di pagamento, dove

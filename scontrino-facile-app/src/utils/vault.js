@@ -40,6 +40,15 @@ export async function verifyVaultPin(pin) {
   return (await hashPin(pin)) === vault.pinHash
 }
 
+// Cambia il codice solo dopo aver verificato quello attuale. Restituisce false (senza
+// toccare nulla) se il codice attuale inserito è sbagliato.
+export async function changeVaultPin(currentPin, newPin) {
+  const ok = await verifyVaultPin(currentPin)
+  if (!ok) return false
+  await setupVaultPin(newPin)
+  return true
+}
+
 export function getDocuments() {
   return loadVault().documents
 }

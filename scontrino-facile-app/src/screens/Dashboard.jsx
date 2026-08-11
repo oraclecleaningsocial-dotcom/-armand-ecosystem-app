@@ -1,17 +1,15 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { CATEGORY_MAP } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
-import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
-import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 import CurrencyWidget from '../components/CurrencyWidget'
+import { useScrollRestore } from '../utils/scrollRestore'
 
-export default function Dashboard({ receipts, merchantCategoryMap, onRestore, onNavigate }) {
+export default function Dashboard({ receipts, onNavigate }) {
+  const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
-  const [lockOn, setLockOn] = useState(isLockEnabled)
-  const [lockError, setLockError] = useState('')
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
   const trend = useMemo(() => last6MonthsTrend(receipts), [receipts])
@@ -39,48 +37,8 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore, on
     downloadCsv(`scontrinofacile-${monthName}-${period.year}.csv`, csv)
   }
 
-  function exportBackup() {
-    const json = serializeBackup(receipts, merchantCategoryMap)
-    downloadJson(`scontrinofacile-backup-${new Date().toISOString().slice(0, 10)}.json`, json)
-  }
-
-  const fileInputRef = useRef(null)
-  const [importError, setImportError] = useState('')
-
-  async function handleImportFile(e) {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    setImportError('')
-    try {
-      const text = await file.text()
-      const { receipts: importedReceipts, merchantCategoryMap: importedMap } = parseBackup(text)
-      const ok = window.confirm(
-        `Ripristinare questo backup sostituirà tutte le ${receipts.length} ricevute attuali con le ${importedReceipts.length} del file. Continuare?`,
-      )
-      if (ok) onRestore(importedReceipts, importedMap)
-    } catch (err) {
-      setImportError(err.message || 'Backup non valido.')
-    }
-  }
-
-  async function toggleLock() {
-    setLockError('')
-    if (lockOn) {
-      disableLock()
-      setLockOn(false)
-      return
-    }
-    try {
-      await registerBiometric()
-      setLockOn(true)
-    } catch {
-      setLockError('Non sono riuscito ad attivare Face ID su questo dispositivo.')
-    }
-  }
-
   return (
-    <div className="screen">
+    <div className="screen" ref={scrollRef}>
       <div className="pad dash-head">
         <h1 className="scr-title">Report</h1>
         <span className="period-pill">{monthName} {period.year}</span>
@@ -143,32 +101,6 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore, on
         <Icon name="Download" size={16} /> Esporta riepilogo (.csv)
       </button>
 
-      <div className="pad backup-block">
-        <p className="sect-label">Backup dati</p>
-        <p className="backup-hint">I dati restano solo su questo dispositivo. Esporta un backup ogni tanto per non perderli.</p>
-        <div className="backup-actions">
-          <button className="btn" onClick={exportBackup} disabled={receipts.length === 0}>
-            <Icon name="Download" size={15} /> Esporta backup
-          </button>
-          <label className="btn">
-            <Icon name="Upload" size={15} /> Importa backup
-            <input ref={fileInputRef} type="file" accept="application/json,.json" onChange={handleImportFile} hidden />
-          </label>
-        </div>
-        {importError && <p className="notice">{importError}</p>}
-      </div>
-
-      {isBiometricSupported() && (
-        <div className="pad backup-block">
-          <p className="sect-label">Sicurezza</p>
-          <p className="backup-hint">Richiedi Face ID (o lo sblocco biometrico del dispositivo) ogni volta che apri l'app.</p>
-          <button className="btn" onClick={toggleLock}>
-            <Icon name="ScanFace" size={15} /> {lockOn ? 'Disattiva Face ID' : 'Attiva Face ID'}
-          </button>
-          {lockError && <p className="notice">{lockError}</p>}
-        </div>
-      )}
-
       <div className="pad tools-block">
         <p className="sect-label">Strumenti</p>
         <div className="tool-cards">
@@ -183,6 +115,10 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore, on
           <button className="tool-card" onClick={() => onNavigate?.('fiscal')}>
             <span className="tool-card-ic"><Icon name="Landmark" size={19} /></span>
             Scadenze fiscali
+          </button>
+          <button className="tool-card" onClick={() => onNavigate?.('settings')}>
+            <span className="tool-card-ic"><Icon name="Settings" size={19} /></span>
+            Impostazioni
           </button>
         </div>
       </div>

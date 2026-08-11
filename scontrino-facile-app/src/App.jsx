@@ -10,6 +10,7 @@ import Calculator from './screens/Calculator'
 import LockScreen from './screens/LockScreen'
 import VaultScreen from './screens/VaultScreen'
 import FiscalDeadlines from './screens/FiscalDeadlines'
+import Settings from './screens/Settings'
 import { useReceipts } from './state'
 import { isLockEnabled } from './utils/auth'
 
@@ -93,6 +94,9 @@ export default function App() {
         {screen === 'calculator' && <Calculator onClose={() => setScreen(tab)} />}
         {screen === 'vault' && <VaultScreen onClose={() => setScreen(tab)} />}
         {screen === 'fiscal' && <FiscalDeadlines onClose={() => setScreen(tab)} />}
+        {screen === 'settings' && (
+          <Settings receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onClose={() => setScreen(tab)} />
+        )}
 
         {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
           <TabBar active={tab} onNavigate={navigate} />

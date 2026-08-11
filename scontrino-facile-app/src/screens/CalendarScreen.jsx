@@ -4,12 +4,14 @@ import ReceiptCalendar from '../components/ReceiptCalendar'
 import ReceiptRow from '../components/ReceiptRow'
 import { eur } from '../utils/format'
 import { useReminders } from '../reminders'
+import { useScrollRestore } from '../utils/scrollRestore'
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10)
 }
 
 export default function CalendarScreen({ receipts, onOpen }) {
+  const scrollRef = useScrollRestore('calendar')
   const { reminders, addReminder, deleteReminder } = useReminders()
   const [mode, setMode] = useState('calendar') // calendar | range | reminder
   const [from, setFrom] = useState('')
@@ -43,7 +45,7 @@ export default function CalendarScreen({ receipts, onOpen }) {
   }
 
   return (
-    <div className="screen">
+    <div className="screen" ref={scrollRef}>
       <div className="pad cal-screen-head" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
         <h1 className="scr-title">Calendario</h1>
         <div className="cal-head-actions">

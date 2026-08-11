@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import Icon from './Icon'
 import ReceiptRow from './ReceiptRow'
 import { eur } from '../utils/format'
+import { getDeadlinesForYear } from '../fiscalDeadlines'
 
 const WEEKDAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 const MONTHS_SHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
@@ -26,7 +27,9 @@ function startOfWeek(d) {
 export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder }) {
   const [viewMode, setViewMode] = useState('month')
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })
-  const [selected, setSelected] = useState(null)
+  // Se siamo nel mese corrente, mostra subito gli eventi di oggi senza dover toccare il
+  // giorno: si vede solo se oggi rientra effettivamente nella griglia visualizzata.
+  const [selected, setSelected] = useState(() => toKey(new Date()))
   const [reminderTitle, setReminderTitle] = useState('')
 
   const byDay = useMemo(() => {
@@ -48,6 +51,16 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
     }
     return map
   }, [reminders])
+
+  const fiscalByDay = useMemo(() => {
+    const map = new Map()
+    for (const d of getDeadlinesForYear(cursor.getFullYear())) {
+      const list = map.get(d.date) || []
+      list.push(d)
+      map.set(d.date, list)
+    }
+    return map
+  }, [cursor])
 
   const monthCells = useMemo(() => {
     const year = cursor.getFullYear()
@@ -86,6 +99,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
   const todayKey = toKey(new Date())
   const selectedReceipts = selected ? (byDay.get(selected) || []) : []
   const selectedReminders = selected ? (remindersByDay.get(selected) || []) : []
+  const selectedFiscal = selected ? (fiscalByDay.get(selected) || []) : []
 
   function changeMonth(delta) {
     setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
@@ -193,6 +207,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
               const key = toKey(d)
               const dayReceipts = byDay.get(key)
               const dayReminders = remindersByDay.get(key)
+              const dayFiscal = fiscalByDay.get(key)
               return (
                 <button
                   key={i}
@@ -203,6 +218,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
                   <span className="cal-dots">
                     {dayReceipts && <span className="cal-dot" />}
                     {dayReminders && <span className="cal-dot reminder" />}
+                    {dayFiscal && <span className="cal-dot fiscal" />}
                   </span>
                 </button>
               )
@@ -222,6 +238,19 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
             <div className="list">
               {selectedReceipts.map((r) => <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, from)} />)}
             </div>
+          )}
+
+          {selectedFiscal.length > 0 && (
+            <>
+              <p className="sect-label reminders-label"><Icon name="Landmark" size={12} /> Scadenze fiscali</p>
+              <div className="reminder-list">
+                {selectedFiscal.map((f) => (
+                  <div className="reminder-row fiscal" key={f.id}>
+                    <span>{f.title}</span>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           <p className="sect-label reminders-label"><Icon name="Bell" size={12} /> Promemoria</p>

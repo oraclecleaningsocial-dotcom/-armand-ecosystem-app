@@ -37,10 +37,6 @@ button{cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
 .app-shell{
-  /* 100svh lasciava un vuoto sotto la tab bar quando la barra del browser si
-     nascondeva (assume sempre lo spazio minimo). 100dvh segue invece l'altezza
-     reale e attuale del viewport: niente più vuoto, e il contenuto non si
-     schiaccia più grazie a .screen > *{flex-shrink:0} qui sotto. */
   height:100vh;
   height:100dvh;
   display:flex;
@@ -59,6 +55,15 @@ button{cursor:pointer;}
   flex-direction:column;
   box-shadow:var(--shadow);
   overflow:hidden;
+}
+/* Confermato dall'utente: nel browser (Safari normale) l'altezza è corretta, ma nella
+   PWA installata sulla schermata Home (display-mode standalone) resta un vuoto sotto
+   la tab bar che blocca anche lo scroll. In standalone non c'è una barra del browser
+   dinamica da inseguire, quindi l'altezza reale coincide sempre con quella di html/body
+   (già impostata al 100% in cima al file): usarla direttamente evita del tutto il bug
+   di calcolo di dvh/svh in questa modalità. */
+@media (display-mode: standalone){
+  .app-shell,.app-viewport{height:100%;}
 }
 
 .screen{
@@ -295,6 +300,8 @@ button{cursor:pointer;}
 .backup-hint{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:2px 0 12px;}
 .backup-actions{display:flex;gap:10px;}
 .backup-actions .btn:disabled{opacity:.4;pointer-events:none;}
+.pin-change-form{display:flex;flex-direction:column;gap:10px;align-items:flex-start;}
+.pin-change-form .vault-pin-input{width:100%;max-width:220px;}
 
 /* ---------- detail ---------- */
 .det-top{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 0;}
@@ -343,6 +350,7 @@ button{cursor:pointer;}
 .items{margin-top:16px;border-top:1px solid var(--line);}
 .item-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;}
 .item-row .num{color:var(--ink-soft);}
+.item-qty{color:var(--accent-strong);font-weight:700;}
 .src-line{margin:16px 0 0;font-size:11.5px;color:var(--ink-soft);font-style:italic;}
 .det-actions{display:flex;gap:10px;margin:18px 0 24px;}
 .btn{all:unset;cursor:pointer;flex:1;box-sizing:border-box;text-align:center;padding:12px;border-radius:12px;font-size:13.5px;font-weight:650;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;}
@@ -402,8 +410,10 @@ button{cursor:pointer;}
 @media print {
   body *{visibility:hidden;}
   .print-area,.print-area *{visibility:visible;}
-  .print-area{position:absolute;inset:0;margin:0 auto;padding:32px;background:#fff;color:#000;max-width:480px;}
+  .print-area{position:absolute;inset:0;margin:0 auto;padding:32px;background:#fff;color:#000;max-width:480px;display:flex;flex-direction:column;}
   .no-print{display:none !important;}
+  /* la foto originale dello scontrino va sull'ultima pagina, non in cima */
+  .print-photo-last{order:9999;page-break-before:always;margin-top:24px;}
 }
 
 /* ---------- blocco Face ID ---------- */
@@ -492,20 +502,44 @@ button{cursor:pointer;}
 .vault-upload{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
 .vault-upload-btn{justify-content:center;}
 .vault-upload-btn.is-busy{opacity:.7;}
-.vault-doc-list{margin-top:18px;display:flex;flex-direction:column;gap:10px;}
-.vault-doc-row{display:flex;align-items:center;gap:8px;}
-.vault-doc-main{
-  all:unset;cursor:pointer;flex:1;min-width:0;display:flex;align-items:center;gap:12px;
-  padding:12px 14px;border-radius:14px;background:var(--paper-raised);
+
+.vault-doc-grid{margin-top:18px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.vault-doc-card{position:relative;display:flex;flex-direction:column;gap:6px;}
+.vault-doc-thumb{
+  all:unset;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;width:100%;border-radius:16px;background:var(--paper-raised);overflow:hidden;
 }
-.vault-doc-ic{
-  flex:none;width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
+.vault-doc-thumb img{width:100%;height:100%;object-fit:cover;}
+.vault-doc-thumb-ic{
+  width:48px;height:48px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
   display:flex;align-items:center;justify-content:center;
 }
-.vault-doc-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13.5px;}
-.vault-doc-text b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.vault-doc-text span{color:var(--ink-soft);font-size:11.5px;}
-.vault-doc-del{all:unset;cursor:pointer;flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--negative);}
+.vault-doc-del{
+  all:unset;cursor:pointer;position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+}
+.vault-doc-card-text{display:flex;flex-direction:column;gap:1px;font-size:12.5px;padding:0 2px;}
+.vault-doc-card-text b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vault-doc-card-text span{color:var(--ink-soft);font-size:11px;}
+
+.vault-viewer-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:60;
+  display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+}
+.vault-viewer{width:100%;height:100%;display:flex;flex-direction:column;}
+.vault-viewer-head{
+  flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;color:#fff;
+}
+.vault-viewer-title{font-size:14px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vault-viewer-actions{display:flex;align-items:center;gap:6px;flex:none;}
+.vault-viewer-actions button{
+  all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;color:#fff;
+  display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);
+}
+.vault-viewer-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;}
+.vault-viewer-body img{max-width:100%;max-height:100%;object-fit:contain;}
+.vault-viewer-body iframe{width:100%;height:100%;border:0;background:#fff;}
 
 /* ---------- scadenze fiscali ---------- */
 .fiscal-list{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
@@ -525,6 +559,8 @@ button{cursor:pointer;}
 /* ---------- promemoria calendario ---------- */
 .cal-dots{display:flex;gap:3px;height:4px;align-items:center;}
 .cal-dot.reminder{background:var(--hero-1);}
+.cal-dot.fiscal{background:#e0a72e;}
+.reminder-row.fiscal{background:rgba(224,167,46,0.14);color:#e0a72e;font-weight:650;}
 .reminders-label{display:flex;align-items:center;gap:5px;margin-top:18px;}
 .reminder-list{display:flex;flex-direction:column;gap:6px;}
 .reminder-row{

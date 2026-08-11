@@ -100,7 +100,10 @@ export function useReceipts() {
     setState((prev) => ({ ...prev, receipts: prev.receipts.filter((r) => r.id !== id) }))
   }, [])
 
-  const categorize = useCallback((merchantName) => guessCategory(merchantName, state.merchantCategoryMap), [state.merchantCategoryMap])
+  const categorize = useCallback(
+    (merchantName, itemNames) => guessCategory(merchantName, state.merchantCategoryMap, itemNames),
+    [state.merchantCategoryMap],
+  )
 
   // Sostituisce tutti i dati (usato dal ripristino di un backup). Distruttivo per design:
   // chi chiama questa funzione deve aver già chiesto conferma all'utente.

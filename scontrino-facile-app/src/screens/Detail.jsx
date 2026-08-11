@@ -80,7 +80,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
 
       <div className="pad print-area">
         {receipt.imageDataUrl ? (
-          <button className="det-image-btn" onClick={() => setPreviewOpen(true)} aria-label="Ingrandisci immagine scontrino">
+          <button className="det-image-btn print-photo-last" onClick={() => setPreviewOpen(true)} aria-label="Ingrandisci immagine scontrino">
             <img className="det-image" src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} />
           </button>
         ) : (
@@ -144,7 +144,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           <div className="items">
             {receipt.items.map((it, i) => (
               <div className="item-row" key={i}>
-                <span>{it.name}</span>
+                <span>{it.qty > 1 && <b className="item-qty">{it.qty}× </b>}{it.name}</span>
                 <span className="num">{eur(it.amount)}</span>
               </div>
             ))}

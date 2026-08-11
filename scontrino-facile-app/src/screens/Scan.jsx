@@ -42,7 +42,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
     })
     try {
       const parsed = await Promise.race([recognizeReceipt(dataUrl), globalErrorGuard])
-      setDraft({ ...parsed, category: categorize(parsed.merchant), note: '' })
+      setDraft({ ...parsed, category: categorize(parsed.merchant, parsed.items?.map((it) => it.name)), note: '' })
     } catch {
       setNotice(source === 'screenshot'
         ? 'Non sono riuscito a leggere lo screenshot: compila i campi a mano.'
@@ -123,7 +123,10 @@ export default function Scan({ categorize, onSave, onCancel }) {
               {showItems && (
                 <div className="items">
                   {draft.items.map((it, i) => (
-                    <div className="item-row" key={i}><span>{it.name}</span><span className="num">{eur(it.amount)}</span></div>
+                    <div className="item-row" key={i}>
+                      <span>{it.qty > 1 && <b className="item-qty">{it.qty}× </b>}{it.name}</span>
+                      <span className="num">{eur(it.amount)}</span>
+                    </div>
                   ))}
                 </div>
               )}

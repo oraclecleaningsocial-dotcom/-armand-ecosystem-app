@@ -63,3 +63,25 @@ export function getUpcomingDeadlines(from = new Date()) {
     return a.daysUntil - b.daysUntil
   })
 }
+
+function isoDate(year, monthIndex, day) {
+  return new Date(year, monthIndex, day).toISOString().slice(0, 10)
+}
+
+// Tutte le occorrenze delle scadenze fiscali in un dato anno solare, come semplici coppie
+// data/titolo — usato per mostrarle come indicatori nel calendario (a differenza di
+// getUpcomingDeadlines, che restituisce solo la prossima occorrenza di ciascuna).
+export function getDeadlinesForYear(year) {
+  const out = []
+  for (const d of FISCAL_DEADLINES) {
+    if (d.monthly) {
+      for (let m = 0; m < 12; m++) out.push({ id: `${d.id}-${m}`, title: d.title, date: isoDate(year, m, d.day) })
+    } else if (d.startMonth) {
+      out.push({ id: `${d.id}-start`, title: `${d.title} (inizio)`, date: isoDate(year, d.startMonth - 1, d.startDay) })
+      out.push({ id: `${d.id}-end`, title: `${d.title} (fine)`, date: isoDate(year, d.endMonth - 1, d.endDay) })
+    } else {
+      out.push({ id: d.id, title: d.title, date: isoDate(year, d.month - 1, d.day) })
+    }
+  }
+  return out
+}

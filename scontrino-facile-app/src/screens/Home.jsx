@@ -3,8 +3,10 @@ import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORIES } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend } from '../state'
+import { useScrollRestore } from '../utils/scrollRestore'
 
 export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
+  const scrollRef = useScrollRestore('home')
   const trend = last6MonthsTrend(receipts)
   const current = trend[trend.length - 1].total
   const previous = trend[trend.length - 2].total
@@ -13,7 +15,7 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
   const recent = receipts.slice(0, 5)
 
   return (
-    <div className="screen">
+    <div className="screen" ref={scrollRef}>
       <div className="pad">
         <div className="hero-card">
           <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Apri calcolatrice">

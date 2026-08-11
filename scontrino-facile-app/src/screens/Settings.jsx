@@ -1,0 +1,154 @@
+import { useRef, useState } from 'react'
+import Icon from '../components/Icon'
+import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
+import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
+import { changeVaultPin, isVaultSetUp } from '../utils/vault'
+
+export default function Settings({ receipts, merchantCategoryMap, onRestore, onClose }) {
+  const [lockOn, setLockOn] = useState(isLockEnabled)
+  const [lockError, setLockError] = useState('')
+  const fileInputRef = useRef(null)
+  const [importError, setImportError] = useState('')
+
+  const [currentPin, setCurrentPin] = useState('')
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [pinError, setPinError] = useState('')
+  const [pinSuccess, setPinSuccess] = useState('')
+  const [pinBusy, setPinBusy] = useState(false)
+
+  function exportBackup() {
+    const json = serializeBackup(receipts, merchantCategoryMap)
+    downloadJson(`scontrinofacile-backup-${new Date().toISOString().slice(0, 10)}.json`, json)
+  }
+
+  async function handleImportFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setImportError('')
+    try {
+      const text = await file.text()
+      const { receipts: importedReceipts, merchantCategoryMap: importedMap } = parseBackup(text)
+      const ok = window.confirm(
+        `Ripristinare questo backup sostituirà tutte le ${receipts.length} ricevute attuali con le ${importedReceipts.length} del file. Continuare?`,
+      )
+      if (ok) onRestore(importedReceipts, importedMap)
+    } catch (err) {
+      setImportError(err.message || 'Backup non valido.')
+    }
+  }
+
+  async function toggleLock() {
+    setLockError('')
+    if (lockOn) {
+      disableLock()
+      setLockOn(false)
+      return
+    }
+    try {
+      await registerBiometric()
+      setLockOn(true)
+    } catch {
+      setLockError('Non sono riuscito ad attivare Face ID su questo dispositivo.')
+    }
+  }
+
+  async function submitPinChange(e) {
+    e.preventDefault()
+    setPinError('')
+    setPinSuccess('')
+    if (newPin.length !== 4) { setPinError('Il nuovo codice deve avere 4 cifre.'); return }
+    if (newPin !== confirmPin) { setPinError('I due nuovi codici non coincidono.'); return }
+    setPinBusy(true)
+    const ok = await changeVaultPin(currentPin, newPin)
+    setPinBusy(false)
+    if (ok) {
+      setPinSuccess('Codice aggiornato.')
+      setCurrentPin('')
+      setNewPin('')
+      setConfirmPin('')
+    } else {
+      setPinError('Codice attuale errato.')
+    }
+  }
+
+  return (
+    <div className="screen">
+      <div className="pad dash-head" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
+        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+      </div>
+      <div className="pad">
+        <h1 className="scr-title">Impostazioni</h1>
+      </div>
+
+      <div className="pad backup-block">
+        <p className="sect-label">Backup dati</p>
+        <p className="backup-hint">I dati restano solo su questo dispositivo. Esporta un backup ogni tanto per non perderli.</p>
+        <div className="backup-actions">
+          <button className="btn" onClick={exportBackup} disabled={receipts.length === 0}>
+            <Icon name="Download" size={15} /> Esporta backup
+          </button>
+          <label className="btn">
+            <Icon name="Upload" size={15} /> Importa backup
+            <input ref={fileInputRef} type="file" accept="application/json,.json" onChange={handleImportFile} hidden />
+          </label>
+        </div>
+        {importError && <p className="notice">{importError}</p>}
+      </div>
+
+      {isBiometricSupported() && (
+        <div className="pad backup-block">
+          <p className="sect-label">Sicurezza</p>
+          <p className="backup-hint">Richiedi Face ID (o lo sblocco biometrico del dispositivo) ogni volta che apri l'app.</p>
+          <button className="btn" onClick={toggleLock}>
+            <Icon name="ScanFace" size={15} /> {lockOn ? 'Disattiva Face ID' : 'Attiva Face ID'}
+          </button>
+          {lockError && <p className="notice">{lockError}</p>}
+        </div>
+      )}
+
+      {isVaultSetUp() && (
+        <div className="pad backup-block">
+          <p className="sect-label">Codice documenti</p>
+          <p className="backup-hint">Cambia il codice a 4 cifre che protegge i tuoi documenti.</p>
+          <form onSubmit={submitPinChange} className="pin-change-form">
+            <input
+              className="vault-pin-input"
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              placeholder="Codice attuale"
+              value={currentPin}
+              onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
+            />
+            <input
+              className="vault-pin-input"
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              placeholder="Nuovo codice"
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+            />
+            <input
+              className="vault-pin-input"
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              placeholder="Conferma nuovo codice"
+              value={confirmPin}
+              onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+            />
+            {pinError && <p className="vault-lock-error">{pinError}</p>}
+            {pinSuccess && <p className="notice">{pinSuccess}</p>}
+            <button className="btn" type="submit" disabled={pinBusy}>Aggiorna codice</button>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
