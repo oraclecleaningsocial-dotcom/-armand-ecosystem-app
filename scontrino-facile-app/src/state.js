@@ -1,18 +1,34 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { guessCategory, normalizeMerchant } from './categories'
 import { fromLocalDateKey, toLocalDateKey } from './utils/format'
 import { isQuotaError, reportStorageError } from './utils/storageAlert'
+import { idbGet, idbSet } from './utils/idb'
 
 const STORAGE_KEY = 'scontrino_facile_state'
+const IDB_KEY = 'state'
+const EMPTY_STATE = { receipts: [], merchantCategoryMap: {} }
 
 function createId() {
   return `r_${Date.now()}_${Math.floor(Math.random() * 10000)}`
 }
 
-function loadState() {
+// IndexedDB invece di localStorage (vedi idb.js per il perché). Al primo avvio dopo
+// questo cambio, se IndexedDB è vuoto ma il vecchio localStorage ha ancora dati da prima,
+// li migra invece di farli sparire.
+async function loadState() {
+  try {
+    const fromIdb = await idbGet(IDB_KEY)
+    if (fromIdb) return fromIdb
+  } catch {
+    // IndexedDB non disponibile: si prova comunque la migrazione da localStorage sotto.
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const migrated = JSON.parse(raw)
+      idbSet(IDB_KEY, migrated).catch(() => {})
+      return migrated
+    }
   } catch {
     // localStorage non disponibile o dato corrotto: si riparte da zero.
   }
@@ -20,30 +36,29 @@ function loadState() {
   // ripiego vuoto era troppo facile da scambiare per i propri scontrini spariti — ed è
   // finito più volte in un backup esportato per errore, che poi li reimportava sopra ai
   // dati veri. Meglio una lista vuota onesta: se non c'è niente, si vede che non c'è niente.
-  return { receipts: [], merchantCategoryMap: {} }
+  return EMPTY_STATE
 }
 
 function saveState(state) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch (err) {
-    // storage pieno o non disponibile: la sessione continua solo in memoria. Se è per
-    // spazio esaurito lo segnaliamo, invece di lasciare che l'utente scopra dati mancanti
-    // solo alla riapertura dell'app.
+  idbSet(IDB_KEY, state).catch((err) => {
+    // spazio esaurito o IndexedDB non disponibile: la sessione continua solo in memoria.
     if (isQuotaError(err)) reportStorageError()
-  }
+  })
 }
 
 export function useReceipts() {
-  const [state, setState] = useState(loadState)
+  const [state, setState] = useState(EMPTY_STATE)
 
-  // Salva in modo sincrono, dentro la stessa chiamata che aggiorna lo stato React,
-  // invece di un useEffect separato che scatta dopo il render. Un'app da schermata Home
-  // su iOS può essere terminata dal sistema pochi istanti dopo l'ultima azione (swipe per
-  // chiuderla): se il salvataggio fosse ancora "in coda" in un effect non ancora eseguito
-  // in quel momento, andrebbe perso — l'azione dell'utente sarebbe visibile a schermo ma
-  // mai scritta su disco. Chiamare saveState dentro la funzione di aggiornamento di
-  // setState lo rende parte della stessa chiamata sincrona che ha scatenato la modifica.
+  useEffect(() => {
+    let cancelled = false
+    loadState().then((loaded) => { if (!cancelled) setState(loaded) })
+    return () => { cancelled = true }
+  }, [])
+
+  // La scrittura su IndexedDB è per natura asincrona (a differenza di localStorage.setItem,
+  // che era sincrono mentre restava comunque a rischio di perdita — vedi idb.js): qui
+  // dentro la funzione di aggiornamento di setState, così parte nello stesso istante
+  // dell'azione dell'utente invece che in un effect separato rimandato dopo il render.
   const update = useCallback((updater) => {
     setState((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater

@@ -4,6 +4,7 @@ import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 import { changeVaultPin, isVaultSetUp } from '../utils/vault'
 import { toLocalDateKey } from '../utils/format'
+import { idbGet, idbSet } from '../utils/idb'
 
 function bytesToKb(n) {
   return (n / 1024).toFixed(1)
@@ -44,7 +45,19 @@ function useStorageDiagnostics() {
       } catch (err) {
         writeTest = { ok: false, error: `${err.name || 'Errore'}: ${err.message || String(err)}` }
       }
-      if (!cancelled) setInfo({ persisted, estimate, localStorageBytes, writeTest })
+      // Stesso test ma su IndexedDB, che ora è il meccanismo di salvataggio vero e
+      // proprio per gli scontrini (vedi state.js/idb.js) — utile capire se anche questo
+      // regge o fallisce allo stesso modo di localStorage.
+      let idbWriteTest = null
+      try {
+        const testKey = '__write_test__'
+        await idbSet(testKey, 1)
+        const readBack = await idbGet(testKey)
+        idbWriteTest = readBack === 1 ? { ok: true } : { ok: false, error: 'scritto ma non riletto correttamente' }
+      } catch (err) {
+        idbWriteTest = { ok: false, error: `${err.name || 'Errore'}: ${err.message || String(err)}` }
+      }
+      if (!cancelled) setInfo({ persisted, estimate, localStorageBytes, writeTest, idbWriteTest })
     }
     run()
     return () => { cancelled = true }
@@ -155,7 +168,12 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
         )}
         {storageInfo?.writeTest && (
           <p className={storageInfo.writeTest.ok ? 'backup-hint' : 'notice'}>
-            Test di scrittura: {storageInfo.writeTest.ok ? 'riuscito' : `fallito — ${storageInfo.writeTest.error}`}
+            Test di scrittura (localStorage): {storageInfo.writeTest.ok ? 'riuscito' : `fallito — ${storageInfo.writeTest.error}`}
+          </p>
+        )}
+        {storageInfo?.idbWriteTest && (
+          <p className={storageInfo.idbWriteTest.ok ? 'backup-hint' : 'notice'}>
+            Test di scrittura (IndexedDB, usato per gli scontrini): {storageInfo.idbWriteTest.ok ? 'riuscito' : `fallito — ${storageInfo.idbWriteTest.error}`}
           </p>
         )}
       </div>
