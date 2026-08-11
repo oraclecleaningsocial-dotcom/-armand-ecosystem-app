@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import TabBar from './components/TabBar'
 import Home from './screens/Home'
 import Search from './screens/Search'
@@ -100,12 +101,17 @@ export default function App() {
         )}
         {screen === 'products' && <Products onClose={() => setScreen(tab)} />}
 
-        {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
-          <TabBar active={tab} onNavigate={navigate} />
-        )}
-
         {toast && <div className="toast">{toast}</div>}
       </div>
+
+      {/* Safari, su alcune versioni, taglia un discendente position:fixed all'altezza
+          del più vicino antenato con overflow:hidden invece di lasciarlo libero fino al
+          vero bordo dello schermo come da specifica — sintomo osservato: la tab bar
+          tagliata a metà invece di essere incollata in fondo. Un portale la rende figlia
+          diretta di <body>, fuori da .app-shell/.app-viewport (entrambi overflow:hidden),
+          eliminando il contenitore che la tagliava. */}
+      {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) &&
+        createPortal(<TabBar active={tab} onNavigate={navigate} />, document.body)}
     </div>
   )
 }
