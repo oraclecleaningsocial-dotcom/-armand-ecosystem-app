@@ -247,7 +247,12 @@ button{cursor:pointer;}
 .cal-cell.is-selected{background:var(--ink);color:var(--paper);}
 .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--accent-strong);}
 .cal-cell.is-selected .cal-dot{background:var(--paper);}
-.cal-day-panel{margin-top:18px;}
+/* Altezza massima fissa + scroll proprio, invece di contare sullo scroll di tutta la
+   pagina per rivelare il contenuto extra: su iOS quello smette a volte di funzionare
+   quando il contenuto cambia dinamicamente (scontrini/scadenze/promemoria che compaiono
+   e scompaiono). Un riquadro con altezza nota in anticipo e overflow proprio è un caso
+   di scroll molto più semplice da far funzionare bene in modo affidabile. */
+.cal-day-panel{margin-top:18px;max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px;}
 .cal-day-panel .list{margin:0 -20px;}
 .cal-day-total{font-family:var(--f-mono);font-weight:650;color:var(--ink-soft);text-transform:none;letter-spacing:0;}
 
