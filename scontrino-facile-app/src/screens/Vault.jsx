@@ -3,6 +3,7 @@ import Icon from '../components/Icon'
 import { addDocument, deleteDocument, getDocuments, updateDocument } from '../utils/vault'
 import { formatDate } from '../utils/format'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
+import { compressImage } from '../utils/compressImage'
 
 const DOC_TYPES = [
   { id: 'cv', label: 'Curriculum', icon: 'Briefcase' },
@@ -62,12 +63,23 @@ export default function Vault({ onClose }) {
     if (!file) return
     setBusy(true)
     try {
-      const fileDataUrl = await readAsDataUrl(file)
+      const rawDataUrl = await readAsDataUrl(file)
+      // Una foto di un documento (non un PDF vero e proprio) può pesare diversi MB come
+      // uno scontrino — stessa quota di localStorage da salvaguardare (vedi
+      // compressImage.js). Qualità/risoluzione più alte di quelle usate per gli scontrini,
+      // dato che qui il documento stesso è ciò che serve rileggere, non solo dati già
+      // estratti da un OCR. I PDF restano intatti: comprimerli davvero richiederebbe
+      // decodificarli e riscriverli, un lavoro diverso e più rischioso per la fedeltà.
+      const isImage = file.type.startsWith('image/')
+      const fileDataUrl = isImage ? await compressImage(rawDataUrl, 1600, 0.82).catch(() => rawDataUrl) : rawDataUrl
+      // Il nome originale può avere un'estensione diversa (.png, .heic) da quella reale
+      // del contenuto ricompresso in JPEG — la teniamo coerente per download/condivisione.
+      const fileName = isImage ? file.name.replace(/\.\w+$/, '') + '.jpg' : file.name
       const doc = addDocument({
         label: label.trim() || DOC_TYPES.find((t) => t.id === type)?.label || 'Documento',
         type,
-        fileName: file.name,
-        fileMime: file.type,
+        fileName,
+        fileMime: isImage ? 'image/jpeg' : file.type,
         fileDataUrl,
       })
       setDocuments((prev) => [doc, ...prev])
