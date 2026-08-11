@@ -68,7 +68,14 @@ export async function recognizeReceipt(imageSource) {
 // in dollari, sterline, rupie (incluse quelle mauriziane) o altre valute vengono letti lo
 // stesso. L'app somma comunque tutto come se fosse un unico totale (nessuna conversione).
 const CUR = '(?:€|\\$|£|¥|₹|₨|Rs\\.?|EUR|USD|GBP|JPY|CHF|CAD|AUD|INR|MUR|CNY|BRL|MXN|ZAR)'
-const TOTAL_LINE = new RegExp(`(totale|importo|tot\\.?|total|amount|grand\\s*total|somma)\\s*(?:${CUR})?\\s*[:\\-]?\\s*(?:${CUR})?\\s*(?<amount>\\d{1,6}[.,]\\d{2})\\s*(?:${CUR})?`, 'i')
+// Etichetta di "totale" ovunque nella riga: il vecchio pattern richiedeva l'importo
+// incollato all'etichetta (solo valuta/due punti/trattino in mezzo), ma scontrini e
+// soprattutto fatture usano spesso frasi come "TOTALE DOCUMENTO", "TOTALE A PAGARE",
+// "IMPORTO TOTALE IVA COMPRESA" — con altre parole tra etichetta e importo. Qui si
+// individua solo la riga giusta; l'importo si estrae a parte prendendo l'ULTIMO
+// numero della riga (di solito il totale finale, non un IVA/percentuale intermedia).
+const TOTAL_KEYWORD = /(totale|importo|tot\.?|total|amount|somma|dovuto|pagare)/i
+const AMOUNT_ON_LINE = new RegExp(`(?:${CUR})?\\s*(?<amount>\\d{1,6}[.,]\\d{2})\\s*(?:${CUR})?`, 'g')
 const PRICE_AT_END = new RegExp(`(?:${CUR})?\\s*(?<amount>\\d{1,4}[.,]\\d{2})\\s*(?:${CUR})?\\s*$`)
 // Riga fatta solo di un importo (comune negli screenshot di pagamento: l'importo è isolato,
 // spesso il testo più grande dello schermo, senza un'etichetta "TOTALE" accanto).
@@ -165,12 +172,21 @@ export function parseReceiptText(rawText, ocrLines = []) {
 
   let total = null
   let totalSource = 'manualOverride'
-  for (const line of lines) {
-    const m = line.match(TOTAL_LINE)
-    if (m) {
-      total = toNumber(m.groups.amount)
+  // Non ci si ferma alla prima riga con "totale/importo/...": si scansiona tutto il
+  // documento e vince l'ULTIMA riga che matcha, perché il totale finale (quello che
+  // interessa) è quasi sempre l'ultima etichetta di questo tipo prima della fine dello
+  // scontrino/fattura — righe precedenti possono essere subtotali, imponibile, ecc.
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (!TOTAL_KEYWORD.test(line)) continue
+    let matches = [...line.matchAll(AMOUNT_ON_LINE)]
+    // Etichetta e importo a volte finiscono su righe OCR separate (layout a colonne,
+    // tipico delle fatture): se la riga con "totale" non ha un importo, si guarda
+    // quella subito dopo prima di rinunciare.
+    if (!matches.length && lines[i + 1]) matches = [...lines[i + 1].matchAll(AMOUNT_ON_LINE)]
+    if (matches.length) {
+      total = toNumber(matches[matches.length - 1].groups.amount)
       totalSource = 'ocrDetected'
-      break
     }
   }
 
@@ -206,7 +222,7 @@ export function parseReceiptText(rawText, ocrLines = []) {
 
   const items = []
   for (const line of lines) {
-    if (TOTAL_LINE.test(line) || NOISE_LINE.test(line) || STANDALONE_AMOUNT.test(line)) continue
+    if (TOTAL_KEYWORD.test(line) || NOISE_LINE.test(line) || STANDALONE_AMOUNT.test(line)) continue
     const m = line.match(PRICE_AT_END)
     if (!m) continue
     const amount = toNumber(m.groups.amount)
