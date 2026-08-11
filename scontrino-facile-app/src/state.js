@@ -14,9 +14,13 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return JSON.parse(raw)
   } catch {
-    // localStorage non disponibile o dato corrotto: si riparte dai dati demo.
+    // localStorage non disponibile o dato corrotto: si riparte da zero.
   }
-  return { receipts: seedReceipts(), merchantCategoryMap: {} }
+  // Niente più dati demo qui: erano pensati come esempio al primissimo avvio, ma un
+  // ripiego vuoto era troppo facile da scambiare per i propri scontrini spariti — ed è
+  // finito più volte in un backup esportato per errore, che poi li reimportava sopra ai
+  // dati veri. Meglio una lista vuota onesta: se non c'è niente, si vede che non c'è niente.
+  return { receipts: [], merchantCategoryMap: {} }
 }
 
 function saveState(state) {
@@ -28,30 +32,6 @@ function saveState(state) {
     // solo alla riapertura dell'app.
     if (isQuotaError(err)) reportStorageError()
   }
-}
-
-function seedReceipts() {
-  return [
-    { id: 'seed_1', merchant: 'Esselunga', date: isoDaysAgo(0), total: 34.2, totalSource: 'ocrDetected', category: 'cibo', items: [
-      { name: 'Pasta', amount: 2.1 }, { name: 'Latte', amount: 1.8 }, { name: 'Pane', amount: 3.0 }, { name: 'Pomodori', amount: 4.5 },
-      { name: 'Detersivo', amount: 6.9 }, { name: 'Caffè', amount: 5.4 }, { name: 'Uova', amount: 3.1 }, { name: 'Formaggio', amount: 7.4 },
-    ], note: '', imageDataUrl: null, ocrRawText: '', createdAt: isoDaysAgo(0) },
-    { id: 'seed_2', merchant: 'Eni', date: isoDaysAgo(1), total: 60, totalSource: 'ocrDetected', category: 'trasporti', items: [{ name: 'Benzina', amount: 60 }], note: '', imageDataUrl: null, ocrRawText: '', createdAt: isoDaysAgo(1) },
-    { id: 'seed_3', merchant: 'Farmacia Centrale', date: isoDaysAgo(2), total: 12.5, totalSource: 'ocrDetected', category: 'salute', items: [{ name: 'Cerotti', amount: 4.5 }, { name: 'Vitamina C', amount: 8.0 }], note: '', imageDataUrl: null, ocrRawText: '', createdAt: isoDaysAgo(2) },
-    { id: 'seed_4', merchant: 'Coop', date: isoDaysAgo(3), total: 22.9, totalSource: 'ocrDetected', category: 'cibo', items: [
-      { name: 'Pasta', amount: 2.2 }, { name: 'Riso', amount: 3.1 }, { name: 'Olio', amount: 8.9 }, { name: 'Biscotti', amount: 3.5 }, { name: 'Tonno', amount: 5.2 },
-    ], note: '', imageDataUrl: null, ocrRawText: '', createdAt: isoDaysAgo(3) },
-    { id: 'seed_5', merchant: 'IKEA', date: isoDaysAgo(5), total: 187.4, totalSource: 'ocrDetected', category: 'casa', items: [
-      { name: 'Scaffale Kallax', amount: 79.0 }, { name: 'Lampada da tavolo', amount: 24.9 }, { name: 'Cuscini (x2)', amount: 19.0 },
-      { name: 'Tende oscuranti', amount: 34.5 }, { name: 'Contenitori', amount: 30.0 },
-    ], note: '', imageDataUrl: null, ocrRawText: '', createdAt: isoDaysAgo(5) },
-  ]
-}
-
-function isoDaysAgo(n) {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  return toLocalDateKey(d)
 }
 
 export function useReceipts() {
