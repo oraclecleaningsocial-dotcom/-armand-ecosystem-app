@@ -163,6 +163,10 @@ export default function Dashboard({
             <span className="tool-card-ic"><Icon name="ScanBarcode" size={19} /></span>
             Prodotti
           </button>
+          <button className="tool-card" onClick={() => onNavigate?.('tickets')}>
+            <span className="tool-card-ic"><Icon name="Ticket" size={19} /></span>
+            Biglietti
+          </button>
         </div>
       </div>
 

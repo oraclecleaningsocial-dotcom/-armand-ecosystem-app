@@ -12,6 +12,7 @@ import VaultScreen from './screens/VaultScreen'
 import FiscalDeadlines from './screens/FiscalDeadlines'
 import Settings from './screens/Settings'
 import Products from './screens/Products'
+import Tickets from './screens/Tickets'
 import { useReceipts } from './state'
 import { useReminders } from './reminders'
 import { useNotes } from './notes'
@@ -131,6 +132,7 @@ export default function App() {
           <Settings receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onClose={() => setScreen(tab)} />
         )}
         {screen === 'products' && <Products onClose={() => setScreen(tab)} />}
+        {screen === 'tickets' && <Tickets onClose={() => setScreen(tab)} />}
 
         {toast && <div className="toast">{toast}</div>}
 

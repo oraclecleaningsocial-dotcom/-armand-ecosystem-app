@@ -759,3 +759,13 @@ button{cursor:pointer;}
 .products-screen .score-badge{font-size:12.5px;}
 .products-screen .item-row{font-size:15px;}
 .products-screen .link-btn{font-size:15px;}
+
+/* ---------- biglietti (wallet, senza PIN) ---------- */
+.tickets-screen .backup-hint{font-size:14px;}
+.tickets-screen .empty{font-size:15px;}
+.tickets-screen .vault-doc-card-text{font-size:14.5px;}
+.tickets-screen .vault-doc-card-text span{font-size:13px;}
+/* Un biglietto già passato resta consultabile ma si smarca visivamente da quelli
+   utili a breve, senza sparire o richiedere una cancellazione manuale. */
+.ticket-card.is-past .vault-doc-thumb{opacity:.55;}
+.ticket-card.is-past .vault-doc-card-text{opacity:.55;}
