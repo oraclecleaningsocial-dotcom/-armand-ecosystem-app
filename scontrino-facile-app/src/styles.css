@@ -36,9 +36,14 @@ button,input,select,textarea{font-family:inherit;color:inherit;}
 button{cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
+/* --vvh viene impostata da main.jsx con window.visualViewport.height: l'unica misura
+   dell'altezza visibile reale che si è dimostrata affidabile sia in Safari normale sia
+   da icona installata sulla Home (dove 100vh/100dvh e la media query display-mode:
+   standalone hanno continuato a lasciare un vuoto sotto la tab bar). 100dvh resta come
+   fallback per il primissimo frame, prima che il JS giri. */
 .app-shell{
-  height:100vh;
   height:100dvh;
+  height:var(--vvh, 100dvh);
   display:flex;
   justify-content:center;
   background:var(--paper);
@@ -47,23 +52,14 @@ button{cursor:pointer;}
 .app-viewport{
   width:100%;
   max-width:480px;
-  height:100vh;
   height:100dvh;
+  height:var(--vvh, 100dvh);
   background:var(--paper);
   position:relative;
   display:flex;
   flex-direction:column;
   box-shadow:var(--shadow);
   overflow:hidden;
-}
-/* Confermato dall'utente: nel browser (Safari normale) l'altezza è corretta, ma nella
-   PWA installata sulla schermata Home (display-mode standalone) resta un vuoto sotto
-   la tab bar che blocca anche lo scroll. In standalone non c'è una barra del browser
-   dinamica da inseguire, quindi l'altezza reale coincide sempre con quella di html/body
-   (già impostata al 100% in cima al file): usarla direttamente evita del tutto il bug
-   di calcolo di dvh/svh in questa modalità. */
-@media (display-mode: standalone){
-  .app-shell,.app-viewport{height:100%;}
 }
 
 .screen{
