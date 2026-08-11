@@ -568,6 +568,8 @@ button{cursor:pointer;}
 .vault-header-lock{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:650;color:var(--ink-soft);padding:8px;}
 
 .vault-upload{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.vault-upload-actions{display:flex;gap:8px;}
+.vault-upload-actions .vault-upload-btn{flex:1;}
 .vault-upload-btn{justify-content:center;}
 .vault-upload-btn.is-busy{opacity:.7;}
 

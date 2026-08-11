@@ -146,10 +146,21 @@ export default function Vault({ onClose }) {
             {DOC_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </select>
           <input className="edit-input" placeholder="Nome (es. CV 2026)" value={label} onChange={(e) => setLabel(e.target.value)} />
-          <label className={`btn vault-upload-btn ${busy ? 'is-busy' : ''}`}>
-            <Icon name={busy ? 'Loader2' : 'Upload'} size={15} className={busy ? 'spin' : ''} /> {busy ? 'Caricamento…' : 'Carica documento'}
-            <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFile} disabled={busy} hidden />
-          </label>
+          <div className="vault-upload-actions">
+            {/* Con capture="environment" la fotocamera si apre subito, come per lo
+                scanner degli scontrini — invece del selettore file generico qui sotto,
+                che su iOS/Android richiede un tocco in più per arrivare alla fotocamera
+                (mostra prima Libreria foto/File). Stesso handleFile per entrambe: una
+                foto è una foto, non importa da dove arriva. */}
+            <label className={`btn vault-upload-btn ${busy ? 'is-busy' : ''}`}>
+              <Icon name={busy ? 'Loader2' : 'ScanLine'} size={15} className={busy ? 'spin' : ''} /> {busy ? 'Scansione…' : 'Scansiona documento'}
+              <input type="file" accept="image/*" capture="environment" onChange={handleFile} disabled={busy} hidden />
+            </label>
+            <label className={`btn vault-upload-btn ${busy ? 'is-busy' : ''}`}>
+              <Icon name={busy ? 'Loader2' : 'Upload'} size={15} className={busy ? 'spin' : ''} /> {busy ? 'Caricamento…' : 'Carica da galleria o file'}
+              <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFile} disabled={busy} hidden />
+            </label>
+          </div>
         </div>
 
         {documents.length === 0 ? (
