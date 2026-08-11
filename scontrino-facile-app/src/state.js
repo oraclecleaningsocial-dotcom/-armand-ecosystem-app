@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { guessCategory, normalizeMerchant } from './categories'
 import { fromLocalDateKey, toLocalDateKey } from './utils/format'
+import { isQuotaError, reportStorageError } from './utils/storageAlert'
 
 const STORAGE_KEY = 'scontrino_facile_state'
 
@@ -21,8 +22,11 @@ function loadState() {
 function saveState(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    // storage pieno o non disponibile: la sessione continua solo in memoria.
+  } catch (err) {
+    // storage pieno o non disponibile: la sessione continua solo in memoria. Se è per
+    // spazio esaurito lo segnaliamo, invece di lasciare che l'utente scopra dati mancanti
+    // solo alla riapertura dell'app.
+    if (isQuotaError(err)) reportStorageError()
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import TabBar from './components/TabBar'
 import Home from './screens/Home'
 import Search from './screens/Search'
@@ -16,6 +16,7 @@ import { useReceipts } from './state'
 import { useReminders } from './reminders'
 import { useNotes } from './notes'
 import { isLockEnabled } from './utils/auth'
+import { onStorageError } from './utils/storageAlert'
 
 export default function App() {
   const [locked, setLocked] = useState(isLockEnabled)
@@ -57,10 +58,20 @@ export default function App() {
     setScreen(detailBack)
   }
 
-  function showToast(msg) {
+  function showToast(msg, duration = 2200) {
     setToast(msg)
-    setTimeout(() => setToast(''), 2200)
+    setTimeout(() => setToast(''), duration)
   }
+
+  // Un salvataggio fallito per spazio esaurito (localStorage pieno) veniva prima ignorato
+  // in silenzio da ogni modulo di stato — l'utente lo scopriva solo alla riapertura
+  // dell'app, con dati mancanti. Con questo almeno lo sa subito.
+  useEffect(() => {
+    return onStorageError(() => showToast(
+      'Spazio di archiviazione pieno: alcuni dati potrebbero non essere salvati. Vai in Impostazioni ed esporta un backup, poi elimina scontrini o documenti vecchi.',
+      4500,
+    ))
+  }, [])
 
   function handleRestore(newReceipts, newMap) {
     replaceAll(newReceipts, newMap)

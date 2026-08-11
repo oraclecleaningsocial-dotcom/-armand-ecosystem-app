@@ -1,3 +1,5 @@
+import { isQuotaError, reportStorageError } from './storageAlert'
+
 const STORAGE_KEY = 'scontrino_facile_products'
 
 function loadProducts() {
@@ -13,8 +15,8 @@ function loadProducts() {
 function saveProducts(products) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(products))
-  } catch {
-    // storage pieno o non disponibile: la sessione continua solo in memoria
+  } catch (err) {
+    if (isQuotaError(err)) reportStorageError()
   }
 }
 

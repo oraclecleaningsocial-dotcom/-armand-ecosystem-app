@@ -3,6 +3,7 @@ import Icon from '../components/Icon'
 import { CATEGORIES } from '../categories'
 import { recognizeReceipt } from '../ocr'
 import { eur, toLocalDateKey } from '../utils/format'
+import { compressImage } from '../utils/compressImage'
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -28,8 +29,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
     e.target.value = ''
     if (!file) return
     setSourceType(source)
-    const dataUrl = await readAsDataUrl(file)
-    setImageDataUrl(dataUrl)
+    const rawDataUrl = await readAsDataUrl(file)
     setStep('processing')
     // Il motore OCR gira in un web worker: in rari casi (rete assente al primo avvio,
     // dati lingua non scaricabili) l'errore emerge come eccezione globale invece che
@@ -41,7 +41,9 @@ export default function Scan({ categorize, onSave, onCancel }) {
       removeGuard = () => window.removeEventListener('error', onError)
     })
     try {
-      const parsed = await Promise.race([recognizeReceipt(dataUrl), globalErrorGuard])
+      // OCR sull'originale ad alta risoluzione (la foto della fotocamera): comprimere
+      // prima peggiorerebbe la lettura del testo piccolo.
+      const parsed = await Promise.race([recognizeReceipt(rawDataUrl), globalErrorGuard])
       setDraft({ ...parsed, category: categorize(parsed.merchant, parsed.items?.map((it) => it.name)), note: '' })
     } catch {
       setNotice(source === 'screenshot'
@@ -51,6 +53,11 @@ export default function Scan({ categorize, onSave, onCancel }) {
     } finally {
       removeGuard()
     }
+    // Quella che salviamo è solo per l'anteprima/miniatura, non serve la piena
+    // risoluzione: una foto di fotocamera può pesare diversi MB, e salvarla così com'è
+    // per ogni scontrino riempie in fretta la localStorage (vedi compressImage.js).
+    const compactDataUrl = await compressImage(rawDataUrl).catch(() => rawDataUrl)
+    setImageDataUrl(compactDataUrl)
     setStep('review')
   }
 

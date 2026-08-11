@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { isQuotaError, reportStorageError } from './utils/storageAlert'
 
 const STORAGE_KEY = 'scontrino_facile_reminders'
 
@@ -19,8 +20,8 @@ function loadReminders() {
 function saveReminders(reminders) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reminders))
-  } catch {
-    // storage pieno o non disponibile: la sessione continua solo in memoria
+  } catch (err) {
+    if (isQuotaError(err)) reportStorageError()
   }
 }
 

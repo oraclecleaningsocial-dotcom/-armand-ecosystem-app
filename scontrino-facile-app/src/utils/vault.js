@@ -1,3 +1,5 @@
+import { isQuotaError, reportStorageError } from './storageAlert'
+
 const STORAGE_KEY = 'scontrino_facile_vault'
 
 function loadVault() {
@@ -13,8 +15,11 @@ function loadVault() {
 function saveVault(vault) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(vault))
-  } catch {
-    // storage pieno o non disponibile: la sessione continua solo in memoria
+  } catch (err) {
+    // storage pieno o non disponibile: la sessione continua solo in memoria. I documenti
+    // (PDF/immagini) sono ciò che più facilmente esaurisce lo spazio, quindi qui l'avviso
+    // conta particolarmente.
+    if (isQuotaError(err)) reportStorageError()
   }
 }
 
