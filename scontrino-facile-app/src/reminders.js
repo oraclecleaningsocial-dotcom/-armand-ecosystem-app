@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { isQuotaError, reportStorageError } from './utils/storageAlert'
 
 const STORAGE_KEY = 'scontrino_facile_reminders'
@@ -27,15 +27,18 @@ function saveReminders(reminders) {
 
 export function useReminders() {
   const [reminders, setReminders] = useState(loadReminders)
-  // Vedi state.js per il perché: non salvare al primissimo mount, solo dalle mutazioni
-  // vere, evita di sovrascrivere dati reali con un ripiego vuoto se la primissima lettura
-  // in un'app standalone appena riavviata trova lo storage non ancora pronto.
-  const isFirstRender = useRef(true)
 
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
-    saveReminders(reminders)
-  }, [reminders])
+  // Salva in modo sincrono, dentro la stessa chiamata che aggiorna lo stato React
+  // (vedi state.js per la spiegazione completa): un'app da schermata Home su iOS può
+  // essere terminata dal sistema pochi istanti dopo l'ultima azione, prima che un
+  // eventuale useEffect separato abbia il tempo di scattare.
+  const update = useCallback((updater) => {
+    setReminders((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      saveReminders(next)
+      return next
+    })
+  }, [])
 
   const addReminder = useCallback((draft) => {
     const reminder = {
@@ -45,13 +48,13 @@ export function useReminders() {
       note: draft.note || '',
       createdAt: new Date().toISOString(),
     }
-    setReminders((prev) => [reminder, ...prev])
+    update((prev) => [reminder, ...prev])
     return reminder
-  }, [])
+  }, [update])
 
   const deleteReminder = useCallback((id) => {
-    setReminders((prev) => prev.filter((r) => r.id !== id))
-  }, [])
+    update((prev) => prev.filter((r) => r.id !== id))
+  }, [update])
 
   return { reminders, addReminder, deleteReminder }
 }

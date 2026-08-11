@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { guessCategory, normalizeMerchant } from './categories'
 import { fromLocalDateKey, toLocalDateKey } from './utils/format'
 import { isQuotaError, reportStorageError } from './utils/storageAlert'
@@ -56,19 +56,21 @@ function isoDaysAgo(n) {
 
 export function useReceipts() {
   const [state, setState] = useState(loadState)
-  // Al primo mount questo effect scriverebbe comunque su localStorage lo stato appena
-  // letto — utile finché è tutto normale, ma se quella primissima lettura in un'app
-  // standalone appena (ri)avviata da iOS trova lo storage temporaneamente vuoto o non
-  // ancora pronto, loadState() ripiega sui dati demo e questo effect li salverebbe subito
-  // sopra i dati veri dell'utente, cancellandoli per sempre. Saltare il salvataggio al
-  // primo giro e scrivere solo dalle mutazioni vere (addReceipt, updateReceipt, ecc.)
-  // toglie questo rischio.
-  const isFirstRender = useRef(true)
 
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
-    saveState(state)
-  }, [state])
+  // Salva in modo sincrono, dentro la stessa chiamata che aggiorna lo stato React,
+  // invece di un useEffect separato che scatta dopo il render. Un'app da schermata Home
+  // su iOS può essere terminata dal sistema pochi istanti dopo l'ultima azione (swipe per
+  // chiuderla): se il salvataggio fosse ancora "in coda" in un effect non ancora eseguito
+  // in quel momento, andrebbe perso — l'azione dell'utente sarebbe visibile a schermo ma
+  // mai scritta su disco. Chiamare saveState dentro la funzione di aggiornamento di
+  // setState lo rende parte della stessa chiamata sincrona che ha scatenato la modifica.
+  const update = useCallback((updater) => {
+    setState((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      saveState(next)
+      return next
+    })
+  }, [])
 
   const addReceipt = useCallback((draft) => {
     const receipt = {
@@ -88,7 +90,7 @@ export function useReceipts() {
       sourceType: draft.sourceType || 'foto',
       createdAt: new Date().toISOString(),
     }
-    setState((prev) => ({
+    update((prev) => ({
       ...prev,
       receipts: [receipt, ...prev.receipts],
       merchantCategoryMap: {
@@ -97,10 +99,10 @@ export function useReceipts() {
       },
     }))
     return receipt
-  }, [])
+  }, [update])
 
   const updateReceipt = useCallback((id, patch) => {
-    setState((prev) => {
+    update((prev) => {
       const receipts = prev.receipts.map((r) => (r.id === id ? { ...r, ...patch } : r))
       const changed = receipts.find((r) => r.id === id)
       const merchantCategoryMap = changed
@@ -108,11 +110,11 @@ export function useReceipts() {
         : prev.merchantCategoryMap
       return { ...prev, receipts, merchantCategoryMap }
     })
-  }, [])
+  }, [update])
 
   const deleteReceipt = useCallback((id) => {
-    setState((prev) => ({ ...prev, receipts: prev.receipts.filter((r) => r.id !== id) }))
-  }, [])
+    update((prev) => ({ ...prev, receipts: prev.receipts.filter((r) => r.id !== id) }))
+  }, [update])
 
   const categorize = useCallback(
     (merchantName, itemNames) => guessCategory(merchantName, state.merchantCategoryMap, itemNames),
@@ -122,8 +124,8 @@ export function useReceipts() {
   // Sostituisce tutti i dati (usato dal ripristino di un backup). Distruttivo per design:
   // chi chiama questa funzione deve aver già chiesto conferma all'utente.
   const replaceAll = useCallback((receipts, merchantCategoryMap) => {
-    setState({ receipts, merchantCategoryMap: merchantCategoryMap || {} })
-  }, [])
+    update({ receipts, merchantCategoryMap: merchantCategoryMap || {} })
+  }, [update])
 
   return {
     receipts: state.receipts,

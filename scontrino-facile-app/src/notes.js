@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { isQuotaError, reportStorageError } from './utils/storageAlert'
 
 const STORAGE_KEY = 'scontrino_facile_notes'
@@ -27,25 +27,28 @@ function saveNotes(notes) {
 
 export function useNotes() {
   const [notes, setNotes] = useState(loadNotes)
-  // Vedi state.js per il perché: non salvare al primissimo mount, solo dalle mutazioni
-  // vere, evita di sovrascrivere dati reali con un ripiego vuoto se la primissima lettura
-  // in un'app standalone appena riavviata trova lo storage non ancora pronto.
-  const isFirstRender = useRef(true)
 
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
-    saveNotes(notes)
-  }, [notes])
+  // Salva in modo sincrono, dentro la stessa chiamata che aggiorna lo stato React
+  // (vedi state.js per la spiegazione completa): un'app da schermata Home su iOS può
+  // essere terminata dal sistema pochi istanti dopo l'ultima azione, prima che un
+  // eventuale useEffect separato abbia il tempo di scattare.
+  const update = useCallback((updater) => {
+    setNotes((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      saveNotes(next)
+      return next
+    })
+  }, [])
 
   const addNote = useCallback((text) => {
     const note = { id: createId(), text, createdAt: new Date().toISOString() }
-    setNotes((prev) => [note, ...prev])
+    update((prev) => [note, ...prev])
     return note
-  }, [])
+  }, [update])
 
   const deleteNote = useCallback((id) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id))
-  }, [])
+    update((prev) => prev.filter((n) => n.id !== id))
+  }, [update])
 
   return { notes, addNote, deleteNote }
 }
