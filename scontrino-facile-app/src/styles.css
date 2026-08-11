@@ -67,7 +67,12 @@ button{cursor:pointer;}
 }
 
 .screen{
-  flex:1;display:flex;flex-direction:column;padding-bottom:104px;animation:fadein .22s ease;
+  flex:1;display:flex;flex-direction:column;
+  /* La tab bar è "position:absolute" e la sua altezza cresce con la safe-area (home
+     indicator): un padding fisso in px non basta sui device con inset grande e lascia
+     l'ultimo contenuto incollato/coperto dalla barra sfocata. Lo includiamo qui. */
+  padding-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
+  animation:fadein .22s ease;
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
 }
 /* I contenuti diretti di .screen non devono restringersi: senza questo, in flexbox
@@ -465,9 +470,8 @@ button{cursor:pointer;}
   font-size:22px;font-weight:600;font-family:var(--f-mono);
 }
 .calc-key:active{filter:brightness(1.3);}
-.calc-key.is-wide{flex:2.15;aspect-ratio:auto;border-radius:32px;justify-content:flex-start;padding-left:28px;}
 .calc-key.is-op{background:var(--accent);color:var(--accent-ink);}
-.calc-key.is-clear{background:var(--negative-soft);color:var(--negative);font-size:16px;}
+.calc-key.is-fn{background:#3a3a42;color:var(--ink);font-size:19px;}
 
 /* ---------- vault (documenti protetti) ---------- */
 .vault-lock-top{padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 0;}
@@ -581,11 +585,13 @@ button{cursor:pointer;}
 
 /* ---------- strumenti / widget (report) ---------- */
 .tools-block{margin-top:26px;}
-.tool-cards{display:flex;gap:10px;margin-top:10px;}
+/* Grid a 2 colonne invece di una riga flessibile: con 4+ card una riga sola non ci
+   sta in larghezza e forzava lo scroll orizzontale di tutta la pagina. */
+.tool-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
 .tool-card{
-  all:unset;cursor:pointer;flex:1;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:8px;
+  all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:8px;
   padding:16px 8px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);
-  font-size:11.5px;font-weight:650;color:var(--ink);text-align:center;
+  font-size:11.5px;font-weight:650;color:var(--ink);text-align:center;min-width:0;
 }
 .tool-card-ic{
   width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
@@ -618,3 +624,30 @@ button{cursor:pointer;}
   animation:toast 2.2s ease forwards;z-index:20;white-space:nowrap;
 }
 @keyframes toast{0%{opacity:0;transform:translate(-50%,8px);}12%{opacity:1;transform:translate(-50%,0);}82%{opacity:1;}100%{opacity:0;}}
+
+/* ---------- prodotti (barcode + Open Food Facts) ---------- */
+.product-search{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
+.product-search-actions{display:flex;gap:10px;}
+.product-search-actions .btn{flex:1;justify-content:center;}
+.scan-video-wrap{position:relative;margin-top:12px;border-radius:16px;overflow:hidden;background:#000;}
+.scan-video{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;}
+.scan-video-hint{
+  position:absolute;left:0;right:0;bottom:10px;text-align:center;color:#fff;
+  font-size:12px;font-weight:650;text-shadow:0 1px 4px rgba(0,0,0,.6);
+}
+.product-preview{
+  margin-top:16px;display:flex;gap:14px;padding:14px;border-radius:16px;
+  background:var(--paper-raised);border:1px solid var(--line);
+}
+.product-preview-img{width:72px;height:72px;border-radius:12px;object-fit:cover;flex:none;background:#fff;}
+.product-preview-body{flex:1;min-width:0;display:flex;flex-direction:column;}
+.product-preview-body b{font-size:14.5px;}
+.product-preview-brand{color:var(--ink-soft);font-size:12px;margin-top:1px;}
+.score-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.score-badge{
+  font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;
+  background:var(--paper-raised);color:var(--ink-soft);
+}
+.score-badge.nova{background:color-mix(in srgb, var(--accent) 18%, transparent);color:var(--accent-strong);}
+.product-detail-body{flex:1;min-height:0;padding:0 20px 30px;overflow-y:auto;}
+.product-detail-img{width:100%;max-width:220px;display:block;margin:0 auto 14px;border-radius:16px;background:#fff;}

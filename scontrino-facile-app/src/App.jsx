@@ -11,6 +11,7 @@ import LockScreen from './screens/LockScreen'
 import VaultScreen from './screens/VaultScreen'
 import FiscalDeadlines from './screens/FiscalDeadlines'
 import Settings from './screens/Settings'
+import Products from './screens/Products'
 import { useReceipts } from './state'
 import { isLockEnabled } from './utils/auth'
 
@@ -97,6 +98,7 @@ export default function App() {
         {screen === 'settings' && (
           <Settings receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onClose={() => setScreen(tab)} />
         )}
+        {screen === 'products' && <Products onClose={() => setScreen(tab)} />}
 
         {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
           <TabBar active={tab} onNavigate={navigate} />

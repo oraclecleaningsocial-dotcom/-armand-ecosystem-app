@@ -120,6 +120,10 @@ export default function Dashboard({ receipts, onNavigate }) {
             <span className="tool-card-ic"><Icon name="Settings" size={19} /></span>
             Impostazioni
           </button>
+          <button className="tool-card" onClick={() => onNavigate?.('products')}>
+            <span className="tool-card-ic"><Icon name="ScanBarcode" size={19} /></span>
+            Prodotti
+          </button>
         </div>
       </div>
 

@@ -74,19 +74,33 @@ export default function Calculator({ onClose }) {
     setS(INITIAL)
   }
 
+  function sign() {
+    setS((prev) => {
+      if (prev.display === '0') return prev
+      const next = prev.display.startsWith('-') ? prev.display.slice(1) : `-${prev.display}`
+      return { ...prev, display: next }
+    })
+  }
+
+  // Virgola invece del punto in tutti i numeri mostrati, come da convenzione italiana.
+  function itFmt(str) {
+    return String(str).replace('.', ',')
+  }
+
   const KEYS = [
-    ['C', '⌫', '%', '÷'],
+    ['⌫', 'C', '%', '÷'],
     ['7', '8', '9', '×'],
     ['4', '5', '6', '-'],
     ['1', '2', '3', '+'],
-    ['0', '.', '='],
+    ['+/-', '0', ',', '='],
   ]
 
   function press(k) {
     if (k === 'C') return clear()
     if (k === '⌫') return backspace()
     if (k === '%') return percent()
-    if (k === '.') return decimal()
+    if (k === ',') return decimal()
+    if (k === '+/-') return sign()
     if (k === '=') return equals()
     if (['+', '-', '×', '÷'].includes(k)) return operator(k)
     return digit(k)
@@ -98,8 +112,8 @@ export default function Calculator({ onClose }) {
         <button className="cam-x" onClick={onClose}><Icon name="X" size={18} /></button>
       </div>
       <div className="calc-display">
-        {s.op && <span className="calc-pending">{formatResult(s.stored)} {s.op}</span>}
-        <span className="calc-value">{s.display}</span>
+        {s.op && <span className="calc-pending">{itFmt(formatResult(s.stored))} {s.op}</span>}
+        <span className="calc-value">{itFmt(s.display)}</span>
       </div>
       <div className="calc-pad">
         {KEYS.map((row, i) => (
@@ -107,7 +121,7 @@ export default function Calculator({ onClose }) {
             {row.map((k) => (
               <button
                 key={k}
-                className={`calc-key ${['÷', '×', '-', '+', '='].includes(k) ? 'is-op' : ''} ${k === '0' ? 'is-wide' : ''} ${k === 'C' ? 'is-clear' : ''}`}
+                className={`calc-key ${['÷', '×', '-', '+', '='].includes(k) ? 'is-op' : ''} ${['⌫', 'C', '%', '+/-'].includes(k) ? 'is-fn' : ''}`}
                 onClick={() => press(k)}
               >
                 {k}
