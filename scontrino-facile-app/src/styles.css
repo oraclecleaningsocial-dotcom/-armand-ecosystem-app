@@ -78,7 +78,11 @@ button{cursor:pointer;}
      l'ultimo contenuto incollato/coperto dalla barra sfocata. Lo includiamo qui. */
   padding-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
   animation:fadein .22s ease;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;
+  /* overscroll-behavior-y:contain è stata tolta apposta: su alcune versioni di iOS Safari,
+     combinata con lo scroll a inerzia, è documentata bloccare del tutto lo scroll invece
+     di limitarsi a impedire il rimbalzo verso la pagina sotto. .app-viewport ha già
+     overflow:hidden, quindi non c'è comunque nulla verso cui "incatenare" lo scroll. */
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
 /* I contenuti diretti di .screen non devono restringersi: senza questo, in flexbox
    la mancanza di spazio comprime le sezioni (icone, card) invece di attivare lo
