@@ -64,20 +64,33 @@ export default function Products({ onClose }) {
   const scanInputRef = useRef(null)
 
   async function runSearch(code) {
-    if (!code.trim()) return
+    const trimmed = code.trim()
+    if (!trimmed) return
+    // Se questo codice a barre è già stato salvato in precedenza (scansionato o creato a
+    // mano), si apre direttamente la scheda già in archivio — con il prezzo che l'utente
+    // ci aveva già messo — invece di rifare la ricerca su Open Food Facts e rischiare di
+    // salvarlo una seconda volta come prodotto duplicato.
+    const existing = products.find((p) => p.barcode && p.barcode === trimmed)
+    if (existing) {
+      setViewing(existing)
+      setBarcode('')
+      setResult(null)
+      setSearchError('')
+      return
+    }
     setSearching(true)
     setSearchError('')
     setResult(null)
     try {
-      const found = await lookupBarcode(code.trim())
+      const found = await lookupBarcode(trimmed)
       if (!found) setSearchError('Prodotto non trovato su Open Food Facts. Puoi comunque salvarlo con il solo codice.')
-      setResult(found || { barcode: code.trim(), name: '', brand: '' })
+      setResult(found || { barcode: trimmed, name: '', brand: '' })
     } catch {
       // Copre sia errori di rete (offline, host irraggiungibile) sia risposte non
       // valide: il messaggio del browser (es. "Failed to fetch") non va mai mostrato
       // direttamente all'utente. Si può comunque salvare il prodotto a mano.
       setSearchError('Ricerca non riuscita. Controlla la connessione e riprova, oppure inserisci i dati a mano qui sotto.')
-      setResult({ barcode: code.trim(), name: '', brand: '' })
+      setResult({ barcode: trimmed, name: '', brand: '' })
     } finally {
       setSearching(false)
     }
@@ -107,13 +120,22 @@ export default function Products({ onClose }) {
 
   function saveProduct() {
     if (!result) return
-    const entry = {
-      id: `prod_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-      ...result,
-      price: price ? Number(price) : null,
-      createdAt: new Date().toISOString(),
+    const nextPrice = price ? Number(price) : null
+    // Il codice a barre nell'anteprima è modificabile a mano: se corrisponde comunque a un
+    // prodotto già salvato (es. l'utente lo corregge digitandolo uguale a uno esistente),
+    // si aggiorna quello invece di crearne un duplicato.
+    const existing = result.barcode && products.find((p) => p.barcode === result.barcode)
+    if (existing) {
+      updateProducts((prev) => prev.map((p) => (p.id === existing.id ? { ...p, ...result, price: nextPrice } : p)))
+    } else {
+      const entry = {
+        id: `prod_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
+        ...result,
+        price: nextPrice,
+        createdAt: new Date().toISOString(),
+      }
+      updateProducts((prev) => [entry, ...prev])
     }
-    updateProducts((prev) => [entry, ...prev])
     setResult(null)
     setBarcode('')
     setPrice('')
@@ -132,7 +154,7 @@ export default function Products({ onClose }) {
   }
 
   return (
-    <div className="screen">
+    <div className="screen products-screen">
       <div className="det-top">
         <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
       </div>

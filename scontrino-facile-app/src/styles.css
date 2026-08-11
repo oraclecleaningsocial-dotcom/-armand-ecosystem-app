@@ -742,3 +742,20 @@ button{cursor:pointer;}
 .score-badge.nova{background:color-mix(in srgb, var(--accent) 18%, transparent);color:var(--accent-strong);}
 .product-detail-body{flex:1;min-height:0;padding:0 20px 30px;overflow-y:auto;}
 .product-detail-img{width:100%;max-width:220px;display:block;margin:0 auto 14px;border-radius:16px;background:#fff;}
+
+/* Testo un po' più grande in questa schermata: alcune classi condivise con altre
+   schermate (Vault, spiegazioni generiche) erano tarate su testo secondario minuscolo,
+   ma qui — descrizione, avviso di errore scansione, nome/prezzo nella card, valori
+   nutrizionali — è il contenuto principale che l'utente deve leggere, non una nota a
+   margine. Scoperto su .products-screen per non toccare le altre schermate. */
+.products-screen .backup-hint{font-size:14px;}
+.products-screen .notice{font-size:14px;}
+.products-screen .empty{font-size:15px;}
+.products-screen .field span{font-size:12.5px;}
+.products-screen .vault-doc-card-text{font-size:14.5px;}
+.products-screen .vault-doc-card-text span{font-size:13px;}
+.products-screen .product-preview-brand{font-size:14px;}
+.products-screen .product-preview-body b{font-size:16px;}
+.products-screen .score-badge{font-size:12.5px;}
+.products-screen .item-row{font-size:15px;}
+.products-screen .link-btn{font-size:15px;}
