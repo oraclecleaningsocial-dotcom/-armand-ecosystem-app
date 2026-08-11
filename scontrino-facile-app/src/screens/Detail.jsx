@@ -13,7 +13,6 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
 
   const mapQuery = [receipt.merchant, receipt.address].filter(Boolean).join(', ')
   const mapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
-  const mapsEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`
 
   function save() {
     onUpdate(receipt.id, {
@@ -132,18 +131,6 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           </div>
         )}
 
-        {!editing && (
-          <div className="map-block no-print">
-            <p className="sect-label">Posizione</p>
-            <div className="map-frame">
-              <iframe title={`Mappa ${receipt.merchant}`} src={mapsEmbedUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
-            </div>
-            <a className="link-btn accent map-open-link" href={mapsSearchUrl} target="_blank" rel="noreferrer">
-              Apri in Google Maps <Icon name="ExternalLink" size={13} />
-            </a>
-          </div>
-        )}
-
         {receipt.items.length > 0 && (
           <div className="items">
             {receipt.items.map((it, i) => (
@@ -164,6 +151,20 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
             <button className="btn" onClick={share}><Icon name="Share2" size={15} /> Condividi</button>
             <button className="btn" onClick={exportPdf}><Icon name="Download" size={15} /> PDF</button>
             <button className="btn danger" onClick={() => onDelete(receipt.id)}>Elimina</button>
+          </div>
+        )}
+
+        {!editing && (
+          <div className="map-block no-print">
+            <p className="sect-label">Posizione</p>
+            <a className="map-card" href={mapsSearchUrl} target="_blank" rel="noreferrer">
+              <span className="map-card-ic"><Icon name="MapPin" size={19} /></span>
+              <span className="map-card-text">
+                <b>{receipt.merchant}</b>
+                {receipt.address && <span>{receipt.address}</span>}
+              </span>
+              <Icon name="ExternalLink" size={16} className="muted-ic" />
+            </a>
           </div>
         )}
       </div>

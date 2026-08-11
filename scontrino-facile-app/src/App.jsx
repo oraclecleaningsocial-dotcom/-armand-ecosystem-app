@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import TabBar from './components/TabBar'
 import Home from './screens/Home'
 import Search from './screens/Search'
@@ -20,22 +20,6 @@ export default function App() {
   const [detailBack, setDetailBack] = useState('home')
   const [toast, setToast] = useState('')
   const [searchPreset, setSearchPreset] = useState(null)
-
-  // 100dvh non è affidabile in tutti i browser/PWA installate (alcune versioni di
-  // iOS in modalità standalone lo calcolano male, "bloccando" la pagina): --app-height
-  // è la misura reale del viewport, aggiornata a ogni resize/orientazione.
-  useEffect(() => {
-    function setAppHeight() {
-      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`)
-    }
-    setAppHeight()
-    window.addEventListener('resize', setAppHeight)
-    window.addEventListener('orientationchange', setAppHeight)
-    return () => {
-      window.removeEventListener('resize', setAppHeight)
-      window.removeEventListener('orientationchange', setAppHeight)
-    }
-  }, [])
 
   function navigate(target) {
     setScreen(target)

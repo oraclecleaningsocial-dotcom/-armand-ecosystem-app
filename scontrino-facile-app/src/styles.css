@@ -37,8 +37,12 @@ button{cursor:pointer;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
 .app-shell{
-  height:100dvh;
-  height:var(--app-height,100dvh);
+  /* 100svh (small viewport height) invece di 100dvh: assume sempre la barra del
+     browser/sistema espansa, quindi non trabocca mai e non lascia mai spazio vuoto
+     sotto per un calcolo dinamico sbagliato — il compromesso più sicuro per PWA
+     installate su dispositivi diversi. */
+  height:100vh;
+  height:100svh;
   display:flex;
   justify-content:center;
   background:var(--paper);
@@ -47,8 +51,8 @@ button{cursor:pointer;}
 .app-viewport{
   width:100%;
   max-width:480px;
-  height:100dvh;
-  height:var(--app-height,100dvh);
+  height:100vh;
+  height:100svh;
   background:var(--paper);
   position:relative;
   display:flex;
@@ -303,10 +307,18 @@ button{cursor:pointer;}
 .merchant-detail-row:last-child{margin-bottom:0;}
 .field-row{display:flex;gap:14px;}
 .field-row .field{flex:1;}
-.map-block{margin-top:18px;}
-.map-frame{margin-top:8px;height:150px;border-radius:16px;overflow:hidden;background:var(--paper-raised);border:1px solid var(--line);}
-.map-frame iframe{width:100%;height:100%;border:0;}
-.map-open-link{margin-top:8px;padding-left:0;}
+.map-block{margin-top:22px;}
+.map-card{
+  all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:12px;
+  margin-top:8px;padding:14px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);
+}
+.map-card-ic{
+  flex:none;width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);
+  display:flex;align-items:center;justify-content:center;
+}
+.map-card-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;font-size:13.5px;}
+.map-card-text b{font-weight:650;}
+.map-card-text span{color:var(--ink-soft);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .img-lightbox{
   position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);
   display:flex;align-items:center;justify-content:center;padding:24px;
