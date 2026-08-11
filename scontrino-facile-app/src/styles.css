@@ -238,7 +238,9 @@ button{cursor:pointer;}
 .cal-year-cell.has-data .cal-year-total{color:var(--accent-strong);font-weight:650;}
 
 .cal-screen-head{display:flex;align-items:center;justify-content:space-between;}
+.cal-head-actions{display:flex;gap:8px;}
 .cal-search-btn{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--paper-raised);color:var(--ink);}
+.reminder-date{font-style:normal;color:var(--ink-soft);}
 .range-search .field-row{margin-top:16px;}
 
 .chips{display:flex;gap:8px;padding:14px 20px 4px;flex-wrap:wrap;}

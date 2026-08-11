@@ -5,11 +5,17 @@ import ReceiptRow from '../components/ReceiptRow'
 import { eur } from '../utils/format'
 import { useReminders } from '../reminders'
 
+function todayIso() {
+  return new Date().toISOString().slice(0, 10)
+}
+
 export default function CalendarScreen({ receipts, onOpen }) {
   const { reminders, addReminder, deleteReminder } = useReminders()
-  const [rangeOpen, setRangeOpen] = useState(false)
+  const [mode, setMode] = useState('calendar') // calendar | range | reminder
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [reminderDate, setReminderDate] = useState(todayIso)
+  const [reminderTitle, setReminderTitle] = useState('')
 
   const rangeResults = useMemo(() => {
     if (!from && !to) return null
@@ -20,20 +26,37 @@ export default function CalendarScreen({ receipts, onOpen }) {
 
   const rangeTotal = rangeResults ? rangeResults.reduce((s, r) => s + r.total, 0) : 0
 
-  function toggleRange() {
-    setRangeOpen((v) => !v)
+  const upcomingReminders = useMemo(
+    () => reminders.slice().sort((a, b) => (a.date < b.date ? -1 : 1)),
+    [reminders],
+  )
+
+  function toggleMode(target) {
+    setMode((prev) => (prev === target ? 'calendar' : target))
+  }
+
+  function submitReminder(e) {
+    e.preventDefault()
+    if (!reminderTitle.trim() || !reminderDate) return
+    addReminder({ date: reminderDate, title: reminderTitle.trim() })
+    setReminderTitle('')
   }
 
   return (
     <div className="screen">
       <div className="pad cal-screen-head" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
         <h1 className="scr-title">Calendario</h1>
-        <button className="cal-search-btn" onClick={toggleRange} aria-label={rangeOpen ? 'Chiudi ricerca per intervallo' : 'Cerca per intervallo di date'}>
-          <Icon name={rangeOpen ? 'X' : 'Search'} size={17} />
-        </button>
+        <div className="cal-head-actions">
+          <button className="cal-search-btn" onClick={() => toggleMode('reminder')} aria-label={mode === 'reminder' ? 'Chiudi promemoria' : 'Aggiungi promemoria'}>
+            <Icon name={mode === 'reminder' ? 'X' : 'Bell'} size={16} />
+          </button>
+          <button className="cal-search-btn" onClick={() => toggleMode('range')} aria-label={mode === 'range' ? 'Chiudi ricerca per intervallo' : 'Cerca per intervallo di date'}>
+            <Icon name={mode === 'range' ? 'X' : 'Search'} size={17} />
+          </button>
+        </div>
       </div>
 
-      {rangeOpen ? (
+      {mode === 'range' && (
         <div className="pad range-search">
           <p className="sect-label" style={{ margin: '0 0 10px' }}>Cerca da data a data</p>
           <div className="field-row">
@@ -63,7 +86,44 @@ export default function CalendarScreen({ receipts, onOpen }) {
             </>
           )}
         </div>
-      ) : (
+      )}
+
+      {mode === 'reminder' && (
+        <div className="pad range-search">
+          <p className="sect-label" style={{ margin: '0 0 10px' }}>Nuovo promemoria</p>
+          <form onSubmit={submitReminder}>
+            <div className="field-row">
+              <label className="field" style={{ marginTop: 0 }}>
+                <span>Data</span>
+                <input type="date" value={reminderDate} onChange={(e) => setReminderDate(e.target.value)} />
+              </label>
+            </div>
+            <label className="field">
+              <span>Titolo</span>
+              <input placeholder="Es. Pagare bolletta luce" value={reminderTitle} onChange={(e) => setReminderTitle(e.target.value)} />
+            </label>
+            <button type="submit" className="btn currency-convert-btn">
+              <Icon name="Plus" size={15} /> Aggiungi promemoria
+            </button>
+          </form>
+
+          {upcomingReminders.length > 0 && (
+            <>
+              <p className="sect-label">Tutti i promemoria</p>
+              <div className="reminder-list">
+                {upcomingReminders.map((r) => (
+                  <div className="reminder-row" key={r.id}>
+                    <span>{r.title} <em className="reminder-date">· {r.date.split('-').reverse().join('/')}</em></span>
+                    <button onClick={() => deleteReminder(r.id)} aria-label="Elimina promemoria"><Icon name="X" size={13} /></button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {mode === 'calendar' && (
         <ReceiptCalendar
           receipts={receipts}
           onOpen={onOpen}
