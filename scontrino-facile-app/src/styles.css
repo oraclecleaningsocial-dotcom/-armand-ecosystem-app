@@ -67,7 +67,16 @@ button{cursor:pointer;}
 }
 
 .screen{
-  flex:1;display:flex;flex-direction:column;
+  flex:1;
+  /* Il vero motivo del blocco scroll che continuava a ripresentarsi: un figlio flex
+     con overflow-y:auto ha min-height:auto di default, che in WebKit lo fa crescere
+     quanto il suo contenuto invece di restare confinato allo spazio disponibile. Con
+     contenuto più alto del viewport, .app-viewport (overflow:hidden) lo tagliava
+     silenziosamente invece di farlo scorrere — sintomo che cambiava da schermata a
+     schermata a seconda di quanto contenuto c'era. Le versioni precedenti di questo
+     fix inseguivano solo l'altezza (100dvh/100svh/standalone) senza toccare questo. */
+  min-height:0;
+  display:flex;flex-direction:column;
   /* La tab bar è "position:absolute" e la sua altezza cresce con la safe-area (home
      indicator): un padding fisso in px non basta sui device con inset grande e lascia
      l'ultimo contenuto incollato/coperto dalla barra sfocata. Lo includiamo qui. */
