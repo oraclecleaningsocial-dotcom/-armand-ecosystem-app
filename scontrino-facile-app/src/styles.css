@@ -252,15 +252,15 @@ button{cursor:pointer;}
 .cal-cell.is-selected{background:var(--ink);color:var(--paper);}
 .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--accent-strong);}
 .cal-cell.is-selected .cal-dot{background:var(--paper);}
-/* Altezza massima fissa + scroll proprio, invece di contare sullo scroll di tutta la
-   pagina per rivelare il contenuto extra: su iOS quello smette a volte di funzionare
-   quando il contenuto cambia dinamicamente (scontrini/scadenze/promemoria che compaiono
-   e scompaiono). Un riquadro con altezza nota in anticipo e overflow proprio è un caso
-   di scroll molto più semplice da far funzionare bene in modo affidabile. */
-/* Un cap in px fisso, non in vh: le unità di viewport si sono dimostrate inaffidabili
-   in modalità standalone per tutta questa indagine, un valore assoluto non dipende
-   da nessun calcolo del motore su quanto sia alto lo schermo. */
-.cal-day-panel{margin-top:18px;max-height:360px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px;}
+/* Niente altezza massima né overflow proprio qui: un riquadro con scroll indipendente
+   annidato dentro lo scroll della pagina (.screen) è esattamente il tipo di doppia
+   regione scrollabile che Safari su iOS può non gestire bene, soprattutto dentro la
+   gerarchia overflow:hidden di .app-shell/.app-viewport (la stessa famiglia di bug che
+   tagliava la tab bar). Con misurazioni reali il pannello arrivava a 1694px di contenuto
+   dentro una finestra di soli 360px — un'area enorme dove il gesto di scroll poteva
+   restare "intrappolato" nella regione interna senza mai muoversi. Lasciandolo fluire
+   nello scroll unico di .screen (già verificato funzionante) elimina l'annidamento. */
+.cal-day-panel{margin-top:18px;padding-bottom:14px;}
 .cal-day-panel .list{margin:0 -20px;}
 .cal-day-total{font-family:var(--f-mono);font-weight:650;color:var(--ink-soft);text-transform:none;letter-spacing:0;}
 
