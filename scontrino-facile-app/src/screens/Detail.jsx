@@ -151,6 +151,28 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           </div>
         )}
 
+        {(editing || receipt.note) && (
+          <div className="det-note">
+            {editing ? (
+              <label className="field">
+                <span><Icon name="StickyNote" size={13} /> Nota</span>
+                <textarea
+                  className="note-input"
+                  rows={3}
+                  placeholder="Aggiungi una nota…"
+                  value={draft.note || ''}
+                  onChange={(e) => setDraft({ ...draft, note: e.target.value })}
+                />
+              </label>
+            ) : (
+              <>
+                <p className="sect-label"><Icon name="StickyNote" size={12} /> Nota</p>
+                <p className="det-note-text">{receipt.note}</p>
+              </>
+            )}
+          </div>
+        )}
+
         <p className="src-line">
           Fonte input: {receipt.ocrRawText ? (receipt.sourceType === 'screenshot' ? 'screenshot pagamento' : 'scansione scontrino') : 'inserimento manuale'} del {formatDate(receipt.date)}
         </p>

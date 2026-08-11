@@ -207,8 +207,10 @@ button{cursor:pointer;}
 .cal-mode{all:unset;cursor:pointer;flex:1;box-sizing:border-box;text-align:center;padding:8px 0;border-radius:9px;font-size:12.5px;font-weight:650;color:var(--ink-soft);}
 .cal-mode.is-active{background:var(--ink);color:var(--paper);}
 .cal-nav{display:flex;align-items:center;justify-content:space-between;padding:6px 0 10px;}
+.cal-nav-right{display:flex;align-items:center;gap:6px;}
 .cal-arrow{all:unset;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
 .cal-arrow:hover{background:var(--paper-raised);}
+.cal-today-btn{all:unset;cursor:pointer;padding:6px 12px;border-radius:99px;background:var(--paper-raised);color:var(--ink);font-size:11.5px;font-weight:650;}
 .cal-month{font-size:14.5px;font-weight:700;text-transform:capitalize;}
 .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:4px;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
@@ -385,6 +387,13 @@ button{cursor:pointer;}
   padding:6px 0 9px;font-size:16px;font-weight:650;
 }
 .field input:focus,.field select:focus{border-color:var(--accent);}
+.note-input{
+  width:100%;box-sizing:border-box;background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;font-size:14px;font-weight:500;font-family:inherit;color:var(--ink);resize:vertical;
+}
+.note-input:focus{border-color:var(--accent);}
+.det-note{margin-top:22px;}
+.det-note-text{margin:0;font-size:13.5px;color:var(--ink);line-height:1.5;white-space:pre-wrap;}
 .ok-pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:650;color:var(--positive);margin-top:6px;}
 .ok-pill.warn{color:var(--accent-strong);}
 .disclosure{all:unset;cursor:pointer;display:flex;align-items:center;gap:5px;margin-top:18px;font-size:13.5px;font-weight:650;color:var(--ink-soft);}
@@ -564,32 +573,6 @@ button{cursor:pointer;}
 .currency-swap{all:unset;cursor:pointer;flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
 .currency-convert-btn{width:100%;margin-top:10px;border-radius:10px;padding:10px;}
 .currency-result{margin:12px 0 0;font-family:var(--f-mono);font-size:15px;text-align:center;}
-
-.crypto-list{display:flex;flex-direction:column;gap:8px;}
-.crypto-row{display:flex;align-items:center;gap:8px;font-size:13px;}
-.crypto-name{flex:1;font-weight:650;}
-.crypto-name em{font-style:normal;color:var(--ink-soft);font-weight:500;margin-left:4px;}
-.crypto-price{font-family:var(--f-mono);}
-.crypto-change{display:flex;align-items:center;gap:2px;font-family:var(--f-mono);font-size:11.5px;font-weight:650;width:52px;justify-content:flex-end;}
-.crypto-change.up{color:var(--positive);}
-.crypto-change.down{color:var(--negative);}
-.crypto-change .flip{transform:rotate(180deg);}
-
-.watchlist-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
-.watchlist-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--paper);font-size:13px;}
-.watchlist-ticker{font-weight:650;flex:1;}
-.watchlist-price{font-family:var(--f-mono);color:var(--ink-soft);}
-.watchlist-row button{all:unset;cursor:pointer;color:var(--ink-soft);display:flex;}
-.watchlist-add{display:flex;gap:8px;}
-.watchlist-add input{
-  flex:1;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:10px;
-  padding:9px 10px;font-size:13px;color:var(--ink);
-}
-.watchlist-add input:focus{border-color:var(--accent);}
-.watchlist-add button{
-  all:unset;cursor:pointer;width:36px;height:36px;border-radius:10px;flex:none;
-  background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;
-}
 
 /* ---------- toast ---------- */
 .toast{

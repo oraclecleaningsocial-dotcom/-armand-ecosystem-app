@@ -7,8 +7,6 @@ import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 import CurrencyWidget from '../components/CurrencyWidget'
-import CryptoWidget from '../components/CryptoWidget'
-import WatchlistWidget from '../components/WatchlistWidget'
 
 export default function Dashboard({ receipts, merchantCategoryMap, onRestore, onNavigate }) {
   const now = new Date()
@@ -192,8 +190,6 @@ export default function Dashboard({ receipts, merchantCategoryMap, onRestore, on
       <div className="pad widgets-block">
         <p className="sect-label"><Icon name="LayoutGrid" size={13} /> Widget</p>
         <CurrencyWidget />
-        <CryptoWidget />
-        <WatchlistWidget />
       </div>
     </div>
   )

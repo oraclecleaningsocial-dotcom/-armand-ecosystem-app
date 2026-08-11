@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import Icon from './Icon'
 
-const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD']
+const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD', 'MUR', 'INR', 'CNY', 'ZAR', 'BRL', 'MXN', 'AED', 'SGD']
 
+// open.er-api.com: servizio gratuito, senza chiave, con una copertura di valute molto più
+// ampia di un servizio solo-BCE (include rupie mauriziane, indiane, ecc.). Un'unica chiamata
+// restituisce tutti i cambi per la valuta di partenza, così anche "inverti" non richiede
+// una seconda richiesta.
 export default function CurrencyWidget() {
   const [amount, setAmount] = useState('1')
   const [from, setFrom] = useState('EUR')
@@ -16,13 +20,14 @@ export default function CurrencyWidget() {
     setLoading(true)
     setError('')
     try {
-      const url = `https://api.frankfurter.app/latest?amount=${encodeURIComponent(nextAmount)}&from=${nextFrom}&to=${nextTo}`
-      const res = await fetch(url)
+      const res = await fetch(`https://open.er-api.com/v6/latest/${nextFrom}`)
       if (!res.ok) throw new Error('richiesta fallita')
       const data = await res.json()
-      setResult(data.rates[nextTo])
+      const rate = data.rates?.[nextTo]
+      if (!rate) throw new Error('valuta non disponibile')
+      setResult(Number(nextAmount) * rate)
     } catch {
-      setError('Cambio non disponibile. Controlla la connessione e riprova.')
+      setError('Cambio non disponibile in questo momento. Controlla la connessione e riprova.')
       setResult(null)
     } finally {
       setLoading(false)
@@ -66,7 +71,7 @@ export default function CurrencyWidget() {
         <p className="currency-result">{amount} {from} = <b>{result.toFixed(2)} {to}</b></p>
       )}
       {error && <p className="notice">{error}</p>}
-      <p className="widget-hint">Cambi ufficiali BCE, aggiornati ogni giorno lavorativo.</p>
+      <p className="widget-hint">Cambi aggiornati quotidianamente.</p>
     </div>
   )
 }

@@ -116,6 +116,13 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
     setViewMode('month')
   }
 
+  function goToday() {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    setCursor(d)
+    setSelected(toKey(d))
+  }
+
   function switchMode(id) {
     setViewMode(id)
     setSelected(null)
@@ -159,7 +166,10 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
       <div className="cal-nav">
         <button className="cal-arrow" onClick={goPrev} aria-label="Precedente"><Icon name="ChevronLeft" size={17} /></button>
         <span className="cal-month">{headerLabel}</span>
-        <button className="cal-arrow" onClick={goNext} aria-label="Successivo"><Icon name="ChevronRight" size={17} /></button>
+        <div className="cal-nav-right">
+          <button className="cal-today-btn" onClick={goToday}>Oggi</button>
+          <button className="cal-arrow" onClick={goNext} aria-label="Successivo"><Icon name="ChevronRight" size={17} /></button>
+        </div>
       </div>
 
       {viewMode === 'year' ? (
