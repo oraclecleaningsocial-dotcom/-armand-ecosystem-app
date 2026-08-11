@@ -141,3 +141,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Dart/Flutter tooling (warehouse-app has its own .gitignore; this covers
+# stray root-level artifacts if dart/flutter commands are run from here)
+.dart_tool/
