@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import ReceiptRow from '../components/ReceiptRow'
-import TrendChart from '../components/TrendChart'
 import { CATEGORY_MAP } from '../categories'
 import { eur } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
@@ -38,6 +37,7 @@ export default function Dashboard({
     return `${cat.color} ${start}deg ${end}deg`
   })
 
+  const maxTrend = Math.max(1, ...trend.map((t) => t.total))
   const monthName = new Date(period.year, period.month).toLocaleDateString('it-IT', { month: 'long' })
   const expandedReceipts = expandedCat ? periodReceipts.filter((r) => r.category === expandedCat) : []
 
@@ -58,15 +58,12 @@ export default function Dashboard({
       </div>
 
       <div className="pad">
-        <div className="report-hero-card">
-          <span className="report-hero-label">Speso questo mese</span>
-          <h2 className="hero-total sm">{eur(animatedTotal)}</h2>
-          {previous > 0 && (
-            <span className={`delta ${up ? 'up' : 'down'}`}>
-              {up ? '▲' : '▼'} {pct}% rispetto al mese scorso
-            </span>
-          )}
-        </div>
+        <h2 className="hero-total sm">{eur(animatedTotal)}</h2>
+        {previous > 0 && (
+          <span className={`delta ${up ? 'up' : 'down'}`}>
+            {up ? '▲' : '▼'} {pct}% rispetto al mese scorso
+          </span>
+        )}
       </div>
 
       {total === 0 ? (
@@ -83,33 +80,21 @@ export default function Dashboard({
           </div>
 
           <div className="pad cat-grid">
-            {breakdown.map(({ id, amount, pct, cat }, i) => {
-              // La categoria con la spesa più alta del mese si distingue con una card a
-              // tinta piena (invece del solito sfondo scuro traslucido) e più larga —
-              // il tratto "un riquadro pieno di colore spicca tra gli altri" preso dal
-              // tema a mosaico condiviso come ispirazione.
-              const featured = i === 0
-              return (
-                <button
-                  className={`cat-card ${expandedCat === id ? 'is-selected' : ''} ${featured ? 'is-featured' : ''}`}
-                  key={id}
-                  style={featured
-                    ? { background: `linear-gradient(135deg, ${cat.color}, color-mix(in srgb, ${cat.color} 60%, black))` }
-                    : { background: `${cat.color}2e` }}
-                  onClick={() => toggleCat(id)}
-                >
-                  <span
-                    className="cat-card-ic"
-                    style={featured ? { background: 'rgba(255,255,255,.24)', color: '#fff' } : { background: `${cat.color}45`, color: cat.color }}
-                  >
-                    <Icon name={cat.icon} size={featured ? 20 : 16} />
-                  </span>
-                  <span className="cat-card-label" style={featured ? { color: 'rgba(255,255,255,.85)' } : undefined}>{cat.label}</span>
-                  <span className="cat-card-amt" style={featured ? { color: '#fff' } : undefined}>{eur(amount)}</span>
-                  <span className="cat-card-pct" style={{ color: featured ? '#fff' : cat.color }}>{pct}%</span>
-                </button>
-              )
-            })}
+            {breakdown.map(({ id, amount, pct, cat }) => (
+              <button
+                className={`cat-card ${expandedCat === id ? 'is-selected' : ''}`}
+                key={id}
+                style={{ background: `${cat.color}2e` }}
+                onClick={() => toggleCat(id)}
+              >
+                <span className="cat-card-ic" style={{ background: `${cat.color}45`, color: cat.color }}>
+                  <Icon name={cat.icon} size={16} />
+                </span>
+                <span className="cat-card-label">{cat.label}</span>
+                <span className="cat-card-amt">{eur(amount)}</span>
+                <span className="cat-card-pct" style={{ color: cat.color }}>{pct}%</span>
+              </button>
+            ))}
           </div>
 
           <div className={`cat-expand ${expandedCat ? 'is-open' : ''}`}>
@@ -137,11 +122,17 @@ export default function Dashboard({
 
       <div className="pad trend-block">
         <p className="sect-label">Andamento ultimi 6 mesi</p>
-        <div className="trend-card">
-          <TrendChart data={trend} />
-          <div className="trend-labels">
-            {trend.map((t) => <span key={`${t.year}-${t.month}`}>{t.label}</span>)}
-          </div>
+        <div className="bars">
+          {trend.map((t, i) => {
+            const isNow = i === trend.length - 1
+            return (
+              <div className="bar-col" key={`${t.year}-${t.month}`}>
+                {isNow && <span className="bar-val">{Math.round(t.total)}</span>}
+                <div className={`bar ${isNow ? 'is-now' : ''}`} style={{ height: `${Math.max(4, (t.total / maxTrend) * 100)}%` }} />
+                <span className="bar-label">{t.label}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
 

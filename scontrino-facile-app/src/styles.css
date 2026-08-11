@@ -323,7 +323,7 @@ button{cursor:pointer;}
 
 .donut-row{display:flex;margin-top:20px;}
 .donut-row.centered{justify-content:center;}
-.donut{width:148px;height:148px;border-radius:50%;position:relative;flex:none;box-shadow:0 18px 32px -18px rgba(0,0,0,.6);}
+.donut{width:148px;height:148px;border-radius:50%;position:relative;flex:none;}
 .donut-hole{
   position:absolute;inset:21%;background:var(--paper);border-radius:50%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -338,13 +338,6 @@ button{cursor:pointer;}
   text-align:left;transition:transform .12s ease,box-shadow .15s ease;
 }
 .cat-card.is-selected{box-shadow:inset 0 0 0 2px var(--ink);}
-/* La card della categoria con più spesa: piena di colore e larga il doppio, invece del
-   solito riquadro scuro traslucido — il dettaglio preso dal tema a mosaico condiviso come
-   ispirazione, dove una card spicca a tinta piena tra le altre. Stessa disposizione
-   verticale delle altre card, solo più larga e con testo più grande. */
-.cat-card.is-featured{grid-column:span 2;box-shadow:0 16px 28px -16px rgba(0,0,0,.55);}
-.cat-card.is-featured .cat-card-ic{width:38px;height:38px;}
-.cat-card.is-featured .cat-card-amt{font-size:20px;}
 .cat-card-ic{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
 .cat-card-label{font-size:15px;font-weight:650;color:var(--ink-soft);}
 .cat-card-amt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:18px;font-weight:650;}
@@ -358,17 +351,12 @@ button{cursor:pointer;}
 .cat-expand-inner{overflow:hidden;min-height:0;}
 
 .trend-block{margin-top:28px;}
-/* Card "sparkline" con area sfumata sotto la linea, invece delle barre — vedi
-   components/TrendChart.jsx per la geometria SVG. */
-.trend-card{margin-top:14px;padding:16px 16px 12px;border-radius:18px;background:var(--paper-raised);border:1px solid var(--line);}
-.trend-chart{width:100%;height:90px;display:block;}
-.trend-labels{display:flex;justify-content:space-between;margin-top:4px;padding:0 2px;}
-.trend-labels span{font-size:12.5px;color:var(--ink-soft);font-weight:650;text-transform:capitalize;}
-
-/* Il totale del mese in una vera card, non solo testo sulla pagina — coerente con lo
-   stile "tutto è una card" del tema a mosaico condiviso come ispirazione. */
-.report-hero-card{padding:20px 20px 22px;border-radius:20px;background:var(--paper-raised);border:1px solid var(--line);}
-.report-hero-label{display:block;font-size:13px;font-weight:650;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;}
+.bars{display:flex;align-items:flex-end;gap:8px;height:104px;margin-top:14px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;}
+.bar{width:100%;border-radius:6px 6px 3px 3px;background:var(--line);transition:height .4s ease;}
+.bar.is-now{background:var(--accent);}
+.bar-val{font-family:var(--f-mono);font-size:13px;font-weight:650;color:var(--accent);}
+.bar-label{font-size:12.5px;color:var(--ink-soft);font-weight:650;text-transform:capitalize;}
 
 .export-btn{
   all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;
