@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { addProduct, deleteProduct, getProducts, lookupBarcode, NOVA_LABELS, updateProduct } from '../utils/products'
 import { eur } from '../utils/format'
@@ -15,60 +15,42 @@ function ScoreBadge({ label, value }) {
   )
 }
 
-// Scansione live del codice a barre tramite l'API BarcodeDetector: disponibile solo su
-// alcuni browser (Chrome/Android soprattutto). Dove manca, l'utente inserisce il codice
-// a mano — non trasciniamo dentro l'app una libreria di decoding pesante per un
-// prototipo client-only che ha già Tesseract da caricare per l'OCR degli scontrini.
-function useBarcodeScanner(onDetected) {
-  const videoRef = useRef(null)
-  const [active, setActive] = useState(false)
-  const [error, setError] = useState('')
-  const supported = typeof window !== 'undefined' && 'BarcodeDetector' in window
+function readAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
 
-  async function start() {
+// La Barcode Detection API nativa (BarcodeDetector) non esiste in Safari/iOS: usarla
+// come unica via, come nel primo tentativo, lasciava il tasto "Scansiona" senza aprire
+// affatto la fotocamera su iPhone. Qui si usa invece lo stesso meccanismo già affidabile
+// per gli scontrini — <input type="file" capture="environment"> apre la fotocamera nativa
+// su qualsiasi browser — e si decodifica il codice a barre dalla foto scattata con ZXing
+// (libreria JS pura, non dipende da API sperimentali del browser).
+function useBarcodeScanner(onDetected) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function decodeFile(file) {
+    setBusy(true)
     setError('')
-    if (!supported) { setError('Il tuo browser non supporta la scansione live: inserisci il codice a mano.'); return }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
-      }
-      setActive(true)
-      const detector = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] })
-      const tick = async () => {
-        if (!videoRef.current || videoRef.current.readyState < 2) {
-          if (videoRef.current?.srcObject) requestAnimationFrame(tick)
-          return
-        }
-        try {
-          const codes = await detector.detect(videoRef.current)
-          if (codes.length) {
-            onDetected(codes[0].rawValue)
-            stop()
-            return
-          }
-        } catch {
-          // frame non decodificabile: si riprova al prossimo giro
-        }
-        if (videoRef.current?.srcObject) requestAnimationFrame(tick)
-      }
-      requestAnimationFrame(tick)
+      const dataUrl = await readAsDataUrl(file)
+      const { BrowserMultiFormatReader } = await import('@zxing/browser')
+      const reader = new BrowserMultiFormatReader()
+      const result = await reader.decodeFromImageUrl(dataUrl)
+      onDetected(result.getText())
     } catch {
-      setError('Impossibile accedere alla fotocamera. Inserisci il codice a mano.')
+      setError('Codice a barre non riconosciuto nella foto. Riprova inquadrandolo più da vicino, oppure inseriscilo a mano.')
+    } finally {
+      setBusy(false)
     }
   }
 
-  function stop() {
-    const stream = videoRef.current?.srcObject
-    stream?.getTracks().forEach((t) => t.stop())
-    if (videoRef.current) videoRef.current.srcObject = null
-    setActive(false)
-  }
-
-  useEffect(() => () => stop(), [])
-
-  return { videoRef, active, error, supported, start, stop }
+  return { busy, error, decodeFile }
 }
 
 export default function Products({ onClose }) {
@@ -79,28 +61,39 @@ export default function Products({ onClose }) {
   const [result, setResult] = useState(null)
   const [price, setPrice] = useState('')
   const [viewing, setViewing] = useState(null)
+  const scanInputRef = useRef(null)
 
-  const scanner = useBarcodeScanner((code) => setBarcode(code))
-
-  async function handleSearch(e) {
-    e.preventDefault()
-    if (!barcode.trim()) return
+  async function runSearch(code) {
+    if (!code.trim()) return
     setSearching(true)
     setSearchError('')
     setResult(null)
     try {
-      const found = await lookupBarcode(barcode.trim())
+      const found = await lookupBarcode(code.trim())
       if (!found) setSearchError('Prodotto non trovato su Open Food Facts. Puoi comunque salvarlo con il solo codice.')
-      setResult(found || { barcode: barcode.trim(), name: '', brand: '' })
+      setResult(found || { barcode: code.trim(), name: '', brand: '' })
     } catch {
       // Copre sia errori di rete (offline, host irraggiungibile) sia risposte non
       // valide: il messaggio del browser (es. "Failed to fetch") non va mai mostrato
       // direttamente all'utente. Si può comunque salvare il prodotto a mano.
       setSearchError('Ricerca non riuscita. Controlla la connessione e riprova, oppure inserisci i dati a mano qui sotto.')
-      setResult({ barcode: barcode.trim(), name: '', brand: '' })
+      setResult({ barcode: code.trim(), name: '', brand: '' })
     } finally {
       setSearching(false)
     }
+  }
+
+  const scanner = useBarcodeScanner((code) => { setBarcode(code); runSearch(code) })
+
+  async function handleScanPhoto(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (file) await scanner.decodeFile(file)
+  }
+
+  function handleSearch(e) {
+    e.preventDefault()
+    runSearch(barcode)
   }
 
   function saveProduct() {
@@ -150,19 +143,21 @@ export default function Products({ onClose }) {
             <button type="submit" className="btn" disabled={searching || !barcode.trim()}>
               <Icon name={searching ? 'Loader2' : 'ScanSearch'} size={15} className={searching ? 'spin' : ''} /> {searching ? 'Cerco…' : 'Cerca prodotto'}
             </button>
-            <button type="button" className="btn" onClick={scanner.active ? scanner.stop : scanner.start}>
-              <Icon name="ScanBarcode" size={15} /> {scanner.active ? 'Ferma fotocamera' : 'Scansiona'}
-            </button>
+            <label className={`btn ${scanner.busy ? 'is-busy' : ''}`}>
+              <Icon name={scanner.busy ? 'Loader2' : 'ScanBarcode'} size={15} className={scanner.busy ? 'spin' : ''} /> {scanner.busy ? 'Leggo…' : 'Scansiona'}
+              <input
+                ref={scanInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleScanPhoto}
+                disabled={scanner.busy}
+                hidden
+              />
+            </label>
           </div>
           {scanner.error && <p className="notice">{scanner.error}</p>}
         </form>
-
-        {scanner.active && (
-          <div className="scan-video-wrap">
-            <video ref={scanner.videoRef} playsInline muted className="scan-video" />
-            <p className="scan-video-hint">Inquadra il codice a barre</p>
-          </div>
-        )}
 
         {searchError && <p className="notice">{searchError}</p>}
 
