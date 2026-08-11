@@ -5,9 +5,10 @@ import { eur } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import CurrencyWidget from '../components/CurrencyWidget'
+import RemindersWidget from '../components/RemindersWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
 
-export default function Dashboard({ receipts, onNavigate }) {
+export default function Dashboard({ receipts, onNavigate, reminders, onDeleteReminder }) {
   const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
@@ -129,6 +130,7 @@ export default function Dashboard({ receipts, onNavigate }) {
 
       <div className="pad widgets-block">
         <p className="sect-label"><Icon name="LayoutGrid" size={13} /> Widget</p>
+        <RemindersWidget reminders={reminders} onDeleteReminder={onDeleteReminder} onNavigate={onNavigate} />
         <CurrencyWidget />
       </div>
     </div>

@@ -3,14 +3,12 @@ import Icon from '../components/Icon'
 import ReceiptCalendar from '../components/ReceiptCalendar'
 import ReceiptRow from '../components/ReceiptRow'
 import { eur, toLocalDateKey } from '../utils/format'
-import { useReminders } from '../reminders'
 import { useScrollRestore } from '../utils/scrollRestore'
 
 const todayIso = toLocalDateKey
 
-export default function CalendarScreen({ receipts, onOpen }) {
+export default function CalendarScreen({ receipts, onOpen, reminders, onAddReminder, onDeleteReminder }) {
   const scrollRef = useScrollRestore('calendar')
-  const { reminders, addReminder, deleteReminder } = useReminders()
   const [mode, setMode] = useState('calendar') // calendar | range | reminder
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -38,7 +36,7 @@ export default function CalendarScreen({ receipts, onOpen }) {
   function submitReminder(e) {
     e.preventDefault()
     if (!reminderTitle.trim() || !reminderDate) return
-    addReminder({ date: reminderDate, title: reminderTitle.trim() })
+    onAddReminder({ date: reminderDate, title: reminderTitle.trim() })
     setReminderTitle('')
   }
 
@@ -114,7 +112,7 @@ export default function CalendarScreen({ receipts, onOpen }) {
                 {upcomingReminders.map((r) => (
                   <div className="reminder-row" key={r.id}>
                     <span>{r.title} <em className="reminder-date">· {r.date.split('-').reverse().join('/')}</em></span>
-                    <button onClick={() => deleteReminder(r.id)} aria-label="Elimina promemoria"><Icon name="X" size={13} /></button>
+                    <button onClick={() => onDeleteReminder(r.id)} aria-label="Elimina promemoria"><Icon name="X" size={13} /></button>
                   </div>
                 ))}
               </div>
@@ -128,8 +126,6 @@ export default function CalendarScreen({ receipts, onOpen }) {
           receipts={receipts}
           onOpen={onOpen}
           reminders={reminders}
-          onAddReminder={addReminder}
-          onDeleteReminder={deleteReminder}
           scrollRef={scrollRef}
         />
       )}

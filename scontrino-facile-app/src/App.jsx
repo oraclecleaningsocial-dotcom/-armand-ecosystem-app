@@ -14,11 +14,13 @@ import FiscalDeadlines from './screens/FiscalDeadlines'
 import Settings from './screens/Settings'
 import Products from './screens/Products'
 import { useReceipts } from './state'
+import { useReminders } from './reminders'
 import { isLockEnabled } from './utils/auth'
 
 export default function App() {
   const [locked, setLocked] = useState(isLockEnabled)
   const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
+  const { reminders, addReminder, deleteReminder } = useReminders()
   const [tab, setTab] = useState('home')
   const [screen, setScreen] = useState('home')
   const [detailId, setDetailId] = useState(null)
@@ -83,9 +85,18 @@ export default function App() {
         {screen === 'search' && (
           <Search receipts={receipts} onOpen={openDetail} presetCategory={searchPreset} onConsumePreset={() => setSearchPreset(null)} />
         )}
-        {screen === 'calendar' && <CalendarScreen receipts={receipts} onOpen={openDetail} />}
+        {screen === 'calendar' && (
+          <CalendarScreen receipts={receipts} onOpen={openDetail} reminders={reminders} onAddReminder={addReminder} onDeleteReminder={deleteReminder} />
+        )}
         {screen === 'dashboard' && (
-          <Dashboard receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onNavigate={navigate} />
+          <Dashboard
+            receipts={receipts}
+            merchantCategoryMap={merchantCategoryMap}
+            onRestore={handleRestore}
+            onNavigate={navigate}
+            reminders={reminders}
+            onDeleteReminder={deleteReminder}
+          />
         )}
         {screen === 'detail' && (
           <Detail receipt={activeReceipt} onBack={() => setScreen(detailBack)} onUpdate={updateReceipt} onDelete={handleDelete} />

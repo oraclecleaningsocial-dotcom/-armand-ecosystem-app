@@ -22,7 +22,7 @@ function startOfWeek(d) {
   return out
 }
 
-export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder, scrollRef }) {
+export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], scrollRef }) {
   const [viewMode, setViewMode] = useState('month')
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })
   // Se siamo nel mese corrente, mostra subito gli eventi di oggi senza dover toccare il
@@ -34,7 +34,6 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
   // successiva. Un aggiornamento di stato dopo il mount forza quel ricalcolo.
   const [selected, setSelected] = useState(null)
   useEffect(() => { setSelected(toKey(new Date())) }, [])
-  const [reminderTitle, setReminderTitle] = useState('')
 
   // Cambiare giorno selezionato può aggiungere di colpo un bel po' di contenuto (scontrini
   // + scadenze + promemoria + modulo), e su iOS lo scroll dello schermo a volte restava
@@ -111,7 +110,6 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
 
   const todayKey = toKey(new Date())
   const selectedReceipts = selected ? (byDay.get(selected) || []) : []
-  const selectedReminders = selected ? (remindersByDay.get(selected) || []) : []
   const selectedFiscal = selected ? (fiscalByDay.get(selected) || []) : []
 
   function changeMonth(delta) {
@@ -157,14 +155,6 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
 
   function selectDay(key) {
     setSelected((prev) => (prev === key ? null : key))
-    setReminderTitle('')
-  }
-
-  function submitReminder(e) {
-    e.preventDefault()
-    if (!reminderTitle.trim() || !selected) return
-    onAddReminder?.({ date: selected, title: reminderTitle.trim() })
-    setReminderTitle('')
   }
 
   let headerLabel
@@ -265,26 +255,6 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
               </div>
             </>
           )}
-
-          <p className="sect-label reminders-label"><Icon name="Bell" size={12} /> Promemoria</p>
-          {selectedReminders.length > 0 && (
-            <div className="reminder-list">
-              {selectedReminders.map((r) => (
-                <div className="reminder-row" key={r.id}>
-                  <span>{r.title}</span>
-                  <button onClick={() => onDeleteReminder?.(r.id)} aria-label="Elimina promemoria"><Icon name="X" size={13} /></button>
-                </div>
-              ))}
-            </div>
-          )}
-          <form className="reminder-add" onSubmit={submitReminder}>
-            <input
-              placeholder="Aggiungi promemoria…"
-              value={reminderTitle}
-              onChange={(e) => setReminderTitle(e.target.value)}
-            />
-            <button type="submit" aria-label="Aggiungi"><Icon name="Plus" size={15} /></button>
-          </form>
         </div>
       )}
     </div>
