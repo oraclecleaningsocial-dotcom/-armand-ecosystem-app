@@ -5,7 +5,7 @@ import {
   List, Calendar, Upload, ScanFace, Calculator, MapPin, Phone, FileText, ExternalLink,
   Lock, Unlock, Bell, TrendingUp, Landmark, Briefcase, Trash2, ArrowLeftRight, LayoutGrid,
   Settings, ScanBarcode, ScanSearch, Package, PartyPopper, Square, CheckSquare,
-  Ticket, Train, Plane, Music,
+  Ticket, Train, Plane, Music, CreditCard,
 } from 'lucide-react'
 
 const ICONS = {
@@ -15,7 +15,7 @@ const ICONS = {
   List, Calendar, Upload, ScanFace, Calculator, MapPin, Phone, FileText, ExternalLink,
   Lock, Unlock, Bell, TrendingUp, Landmark, Briefcase, Trash2, ArrowLeftRight, LayoutGrid,
   Settings, ScanBarcode, ScanSearch, Package, PartyPopper, Square, CheckSquare,
-  Ticket, Train, Plane, Music,
+  Ticket, Train, Plane, Music, CreditCard,
 }
 
 export default function Icon({ name, size = 18, className = '', strokeWidth = 2 }) {

@@ -20,9 +20,14 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
     <div className="screen" ref={scrollRef}>
       <div className="pad">
         <div className="hero-card">
-          <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Apri calcolatrice">
-            <Icon name="Calculator" size={15} /> Calcolatrice
-          </button>
+          <div className="hero-actions">
+            <button className="hero-icon-btn" onClick={() => onNavigate('cards')} aria-label="Apri carte">
+              <Icon name="CreditCard" size={15} /> Carte
+            </button>
+            <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Apri calcolatrice">
+              <Icon name="Calculator" size={15} /> Calcolatrice
+            </button>
+          </div>
           <p className="greet">Ciao 👋</p>
           <h1 className="hero-total">{eur(animatedCurrent)}</h1>
           <p className="hero-caption">speso questo mese</p>

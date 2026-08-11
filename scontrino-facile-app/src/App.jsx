@@ -13,6 +13,7 @@ import FiscalDeadlines from './screens/FiscalDeadlines'
 import Settings from './screens/Settings'
 import Products from './screens/Products'
 import Tickets from './screens/Tickets'
+import LoyaltyCards from './screens/LoyaltyCards'
 import { useReceipts } from './state'
 import { useReminders } from './reminders'
 import { useNotes } from './notes'
@@ -133,6 +134,7 @@ export default function App() {
         )}
         {screen === 'products' && <Products onClose={() => setScreen(tab)} />}
         {screen === 'tickets' && <Tickets onClose={() => setScreen(tab)} />}
+        {screen === 'cards' && <LoyaltyCards onClose={() => setScreen(tab)} />}
 
         {toast && <div className="toast">{toast}</div>}
 
