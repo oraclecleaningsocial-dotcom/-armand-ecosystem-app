@@ -30,7 +30,21 @@ function useStorageDiagnostics() {
           localStorageBytes += (key?.length || 0) + (localStorage.getItem(key)?.length || 0)
         }
       } catch { /* localStorage non disponibile */ }
-      if (!cancelled) setInfo({ persisted, estimate, localStorageBytes })
+      // Test di scrittura diretto: 0.0 KB usati con scontrini già presenti a schermo
+      // vuol dire che localStorage.setItem sta fallendo SEMPRE, non solo per spazio
+      // esaurito (altrimenti l'avviso apposito sarebbe già scattato) — qui si vede
+      // l'errore esatto invece di continuare a dedurlo dai sintomi.
+      let writeTest = null
+      try {
+        const testKey = '__scontrino_facile_write_test__'
+        localStorage.setItem(testKey, '1')
+        const readBack = localStorage.getItem(testKey)
+        localStorage.removeItem(testKey)
+        writeTest = readBack === '1' ? { ok: true } : { ok: false, error: 'scritto ma non riletto correttamente' }
+      } catch (err) {
+        writeTest = { ok: false, error: `${err.name || 'Errore'}: ${err.message || String(err)}` }
+      }
+      if (!cancelled) setInfo({ persisted, estimate, localStorageBytes, writeTest })
     }
     run()
     return () => { cancelled = true }
@@ -137,6 +151,11 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
         {storageInfo?.estimate?.quota != null && (
           <p className="backup-hint">
             Spazio totale stimato dal browser: {bytesToKb(storageInfo.estimate.usage || 0)} KB su {Math.round(storageInfo.estimate.quota / 1024 / 1024)} MB disponibili
+          </p>
+        )}
+        {storageInfo?.writeTest && (
+          <p className={storageInfo.writeTest.ok ? 'backup-hint' : 'notice'}>
+            Test di scrittura: {storageInfo.writeTest.ok ? 'riuscito' : `fallito — ${storageInfo.writeTest.error}`}
           </p>
         )}
       </div>
