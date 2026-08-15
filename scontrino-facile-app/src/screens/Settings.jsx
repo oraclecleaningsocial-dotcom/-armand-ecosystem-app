@@ -5,6 +5,7 @@ import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } f
 import { changeVaultPin, isVaultSetUp } from '../utils/vault'
 import { toLocalDateKey } from '../utils/format'
 import { idbGet, idbSet } from '../utils/idb'
+import { LANGUAGES, useI18n } from '../i18n'
 
 function bytesToKb(n) {
   return (n / 1024).toFixed(1)
@@ -67,6 +68,7 @@ function useStorageDiagnostics() {
 }
 
 export default function Settings({ receipts, merchantCategoryMap, onRestore, onClose }) {
+  const { t, lang, setLang } = useI18n()
   const storageInfo = useStorageDiagnostics()
   const [lockOn, setLockOn] = useState(isLockEnabled)
   const [lockError, setLockError] = useState('')
@@ -94,11 +96,11 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
       const text = await file.text()
       const { receipts: importedReceipts, merchantCategoryMap: importedMap } = parseBackup(text)
       const ok = window.confirm(
-        `Ripristinare questo backup sostituirà tutte le ${receipts.length} ricevute attuali con le ${importedReceipts.length} del file. Continuare?`,
+        t('settings.restoreConfirm', { current: receipts.length, imported: importedReceipts.length }),
       )
       if (ok) onRestore(importedReceipts, importedMap)
     } catch (err) {
-      setImportError(err.message || 'Backup non valido.')
+      setImportError(err.message || t('settings.invalidBackup'))
     }
   }
 
@@ -113,7 +115,7 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
       await registerBiometric()
       setLockOn(true)
     } catch {
-      setLockError('Non sono riuscito ad attivare Face ID su questo dispositivo.')
+      setLockError(t('settings.faceIdError'))
     }
   }
 
@@ -121,72 +123,89 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
     e.preventDefault()
     setPinError('')
     setPinSuccess('')
-    if (newPin.length !== 4) { setPinError('Il nuovo codice deve avere 4 cifre.'); return }
-    if (newPin !== confirmPin) { setPinError('I due nuovi codici non coincidono.'); return }
+    if (newPin.length !== 4) { setPinError(t('settings.newCodeLength')); return }
+    if (newPin !== confirmPin) { setPinError(t('settings.codesDontMatch')); return }
     setPinBusy(true)
     const ok = await changeVaultPin(currentPin, newPin)
     setPinBusy(false)
     if (ok) {
-      setPinSuccess('Codice aggiornato.')
+      setPinSuccess(t('settings.codeUpdated'))
       setCurrentPin('')
       setNewPin('')
       setConfirmPin('')
     } else {
-      setPinError('Codice attuale errato.')
+      setPinError(t('settings.wrongCurrentCode'))
     }
   }
+
+  const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
 
   return (
     <div className="screen">
       <div className="pad dash-head" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
-        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> {t('common.back')}</button>
       </div>
       <div className="pad">
-        <h1 className="scr-title">Impostazioni</h1>
+        <h1 className="scr-title">{t('settings.title')}</h1>
         <p className="backup-hint" style={{ marginTop: 4 }}>
-          Versione app: {new Date(__BUILD_TIME__).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+          {t('settings.appVersion', { date: new Date(__BUILD_TIME__).toLocaleString(dateLocale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
         </p>
       </div>
 
       <div className="pad backup-block">
-        <p className="sect-label">Diagnostica archiviazione</p>
+        <p className="sect-label">{t('settings.language')}</p>
+        <div className="backup-actions">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.id}
+              className={`btn ${lang === l.id ? 'is-active' : ''}`}
+              onClick={() => setLang(l.id)}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pad backup-block">
+        <p className="sect-label">{t('settings.storageDiagnostics')}</p>
         <p className="backup-hint">
-          {receipts.length} {receipts.length === 1 ? 'ricevuta' : 'ricevute'} salvate
-          {storageInfo && ` · ${bytesToKb(storageInfo.localStorageBytes)} KB usati su questo dispositivo`}
+          {receipts.length} {receipts.length === 1 ? t('common.receipt_one') : t('common.receipt_other')} {t('settings.saved')}
+          {storageInfo && ` · ${t('settings.usedOnDevice', { kb: bytesToKb(storageInfo.localStorageBytes) })}`}
         </p>
         <p className="backup-hint">
-          Archiviazione persistente: {storageInfo == null
+          {t('settings.persistentStorage')}: {storageInfo == null
             ? '…'
             : storageInfo.persisted == null
-              ? 'non supportata da questo browser'
-              : storageInfo.persisted ? 'attiva' : 'non concessa dal browser'}
+              ? t('settings.notSupported')
+              : storageInfo.persisted ? t('settings.active') : t('settings.notGranted')}
         </p>
         {storageInfo?.estimate?.quota != null && (
           <p className="backup-hint">
-            Spazio totale stimato dal browser: {bytesToKb(storageInfo.estimate.usage || 0)} KB su {Math.round(storageInfo.estimate.quota / 1024 / 1024)} MB disponibili
+            {t('settings.estimatedSpace', { used: bytesToKb(storageInfo.estimate.usage || 0), total: Math.round(storageInfo.estimate.quota / 1024 / 1024) })}
           </p>
         )}
         {storageInfo?.writeTest && (
           <p className={storageInfo.writeTest.ok ? 'backup-hint' : 'notice'}>
-            Test di scrittura (localStorage): {storageInfo.writeTest.ok ? 'riuscito' : `fallito — ${storageInfo.writeTest.error}`}
+            {t('settings.writeTestLocal')}: {storageInfo.writeTest.ok ? t('settings.writeTestOk') : t('settings.writeTestFailed', { error: storageInfo.writeTest.error })}
           </p>
         )}
         {storageInfo?.idbWriteTest && (
           <p className={storageInfo.idbWriteTest.ok ? 'backup-hint' : 'notice'}>
-            Test di scrittura (IndexedDB, usato per gli scontrini): {storageInfo.idbWriteTest.ok ? 'riuscito' : `fallito — ${storageInfo.idbWriteTest.error}`}
+            {t('settings.writeTestIdb')}: {storageInfo.idbWriteTest.ok ? t('settings.writeTestOk') : t('settings.writeTestFailed', { error: storageInfo.idbWriteTest.error })}
           </p>
         )}
       </div>
 
       <div className="pad backup-block">
-        <p className="sect-label">Backup dati</p>
-        <p className="backup-hint">I dati restano solo su questo dispositivo. Esporta un backup ogni tanto per non perderli.</p>
+        <p className="sect-label">{t('settings.backupData')}</p>
+        <p className="backup-hint">{t('settings.backupHint')}</p>
         <div className="backup-actions">
           <button className="btn" onClick={exportBackup} disabled={receipts.length === 0}>
-            <Icon name="Download" size={15} /> Esporta backup
+            <Icon name="Download" size={15} /> {t('settings.exportBackup')}
           </button>
           <label className="btn">
-            <Icon name="Upload" size={15} /> Importa backup
+            <Icon name="Upload" size={15} /> {t('settings.importBackup')}
             <input ref={fileInputRef} type="file" accept="application/json,.json" onChange={handleImportFile} hidden />
           </label>
         </div>
@@ -195,10 +214,10 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
 
       {isBiometricSupported() && (
         <div className="pad backup-block">
-          <p className="sect-label">Sicurezza</p>
-          <p className="backup-hint">Richiedi Face ID (o lo sblocco biometrico del dispositivo) ogni volta che apri l'app.</p>
+          <p className="sect-label">{t('settings.security')}</p>
+          <p className="backup-hint">{t('settings.faceIdHint')}</p>
           <button className="btn" onClick={toggleLock}>
-            <Icon name="ScanFace" size={15} /> {lockOn ? 'Disattiva Face ID' : 'Attiva Face ID'}
+            <Icon name="ScanFace" size={15} /> {lockOn ? t('settings.disableFaceId') : t('settings.enableFaceId')}
           </button>
           {lockError && <p className="notice">{lockError}</p>}
         </div>
@@ -206,8 +225,8 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
 
       {isVaultSetUp() && (
         <div className="pad backup-block">
-          <p className="sect-label">Codice documenti</p>
-          <p className="backup-hint">Cambia il codice a 4 cifre che protegge i tuoi documenti.</p>
+          <p className="sect-label">{t('settings.documentsCode')}</p>
+          <p className="backup-hint">{t('settings.documentsCodeHint')}</p>
           <form onSubmit={submitPinChange} className="pin-change-form">
             <input
               className="vault-pin-input"
@@ -215,7 +234,7 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
-              placeholder="Codice attuale"
+              placeholder={t('settings.currentCode')}
               value={currentPin}
               onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
             />
@@ -225,7 +244,7 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
-              placeholder="Nuovo codice"
+              placeholder={t('settings.newCode')}
               value={newPin}
               onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
             />
@@ -235,13 +254,13 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength={4}
-              placeholder="Conferma nuovo codice"
+              placeholder={t('settings.confirmNewCode')}
               value={confirmPin}
               onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
             />
             {pinError && <p className="vault-lock-error">{pinError}</p>}
             {pinSuccess && <p className="notice">{pinSuccess}</p>}
-            <button className="btn" type="submit" disabled={pinBusy}>Aggiorna codice</button>
+            <button className="btn" type="submit" disabled={pinBusy}>{t('settings.updateCode')}</button>
           </form>
         </div>
       )}

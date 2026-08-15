@@ -10,10 +10,12 @@ import NotesWidget from '../components/NotesWidget'
 import TodoWidget from '../components/TodoWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
+import { useI18n } from '../i18n'
 
 export default function Dashboard({
   receipts, onNavigate, onOpen, notes, onAddNote, onDeleteNote, todos, onAddTodo, onToggleTodo, onDeleteTodo,
 }) {
+  const { t, lang } = useI18n()
   const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
@@ -37,12 +39,13 @@ export default function Dashboard({
     return `${cat.color} ${start}deg ${end}deg`
   })
 
-  const maxTrend = Math.max(1, ...trend.map((t) => t.total))
-  const monthName = new Date(period.year, period.month).toLocaleDateString('it-IT', { month: 'long' })
+  const maxTrend = Math.max(1, ...trend.map((tr) => tr.total))
+  const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
+  const monthName = new Date(period.year, period.month).toLocaleDateString(dateLocale, { month: 'long' })
   const expandedReceipts = expandedCat ? periodReceipts.filter((r) => r.category === expandedCat) : []
 
   function exportCsv() {
-    const csv = receiptsToCsv(periodReceipts, (id) => CATEGORY_MAP[id]?.label || id)
+    const csv = receiptsToCsv(periodReceipts, (id) => t(`category.${id}`) || id)
     downloadCsv(`scontrinofacile-${monthName}-${period.year}.csv`, csv)
   }
 
@@ -53,7 +56,7 @@ export default function Dashboard({
   return (
     <div className="screen" ref={scrollRef}>
       <div className="pad dash-head">
-        <h1 className="scr-title">Report</h1>
+        <h1 className="scr-title">{t('dashboard.title')}</h1>
         <span className="period-pill">{monthName} {period.year}</span>
       </div>
 
@@ -61,20 +64,20 @@ export default function Dashboard({
         <h2 className="hero-total sm">{eur(animatedTotal)}</h2>
         {previous > 0 && (
           <span className={`delta ${up ? 'up' : 'down'}`}>
-            {up ? '▲' : '▼'} {pct}% rispetto al mese scorso
+            {up ? '▲' : '▼'} {pct}% {t('home.vsLastMonth')}
           </span>
         )}
       </div>
 
       {total === 0 ? (
-        <p className="empty">Ancora nessuna spesa questo mese.</p>
+        <p className="empty">{t('dashboard.noSpendingThisMonth')}</p>
       ) : (
         <>
           <div className="pad donut-row centered">
             <div className="donut" style={{ background: `conic-gradient(${gradientStops.join(',')})` }}>
               <div className="donut-hole">
                 <b>{eur(total)}</b>
-                <span>totale</span>
+                <span>{t('dashboard.total')}</span>
               </div>
             </div>
           </div>
@@ -90,7 +93,7 @@ export default function Dashboard({
                 <span className="cat-card-ic" style={{ background: `${cat.color}45`, color: cat.color }}>
                   <Icon name={cat.icon} size={16} />
                 </span>
-                <span className="cat-card-label">{cat.label}</span>
+                <span className="cat-card-label">{t(`category.${cat.id}`)}</span>
                 <span className="cat-card-amt">{eur(amount)}</span>
                 <span className="cat-card-pct" style={{ color: cat.color }}>{pct}%</span>
               </button>
@@ -102,10 +105,10 @@ export default function Dashboard({
               {expandedCat && (
                 <div className="pad">
                   <p className="sect-label" style={{ margin: '0 0 10px' }}>
-                    Scontrini · {CATEGORY_MAP[expandedCat]?.label}
+                    {t('dashboard.receiptsIn')} · {t(`category.${expandedCat}`)}
                   </p>
                   {expandedReceipts.length === 0 ? (
-                    <p className="empty">Nessuno scontrino in questa categoria.</p>
+                    <p className="empty">{t('dashboard.noReceiptsInCategory')}</p>
                   ) : (
                     <div className="list list-cards">
                       {expandedReceipts.map((r) => (
@@ -121,15 +124,15 @@ export default function Dashboard({
       )}
 
       <div className="pad trend-block">
-        <p className="sect-label">Andamento ultimi 6 mesi</p>
+        <p className="sect-label">{t('dashboard.trend6Months')}</p>
         <div className="bars">
-          {trend.map((t, i) => {
+          {trend.map((tr, i) => {
             const isNow = i === trend.length - 1
             return (
-              <div className="bar-col" key={`${t.year}-${t.month}`}>
-                {isNow && <span className="bar-val">{Math.round(t.total)}</span>}
-                <div className={`bar ${isNow ? 'is-now' : ''}`} style={{ height: `${Math.max(4, (t.total / maxTrend) * 100)}%` }} />
-                <span className="bar-label">{t.label}</span>
+              <div className="bar-col" key={`${tr.year}-${tr.month}`}>
+                {isNow && <span className="bar-val">{Math.round(tr.total)}</span>}
+                <div className={`bar ${isNow ? 'is-now' : ''}`} style={{ height: `${Math.max(4, (tr.total / maxTrend) * 100)}%` }} />
+                <span className="bar-label">{tr.label}</span>
               </div>
             )
           })}
@@ -137,45 +140,45 @@ export default function Dashboard({
       </div>
 
       <button className="export-btn" onClick={exportCsv} disabled={periodReceipts.length === 0}>
-        <Icon name="Download" size={16} /> Esporta riepilogo (.csv)
+        <Icon name="Download" size={16} /> {t('dashboard.exportSummary')}
       </button>
 
       <div className="pad tools-block">
-        <p className="sect-label">Strumenti</p>
+        <p className="sect-label">{t('dashboard.tools')}</p>
         <div className="tool-cards">
           <button className="tool-card" onClick={() => onNavigate?.('calculator')}>
             <span className="tool-card-ic"><Icon name="Calculator" size={19} /></span>
-            Calcolatrice
+            {t('dashboard.toolCalculator')}
           </button>
           <button className="tool-card" onClick={() => onNavigate?.('vault')}>
             <span className="tool-card-ic"><Icon name="Lock" size={19} /></span>
-            Documenti
+            {t('dashboard.toolDocuments')}
           </button>
           <button className="tool-card" onClick={() => onNavigate?.('fiscal')}>
             <span className="tool-card-ic"><Icon name="Landmark" size={19} /></span>
-            Scadenze fiscali
+            {t('dashboard.toolFiscalDeadlines')}
           </button>
           <button className="tool-card" onClick={() => onNavigate?.('settings')}>
             <span className="tool-card-ic"><Icon name="Settings" size={19} /></span>
-            Impostazioni
+            {t('dashboard.toolSettings')}
           </button>
           <button className="tool-card" onClick={() => onNavigate?.('products')}>
             <span className="tool-card-ic"><Icon name="ScanBarcode" size={19} /></span>
-            Prodotti
+            {t('dashboard.toolProducts')}
           </button>
           <button className="tool-card" onClick={() => onNavigate?.('tickets')}>
             <span className="tool-card-ic"><Icon name="Ticket" size={19} /></span>
-            Biglietti
+            {t('dashboard.toolTickets')}
           </button>
           <button className="tool-card" onClick={() => onNavigate?.('cards')}>
             <span className="tool-card-ic"><Icon name="CreditCard" size={19} /></span>
-            Carte
+            {t('dashboard.toolCards')}
           </button>
         </div>
       </div>
 
       <div className="pad widgets-block">
-        <p className="sect-label"><Icon name="LayoutGrid" size={13} /> Widget</p>
+        <p className="sect-label"><Icon name="LayoutGrid" size={13} /> {t('dashboard.widgets')}</p>
         <TodoWidget todos={todos} onAddTodo={onAddTodo} onToggleTodo={onToggleTodo} onDeleteTodo={onDeleteTodo} />
         <NotesWidget notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />
         <CurrencyWidget />

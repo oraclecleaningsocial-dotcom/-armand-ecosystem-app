@@ -4,6 +4,7 @@ import { useVaultDocuments } from '../utils/vault'
 import { formatDate } from '../utils/format'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 import { compressImage } from '../utils/compressImage'
+import { useI18n } from '../i18n'
 
 const DOC_TYPES = [
   { id: 'cv', label: 'Curriculum', icon: 'Briefcase' },
@@ -30,6 +31,7 @@ function dataUrlToFile(dataUrl, fileName, mime) {
 }
 
 export default function Vault({ onClose }) {
+  const { t } = useI18n()
   const [documents, updateDocs] = useVaultDocuments()
   const [label, setLabel] = useState('')
   const [type, setType] = useState('cv')
@@ -52,7 +54,7 @@ export default function Vault({ onClose }) {
     setPdfPages(null)
     renderPdfPages(viewing.fileDataUrl)
       .then((pages) => { if (!cancelled) setPdfPages(pages) })
-      .catch(() => { if (!cancelled) setPdfError('Non riesco a visualizzare questo documento qui. Puoi comunque scaricarlo o condividerlo.') })
+      .catch(() => { if (!cancelled) setPdfError(t('vault.pdfViewError')) })
       .finally(() => { if (!cancelled) setPdfLoading(false) })
     return () => { cancelled = true }
   }, [viewing])
@@ -77,7 +79,7 @@ export default function Vault({ onClose }) {
       const fileName = isImage ? file.name.replace(/\.\w+$/, '') + '.jpg' : file.name
       const doc = {
         id: `doc_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-        label: label.trim() || DOC_TYPES.find((t) => t.id === type)?.label || 'Documento',
+        label: label.trim() || t(`docType.${type}`) || 'Documento',
         type,
         fileName,
         fileMime: isImage ? 'image/jpeg' : file.type,
@@ -105,7 +107,7 @@ export default function Vault({ onClose }) {
   }
 
   function handleDelete(id) {
-    if (!window.confirm('Eliminare questo documento?')) return
+    if (!window.confirm(t('vault.deleteConfirm'))) return
     updateDocs((prev) => prev.filter((d) => d.id !== id))
     if (viewing?.id === id) setViewing(null)
   }
@@ -133,19 +135,19 @@ export default function Vault({ onClose }) {
   return (
     <div className="screen">
       <div className="det-top">
-        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
-        <span className="vault-header-lock"><Icon name="Lock" size={13} /> Protetto</span>
+        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> {t('common.back')}</button>
+        <span className="vault-header-lock"><Icon name="Lock" size={13} /> {t('vault.protected')}</span>
       </div>
 
       <div className="pad">
-        <h1 className="scr-title">Documenti</h1>
-        <p className="backup-hint">Curriculum, buste paga, CUD e altri documenti personali: protetti da codice, salvati solo su questo dispositivo.</p>
+        <h1 className="scr-title">{t('vault.title')}</h1>
+        <p className="backup-hint">{t('vault.description')}</p>
 
         <div className="vault-upload">
           <select className="edit-input" value={type} onChange={(e) => setType(e.target.value)}>
-            {DOC_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            {DOC_TYPES.map((dt) => <option key={dt.id} value={dt.id}>{t(`docType.${dt.id}`)}</option>)}
           </select>
-          <input className="edit-input" placeholder="Nome (es. CV 2026)" value={label} onChange={(e) => setLabel(e.target.value)} />
+          <input className="edit-input" placeholder={t('vault.name')} value={label} onChange={(e) => setLabel(e.target.value)} />
           <div className="vault-upload-actions">
             {/* Con capture="environment" la fotocamera si apre subito, come per lo
                 scanner degli scontrini — invece del selettore file generico qui sotto,
@@ -153,34 +155,34 @@ export default function Vault({ onClose }) {
                 (mostra prima Libreria foto/File). Stesso handleFile per entrambe: una
                 foto è una foto, non importa da dove arriva. */}
             <label className={`btn vault-upload-btn ${busy ? 'is-busy' : ''}`}>
-              <Icon name={busy ? 'Loader2' : 'ScanLine'} size={15} className={busy ? 'spin' : ''} /> {busy ? 'Scansione…' : 'Scansiona documento'}
+              <Icon name={busy ? 'Loader2' : 'ScanLine'} size={15} className={busy ? 'spin' : ''} /> {busy ? t('vault.scanning') : t('vault.scanDocument')}
               <input type="file" accept="image/*" capture="environment" onChange={handleFile} disabled={busy} hidden />
             </label>
             <label className={`btn vault-upload-btn ${busy ? 'is-busy' : ''}`}>
-              <Icon name={busy ? 'Loader2' : 'Upload'} size={15} className={busy ? 'spin' : ''} /> {busy ? 'Caricamento…' : 'Carica da galleria o file'}
+              <Icon name={busy ? 'Loader2' : 'Upload'} size={15} className={busy ? 'spin' : ''} /> {busy ? t('vault.uploading') : t('vault.uploadFromGallery')}
               <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFile} disabled={busy} hidden />
             </label>
           </div>
         </div>
 
         {documents.length === 0 ? (
-          <p className="empty">Nessun documento salvato.</p>
+          <p className="empty">{t('vault.noDocuments')}</p>
         ) : (
           <div className="vault-doc-grid">
             {documents.map((doc) => {
-              const meta = DOC_TYPES.find((t) => t.id === doc.type) || DOC_TYPES[3]
+              const meta = DOC_TYPES.find((dt) => dt.id === doc.type) || DOC_TYPES[3]
               const isImage = doc.fileMime?.startsWith('image/')
               const previewSrc = isImage ? doc.fileDataUrl : doc.thumbnailDataUrl
               return (
                 <div className="vault-doc-card" key={doc.id}>
-                  <button className="vault-doc-thumb" onClick={() => setViewing(doc)} aria-label={`Apri ${doc.label}`}>
+                  <button className="vault-doc-thumb" onClick={() => setViewing(doc)} aria-label={t('vault.openDocument', { name: doc.label })}>
                     {previewSrc ? (
                       <img src={previewSrc} alt={doc.label} />
                     ) : (
                       <span className="vault-doc-thumb-ic"><Icon name={meta.icon} size={26} /></span>
                     )}
                   </button>
-                  <button className="vault-doc-del" onClick={() => handleDelete(doc.id)} aria-label="Elimina documento">
+                  <button className="vault-doc-del" onClick={() => handleDelete(doc.id)} aria-label={t('vault.deleteDocument')}>
                     <Icon name="Trash2" size={14} />
                   </button>
                   <div className="vault-doc-card-text">
@@ -200,9 +202,9 @@ export default function Vault({ onClose }) {
             <div className="vault-viewer-head">
               <span className="vault-viewer-title">{viewing.label}</span>
               <div className="vault-viewer-actions">
-                <button onClick={() => shareDoc(viewing)} aria-label="Condividi"><Icon name="Share2" size={17} /></button>
-                <button onClick={() => downloadDoc(viewing)} aria-label="Esporta"><Icon name="Download" size={17} /></button>
-                <button onClick={() => setViewing(null)} aria-label="Chiudi"><Icon name="X" size={19} /></button>
+                <button onClick={() => shareDoc(viewing)} aria-label={t('common.share')}><Icon name="Share2" size={17} /></button>
+                <button onClick={() => downloadDoc(viewing)} aria-label={t('common.export')}><Icon name="Download" size={17} /></button>
+                <button onClick={() => setViewing(null)} aria-label={t('common.close')}><Icon name="X" size={19} /></button>
               </div>
             </div>
             <div className="vault-viewer-body">
@@ -214,7 +216,7 @@ export default function Vault({ onClose }) {
                 <p className="notice">{pdfError}</p>
               ) : (
                 <div className="pdf-pages">
-                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={`Pagina ${i + 1}`} />)}
+                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={t('vault.page', { n: i + 1 })} />)}
                 </div>
               )}
             </div>

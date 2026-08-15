@@ -3,6 +3,7 @@ import Icon from '../components/Icon'
 import { lookupBarcode, NOVA_LABELS, useProducts } from '../utils/products'
 import { useBarcodeScanner } from '../utils/barcodeScanner'
 import { eur } from '../utils/format'
+import { useI18n } from '../i18n'
 
 const SCORE_COLORS = { A: '#2f9e5e', B: '#7fb52f', C: '#e0a72e', D: '#e07a2e', E: '#d94f4f' }
 
@@ -17,6 +18,7 @@ function ScoreBadge({ label, value }) {
 }
 
 export default function Products({ onClose }) {
+  const { t } = useI18n()
   const [products, updateProducts] = useProducts()
   const [barcode, setBarcode] = useState('')
   const [searching, setSearching] = useState(false)
@@ -46,13 +48,13 @@ export default function Products({ onClose }) {
     setResult(null)
     try {
       const found = await lookupBarcode(trimmed)
-      if (!found) setSearchError('Prodotto non trovato su Open Food Facts. Puoi comunque salvarlo con il solo codice.')
+      if (!found) setSearchError(t('products.notFound'))
       setResult(found || { barcode: trimmed, name: '', brand: '' })
     } catch {
       // Copre sia errori di rete (offline, host irraggiungibile) sia risposte non
       // valide: il messaggio del browser (es. "Failed to fetch") non va mai mostrato
       // direttamente all'utente. Si può comunque salvare il prodotto a mano.
-      setSearchError('Ricerca non riuscita. Controlla la connessione e riprova, oppure inserisci i dati a mano qui sotto.')
+      setSearchError(t('products.searchFailed'))
       setResult({ barcode: trimmed, name: '', brand: '' })
     } finally {
       setSearching(false)
@@ -105,7 +107,7 @@ export default function Products({ onClose }) {
   }
 
   function handleDelete(id) {
-    if (!window.confirm('Eliminare questo prodotto?')) return
+    if (!window.confirm(t('products.deleteConfirm'))) return
     updateProducts((prev) => prev.filter((p) => p.id !== id))
     if (viewing?.id === id) setViewing(null)
   }
@@ -119,30 +121,27 @@ export default function Products({ onClose }) {
   return (
     <div className="screen products-screen">
       <div className="det-top">
-        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> {t('common.back')}</button>
       </div>
 
       <div className="pad">
-        <h1 className="scr-title">Prodotti</h1>
-        <p className="backup-hint">
-          Scansiona o inserisci un codice a barre per vedere valori nutrizionali, Nutri-Score e livello di
-          trasformazione (dati pubblici Open Food Facts), e tieni traccia del prezzo che trovi al supermercato.
-        </p>
+        <h1 className="scr-title">{t('products.title')}</h1>
+        <p className="backup-hint">{t('products.description')}</p>
 
         <form onSubmit={handleSearch} className="product-search">
           <input
             className="edit-input"
             inputMode="numeric"
-            placeholder="Codice a barre (es. 8001120344449)"
+            placeholder={t('products.barcodePlaceholder')}
             value={barcode}
             onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
           />
           <div className="product-search-actions">
             <button type="submit" className="btn" disabled={searching || !barcode.trim()}>
-              <Icon name={searching ? 'Loader2' : 'ScanSearch'} size={15} className={searching ? 'spin' : ''} /> {searching ? 'Cerco…' : 'Cerca prodotto'}
+              <Icon name={searching ? 'Loader2' : 'ScanSearch'} size={15} className={searching ? 'spin' : ''} /> {searching ? t('products.searching') : t('products.search')}
             </button>
             <label className={`btn ${scanner.busy ? 'is-busy' : ''}`}>
-              <Icon name={scanner.busy ? 'Loader2' : 'ScanBarcode'} size={15} className={scanner.busy ? 'spin' : ''} /> {scanner.busy ? 'Leggo…' : 'Scansiona'}
+              <Icon name={scanner.busy ? 'Loader2' : 'ScanBarcode'} size={15} className={scanner.busy ? 'spin' : ''} /> {scanner.busy ? t('products.reading') : t('products.scan')}
               <input
                 ref={scanInputRef}
                 type="file"
@@ -158,7 +157,7 @@ export default function Products({ onClose }) {
             <>
               <p className="notice">{scanner.error}</p>
               <button type="button" className="link-btn accent" onClick={addManually}>
-                <Icon name="Pencil" size={14} /> Crea prodotto senza scansione
+                <Icon name="Pencil" size={14} /> {t('products.createWithoutScan')}
               </button>
             </>
           )}
@@ -172,16 +171,16 @@ export default function Products({ onClose }) {
             <div className="product-preview-body">
               <input
                 className="edit-input"
-                placeholder="Nome prodotto"
+                placeholder={t('products.namePlaceholder')}
                 value={result.name}
                 onChange={(e) => setResult({ ...result, name: e.target.value })}
               />
               {result.brand && <span className="product-preview-brand">{result.brand}</span>}
               <label className="field" style={{ marginTop: 12 }}>
-                <span>Codice a barre (facoltativo)</span>
+                <span>{t('products.barcodeOptional')}</span>
                 <input
                   inputMode="numeric"
-                  placeholder="Es. 8001120344449"
+                  placeholder={t('products.barcodePlaceholder')}
                   value={result.barcode}
                   onChange={(e) => setResult({ ...result, barcode: e.target.value.replace(/\D/g, '') })}
                 />
@@ -192,31 +191,31 @@ export default function Products({ onClose }) {
                 <ScoreBadge label="Eco-Score" value={result.ecoScore} />
               </div>
               <label className="field" style={{ marginTop: 12 }}>
-                <span>Prezzo al supermercato (facoltativo, inserito da te)</span>
+                <span>{t('products.priceAtSupermarket')}</span>
                 <input type="number" min="0" step="0.01" inputMode="decimal" placeholder="0,00" value={price} onChange={(e) => setPrice(e.target.value)} />
               </label>
               <button className="btn currency-convert-btn" onClick={saveProduct} style={{ marginTop: 10 }}>
-                <Icon name="Plus" size={15} /> Salva prodotto
+                <Icon name="Plus" size={15} /> {t('products.save')}
               </button>
             </div>
           </div>
         )}
 
         {products.length === 0 ? (
-          <p className="empty">Nessun prodotto salvato.</p>
+          <p className="empty">{t('products.noProducts')}</p>
         ) : (
           <div className="vault-doc-grid" style={{ marginTop: 22 }}>
             {products.map((p) => (
               <div className="vault-doc-card" key={p.id}>
-                <button className="vault-doc-thumb" onClick={() => setViewing(p)} aria-label={`Apri ${p.name}`}>
+                <button className="vault-doc-thumb" onClick={() => setViewing(p)} aria-label={`${t('vault.openDocument', { name: p.name || p.barcode || t('products.noName') })}`}>
                   {p.imageUrl ? <img src={p.imageUrl} alt={p.name} /> : <span className="vault-doc-thumb-ic"><Icon name="Package" size={26} /></span>}
                 </button>
-                <button className="vault-doc-del" onClick={() => handleDelete(p.id)} aria-label="Elimina prodotto">
+                <button className="vault-doc-del" onClick={() => handleDelete(p.id)} aria-label={t('products.deleteProduct')}>
                   <Icon name="Trash2" size={14} />
                 </button>
                 <div className="vault-doc-card-text">
-                  <b>{p.name || p.barcode || 'Prodotto senza nome'}</b>
-                  <span>{p.price != null ? eur(p.price) : 'Prezzo non inserito'}</span>
+                  <b>{p.name || p.barcode || t('products.noName')}</b>
+                  <span>{p.price != null ? eur(p.price) : t('products.priceNotSet')}</span>
                 </div>
               </div>
             ))}
@@ -228,9 +227,9 @@ export default function Products({ onClose }) {
         <div className="vault-viewer-overlay" onClick={() => setViewing(null)}>
           <div className="vault-viewer" onClick={(e) => e.stopPropagation()}>
             <div className="vault-viewer-head">
-              <span className="vault-viewer-title">{viewing.name || viewing.barcode || 'Prodotto senza nome'}</span>
+              <span className="vault-viewer-title">{viewing.name || viewing.barcode || t('products.noName')}</span>
               <div className="vault-viewer-actions">
-                <button onClick={() => setViewing(null)} aria-label="Chiudi"><Icon name="X" size={19} /></button>
+                <button onClick={() => setViewing(null)} aria-label={t('common.close')}><Icon name="X" size={19} /></button>
               </div>
             </div>
             <div className="product-detail-body">
@@ -245,18 +244,18 @@ export default function Products({ onClose }) {
 
               {(viewing.calories != null || viewing.carbs != null || viewing.proteins != null) && (
                 <div className="items" style={{ marginTop: 14 }}>
-                  <p className="sect-label" style={{ margin: '0 0 4px' }}>Valori per 100g</p>
-                  {viewing.calories != null && <div className="item-row"><span>Energia</span><span className="num">{viewing.calories} kcal</span></div>}
-                  {viewing.carbs != null && <div className="item-row"><span>Carboidrati</span><span className="num">{viewing.carbs} g</span></div>}
-                  {viewing.sugars != null && <div className="item-row"><span>di cui zuccheri</span><span className="num">{viewing.sugars} g</span></div>}
-                  {viewing.proteins != null && <div className="item-row"><span>Proteine</span><span className="num">{viewing.proteins} g</span></div>}
-                  {viewing.fat != null && <div className="item-row"><span>Grassi</span><span className="num">{viewing.fat} g</span></div>}
-                  {viewing.salt != null && <div className="item-row"><span>Sale</span><span className="num">{viewing.salt} g</span></div>}
+                  <p className="sect-label" style={{ margin: '0 0 4px' }}>{t('products.valuesPer100g')}</p>
+                  {viewing.calories != null && <div className="item-row"><span>{t('products.energy')}</span><span className="num">{viewing.calories} kcal</span></div>}
+                  {viewing.carbs != null && <div className="item-row"><span>{t('products.carbs')}</span><span className="num">{viewing.carbs} g</span></div>}
+                  {viewing.sugars != null && <div className="item-row"><span>{t('products.sugars')}</span><span className="num">{viewing.sugars} g</span></div>}
+                  {viewing.proteins != null && <div className="item-row"><span>{t('products.proteins')}</span><span className="num">{viewing.proteins} g</span></div>}
+                  {viewing.fat != null && <div className="item-row"><span>{t('products.fat')}</span><span className="num">{viewing.fat} g</span></div>}
+                  {viewing.salt != null && <div className="item-row"><span>{t('products.salt')}</span><span className="num">{viewing.salt} g</span></div>}
                 </div>
               )}
 
               <label className="field" style={{ marginTop: 14 }}>
-                <span>Prezzo al supermercato</span>
+                <span>{t('products.priceAtSupermarketView')}</span>
                 <input
                   type="number" min="0" step="0.01" inputMode="decimal" placeholder="0,00"
                   defaultValue={viewing.price ?? ''}
@@ -266,15 +265,13 @@ export default function Products({ onClose }) {
 
               {viewing.ingredients && (
                 <>
-                  <p className="sect-label">Ingredienti</p>
+                  <p className="sect-label">{t('products.ingredients')}</p>
                   <p className="backup-hint">{viewing.ingredients}</p>
                 </>
               )}
 
               <p className="backup-hint" style={{ marginTop: 18 }}>
-                Nutri-Score, NOVA ed Eco-Score arrivano dal database pubblico Open Food Facts. Il confronto prezzi in
-                altri negozi e le recensioni della community non sono disponibili in un'app senza server: qui trovi
-                solo il prezzo che inserisci tu.
+                {t('products.footerNote')}
               </p>
             </div>
           </div>

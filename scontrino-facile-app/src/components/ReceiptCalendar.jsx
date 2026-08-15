@@ -4,14 +4,7 @@ import ReceiptRow from './ReceiptRow'
 import { eur, fromLocalDateKey, toLocalDateKey } from '../utils/format'
 import { getDeadlinesForYear } from '../fiscalDeadlines'
 import { getHolidaysForYear } from '../italianHolidays'
-
-const WEEKDAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
-const MONTHS_SHORT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
-const VIEW_MODES = [
-  { id: 'month', label: 'Mese' },
-  { id: 'week', label: 'Settimana' },
-  { id: 'year', label: 'Anno' },
-]
+import { useI18n } from '../i18n'
 
 const toKey = toLocalDateKey
 
@@ -24,6 +17,15 @@ function startOfWeek(d) {
 }
 
 export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder, scrollRef }) {
+  const { t, lang } = useI18n()
+  const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
+  const WEEKDAYS = t('calendar.weekdays').split(',')
+  const MONTHS_SHORT = t('calendar.monthsShort').split(',')
+  const VIEW_MODES = [
+    { id: 'month', label: t('calendar.mode.month') },
+    { id: 'week', label: t('calendar.mode.week') },
+    { id: 'year', label: t('calendar.mode.year') },
+  ]
   const [viewMode, setViewMode] = useState('month')
   const [cursor, setCursor] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d })
   // Se siamo nel mese corrente, mostra subito gli eventi di oggi senza dover toccare il
@@ -181,15 +183,15 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
 
   let headerLabel
   if (viewMode === 'month') {
-    headerLabel = cursor.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
+    headerLabel = cursor.toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })
   } else if (viewMode === 'year') {
     headerLabel = String(cursor.getFullYear())
   } else {
     const start = weekCells[0]
     const end = weekCells[6]
     headerLabel = start.getMonth() === end.getMonth()
-      ? `${start.getDate()}–${end.getDate()} ${start.toLocaleDateString('it-IT', { month: 'long' })}`
-      : `${start.getDate()} ${start.toLocaleDateString('it-IT', { month: 'short' })} – ${end.getDate()} ${end.toLocaleDateString('it-IT', { month: 'short' })}`
+      ? `${start.getDate()}–${end.getDate()} ${start.toLocaleDateString(dateLocale, { month: 'long' })}`
+      : `${start.getDate()} ${start.toLocaleDateString(dateLocale, { month: 'short' })} – ${end.getDate()} ${end.toLocaleDateString(dateLocale, { month: 'short' })}`
   }
 
   return (
@@ -203,11 +205,11 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
       </div>
 
       <div className="cal-nav">
-        <button className="cal-arrow" onClick={goPrev} aria-label="Precedente"><Icon name="ChevronLeft" size={17} /></button>
+        <button className="cal-arrow" onClick={goPrev} aria-label={t('calendar.previous')}><Icon name="ChevronLeft" size={17} /></button>
         <span className="cal-month">{headerLabel}</span>
         <div className="cal-nav-right">
-          <button className="cal-today-btn" onClick={goToday}>Oggi</button>
-          <button className="cal-arrow" onClick={goNext} aria-label="Successivo"><Icon name="ChevronRight" size={17} /></button>
+          <button className="cal-today-btn" onClick={goToday}>{t('calendar.today')}</button>
+          <button className="cal-arrow" onClick={goNext} aria-label={t('calendar.next')}><Icon name="ChevronRight" size={17} /></button>
         </div>
       </div>
 
@@ -257,7 +259,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
       {selected && (
         <div className="cal-day-panel">
           <p className="sect-label">
-            {fromLocalDateKey(selected).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {fromLocalDateKey(selected).toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long' })}
             {selectedReceipts.length > 0 && <span className="cal-day-total"> · {eur(selectedReceipts.reduce((s, r) => s + r.total, 0))}</span>}
           </p>
 
@@ -269,7 +271,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
 
           {selectedHolidays.length > 0 && (
             <>
-              <p className="sect-label reminders-label"><Icon name="PartyPopper" size={12} /> Festa</p>
+              <p className="sect-label reminders-label"><Icon name="PartyPopper" size={12} /> {t('calendar.holiday')}</p>
               <div className="reminder-list">
                 {selectedHolidays.map((h) => (
                   <div className="reminder-row holiday" key={h.id}>
@@ -282,7 +284,7 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
 
           {selectedFiscal.length > 0 && (
             <>
-              <p className="sect-label reminders-label"><Icon name="Landmark" size={12} /> Scadenze fiscali</p>
+              <p className="sect-label reminders-label"><Icon name="Landmark" size={12} /> {t('calendar.fiscalDeadlines')}</p>
               <div className="reminder-list">
                 {selectedFiscal.map((f) => (
                   <div className="reminder-row fiscal" key={f.id}>
@@ -293,24 +295,24 @@ export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', r
             </>
           )}
 
-          <p className="sect-label reminders-label"><Icon name="Bell" size={12} /> Promemoria</p>
+          <p className="sect-label reminders-label"><Icon name="Bell" size={12} /> {t('calendar.reminders')}</p>
           {selectedReminders.length > 0 && (
             <div className="reminder-list">
               {selectedReminders.map((r) => (
                 <div className="reminder-row" key={r.id}>
                   <span>{r.title}</span>
-                  <button onClick={() => onDeleteReminder?.(r.id)} aria-label="Elimina promemoria"><Icon name="X" size={13} /></button>
+                  <button onClick={() => onDeleteReminder?.(r.id)} aria-label={t('calendar.deleteReminder')}><Icon name="X" size={13} /></button>
                 </div>
               ))}
             </div>
           )}
           <form className="reminder-add" onSubmit={submitReminder}>
             <input
-              placeholder="Aggiungi promemoria…"
+              placeholder={t('calendar.addReminderPlaceholder')}
               value={reminderTitle}
               onChange={(e) => setReminderTitle(e.target.value)}
             />
-            <button type="submit" aria-label="Aggiungi"><Icon name="Plus" size={15} /></button>
+            <button type="submit" aria-label={t('common.add')}><Icon name="Plus" size={15} /></button>
           </form>
         </div>
       )}

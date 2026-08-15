@@ -2,8 +2,10 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import { CATEGORIES, CATEGORY_MAP } from '../categories'
 import { eur, formatDate } from '../utils/format'
+import { useI18n } from '../i18n'
 
 export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
+  const { t } = useI18n()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(receipt)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -40,7 +42,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
   }
 
   async function share() {
-    const subject = `Ricevuta: ${receipt.merchant}`
+    const subject = t('detail.shareSubject', { merchant: receipt.merchant })
     const text = `${receipt.merchant} · ${formatDate(receipt.date)} · ${eur(receipt.total)}`
     try {
       if (receipt.imageDataUrl && navigator.canShare) {
@@ -69,19 +71,19 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
     <div className="screen">
       <div className="det-top">
         {editing ? (
-          <button className="link-btn" onClick={cancelEdit}><Icon name="X" size={16} /> Annulla</button>
+          <button className="link-btn" onClick={cancelEdit}><Icon name="X" size={16} /> {t('common.cancel')}</button>
         ) : (
-          <button className="link-btn" onClick={onBack}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+          <button className="link-btn" onClick={onBack}><Icon name="ChevronLeft" size={17} /> {t('common.back')}</button>
         )}
         <button className="link-btn" onClick={() => (editing ? save() : setEditing(true))}>
-          {editing ? <>Salva <Icon name="Check" size={15} /></> : <>Modifica <Icon name="Pencil" size={14} /></>}
+          {editing ? <>{t('common.save')} <Icon name="Check" size={15} /></> : <>{t('common.edit')} <Icon name="Pencil" size={14} /></>}
         </button>
       </div>
 
       <div className="pad print-area">
         {receipt.imageDataUrl ? (
-          <button className="det-image-btn print-photo-last" onClick={() => setPreviewOpen(true)} aria-label="Ingrandisci immagine scontrino">
-            <img className="det-image" src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} />
+          <button className="det-image-btn print-photo-last" onClick={() => setPreviewOpen(true)} aria-label={t('detail.enlargeImage')}>
+            <img className="det-image" src={receipt.imageDataUrl} alt={t('detail.receiptImageAlt', { merchant: receipt.merchant })} />
           </button>
         ) : (
           <div className="det-image placeholder">
@@ -97,11 +99,11 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
 
         {editing ? (
           <select className="edit-input" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{t(`category.${c.id}`)}</option>)}
           </select>
         ) : (
           <span className="cat-badge" style={{ background: `${cat.color}3d`, color: cat.color }}>
-            <Icon name={cat.icon} size={13} /> {cat.label}
+            <Icon name={cat.icon} size={13} /> {t(`category.${cat.id}`)}
           </span>
         )}
 
@@ -116,16 +118,16 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
             {editing ? (
               <>
                 <label className="field">
-                  <span><Icon name="MapPin" size={13} /> Indirizzo</span>
-                  <input value={draft.address || ''} onChange={(e) => setDraft({ ...draft, address: e.target.value })} placeholder="Non disponibile" />
+                  <span><Icon name="MapPin" size={13} /> {t('detail.address')}</span>
+                  <input value={draft.address || ''} onChange={(e) => setDraft({ ...draft, address: e.target.value })} placeholder={t('detail.addressPlaceholder')} />
                 </label>
                 <div className="field-row">
                   <label className="field">
-                    <span><Icon name="Phone" size={13} /> Telefono</span>
+                    <span><Icon name="Phone" size={13} /> {t('detail.phone')}</span>
                     <input value={draft.phone || ''} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} placeholder="—" />
                   </label>
                   <label className="field">
-                    <span><Icon name="FileText" size={13} /> Partita IVA</span>
+                    <span><Icon name="FileText" size={13} /> {t('detail.vat')}</span>
                     <input value={draft.vat || ''} onChange={(e) => setDraft({ ...draft, vat: e.target.value })} placeholder="—" />
                   </label>
                 </div>
@@ -134,7 +136,7 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
               <>
                 {receipt.address && <p className="merchant-detail-row"><Icon name="MapPin" size={14} className="muted-ic" /> {receipt.address}</p>}
                 {receipt.phone && <p className="merchant-detail-row"><Icon name="Phone" size={14} className="muted-ic" /> {receipt.phone}</p>}
-                {receipt.vat && <p className="merchant-detail-row"><Icon name="FileText" size={14} className="muted-ic" /> P.IVA/CF {receipt.vat}</p>}
+                {receipt.vat && <p className="merchant-detail-row"><Icon name="FileText" size={14} className="muted-ic" /> {t('detail.vatShort')} {receipt.vat}</p>}
               </>
             )}
           </div>
@@ -155,18 +157,18 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
           <div className="det-note">
             {editing ? (
               <label className="field">
-                <span><Icon name="StickyNote" size={13} /> Nota</span>
+                <span><Icon name="StickyNote" size={13} /> {t('detail.note')}</span>
                 <textarea
                   className="note-input"
                   rows={3}
-                  placeholder="Aggiungi una nota…"
+                  placeholder={t('detail.notePlaceholder')}
                   value={draft.note || ''}
                   onChange={(e) => setDraft({ ...draft, note: e.target.value })}
                 />
               </label>
             ) : (
               <>
-                <p className="sect-label"><Icon name="StickyNote" size={12} /> Nota</p>
+                <p className="sect-label"><Icon name="StickyNote" size={12} /> {t('detail.note')}</p>
                 <p className="det-note-text">{receipt.note}</p>
               </>
             )}
@@ -174,24 +176,24 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
         )}
 
         <p className="src-line">
-          Fonte input: {receipt.ocrRawText ? (receipt.sourceType === 'screenshot' ? 'screenshot pagamento' : 'scansione scontrino') : 'inserimento manuale'} del {formatDate(receipt.date)}
+          {t('detail.sourceInput')}: {receipt.ocrRawText ? (receipt.sourceType === 'screenshot' ? t('detail.sourceScreenshot') : t('detail.sourceScan')) : t('detail.sourceManual')} · {formatDate(receipt.date)}
         </p>
 
         <div className="det-actions no-print">
           {!editing && (
             <>
-              <button className="btn" onClick={share}><Icon name="Share2" size={15} /> Condividi</button>
-              <button className="btn" onClick={exportPdf}><Icon name="Download" size={15} /> PDF</button>
+              <button className="btn" onClick={share}><Icon name="Share2" size={15} /> {t('common.share')}</button>
+              <button className="btn" onClick={exportPdf}><Icon name="Download" size={15} /> {t('detail.pdf')}</button>
             </>
           )}
           <button className="btn danger" onClick={() => onDelete(receipt.id)}>
-            <Icon name="Trash2" size={15} /> Elimina
+            <Icon name="Trash2" size={15} /> {t('common.delete')}
           </button>
         </div>
 
         {!editing && (
           <div className="map-block no-print">
-            <p className="sect-label">Posizione</p>
+            <p className="sect-label">{t('detail.position')}</p>
             <a className="map-card" href={mapsSearchUrl} target="_blank" rel="noreferrer">
               <span className="map-card-ic"><Icon name="MapPin" size={19} /></span>
               <span className="map-card-text">
@@ -206,10 +208,10 @@ export default function Detail({ receipt, onBack, onUpdate, onDelete }) {
 
       {previewOpen && receipt.imageDataUrl && (
         <div className="img-lightbox no-print" onClick={() => setPreviewOpen(false)}>
-          <button className="img-lightbox-close" onClick={() => setPreviewOpen(false)} aria-label="Chiudi anteprima">
+          <button className="img-lightbox-close" onClick={() => setPreviewOpen(false)} aria-label={t('detail.closePreview')}>
             <Icon name="X" size={20} />
           </button>
-          <img src={receipt.imageDataUrl} alt={`Scontrino ${receipt.merchant}`} onClick={(e) => e.stopPropagation()} />
+          <img src={receipt.imageDataUrl} alt={t('detail.receiptImageAlt', { merchant: receipt.merchant })} onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { LanguageProvider } from './i18n'
 import './styles.css'
 
 // Rete di sicurezza per iOS che non supporta ancora interactive-widget=resizes-content
@@ -22,6 +23,8 @@ navigator.storage?.persist?.().catch(() => {})
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
   </React.StrictMode>,
 )

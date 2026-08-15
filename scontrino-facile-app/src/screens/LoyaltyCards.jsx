@@ -5,6 +5,7 @@ import { useBarcodeScanner } from '../utils/barcodeScanner'
 import { KNOWN_STORES, matchStoreBrand } from '../utils/storeBrands'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 import { compressImage } from '../utils/compressImage'
+import { useI18n } from '../i18n'
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -42,6 +43,7 @@ function BrandCover({ label, brand, size = 26, large = false }) {
 }
 
 export default function LoyaltyCards({ onClose }) {
+  const { t } = useI18n()
   const [cards, updateCards] = useCards()
   const [label, setLabel] = useState('')
   const [number, setNumber] = useState('')
@@ -111,13 +113,13 @@ export default function LoyaltyCards({ onClose }) {
     setPdfPages(null)
     renderPdfPages(viewing.fileDataUrl)
       .then((pages) => { if (!cancelled) setPdfPages(pages) })
-      .catch(() => { if (!cancelled) setPdfError('Non riesco a visualizzare questo documento qui. Puoi comunque scaricarlo o condividerlo.') })
+      .catch(() => { if (!cancelled) setPdfError(t('vault.pdfViewError')) })
       .finally(() => { if (!cancelled) setPdfLoading(false) })
     return () => { cancelled = true }
   }, [viewing])
 
   function handleDelete(id) {
-    if (!window.confirm('Eliminare questa carta?')) return
+    if (!window.confirm(t('cards.deleteConfirm'))) return
     updateCards((prev) => prev.filter((c) => c.id !== id))
     if (viewing?.id === id) setViewing(null)
   }
@@ -148,20 +150,17 @@ export default function LoyaltyCards({ onClose }) {
   return (
     <div className="screen cards-screen">
       <div className="det-top">
-        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> {t('common.back')}</button>
       </div>
 
       <div className="pad">
-        <h1 className="scr-title">Carte</h1>
-        <p className="backup-hint">
-          Carte fedeltà del supermercato o di altri negozi: scansiona il codice a barre e/o carica la foto, senza
-          codici da inserire — comoda da mostrare subito alla cassa.
-        </p>
+        <h1 className="scr-title">{t('cards.title')}</h1>
+        <p className="backup-hint">{t('cards.description')}</p>
 
         <div className="vault-upload">
           <input
             className="edit-input"
-            placeholder="Nome (es. IKEA Family, Esselunga)"
+            placeholder={t('cards.namePlaceholder')}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             list="store-suggestions"
@@ -171,7 +170,7 @@ export default function LoyaltyCards({ onClose }) {
           </datalist>
 
           <div className="card-number-row">
-            <input className="edit-input" placeholder="Numero carta (facoltativo)" value={number} onChange={(e) => setNumber(e.target.value)} />
+            <input className="edit-input" placeholder={t('cards.numberPlaceholder')} value={number} onChange={(e) => setNumber(e.target.value)} />
             <label className={`btn card-scan-btn ${scanner.busy ? 'is-busy' : ''}`}>
               <Icon name={scanner.busy ? 'Loader2' : 'ScanBarcode'} size={15} className={scanner.busy ? 'spin' : ''} />
               <input type="file" accept="image/*" capture="environment" onChange={handleScanPhoto} disabled={scanner.busy} hidden />
@@ -180,7 +179,7 @@ export default function LoyaltyCards({ onClose }) {
           {scanner.error && <p className="notice">{scanner.error}</p>}
 
           <label className="btn vault-upload-btn">
-            <Icon name="Upload" size={15} /> {pendingFile ? 'Cambia foto della carta' : 'Aggiungi foto della carta (facoltativo)'}
+            <Icon name="Upload" size={15} /> {pendingFile ? t('cards.changePhoto') : t('cards.addPhoto')}
             <input ref={photoInputRef} type="file" accept="image/*,application/pdf" onChange={handlePhotoPick} hidden />
           </label>
 
@@ -188,26 +187,26 @@ export default function LoyaltyCards({ onClose }) {
             <div className="card-preview-row">
               <div className="card-preview-thumb">
                 {pendingFile?.fileMime?.startsWith('image/') ? (
-                  <img src={pendingFile.fileDataUrl} alt="Anteprima" />
+                  <img src={pendingFile.fileDataUrl} alt={t('common.loading')} />
                 ) : pendingFile ? (
                   <span className="vault-doc-thumb-ic"><Icon name="FileText" size={22} /></span>
                 ) : (
-                  <BrandCover label={label.trim() || 'Carta'} brand={pendingBrand} size={18} />
+                  <BrandCover label={label.trim() || t('cards.card')} brand={pendingBrand} size={18} />
                 )}
               </div>
               <span className="card-preview-hint">
-                {pendingBrand ? `Riconosciuta come ${pendingBrand.name}: copertina colorata pronta.` : 'Nessuna catena riconosciuta: copertina generica.'}
+                {pendingBrand ? t('cards.recognizedAs', { name: pendingBrand.name }) : t('cards.noChainRecognized')}
               </span>
             </div>
           )}
 
           <button className="btn currency-convert-btn" onClick={saveCard} disabled={saving || !label.trim()}>
-            <Icon name={saving ? 'Loader2' : 'Plus'} size={15} className={saving ? 'spin' : ''} /> Salva carta
+            <Icon name={saving ? 'Loader2' : 'Plus'} size={15} className={saving ? 'spin' : ''} /> {t('cards.save')}
           </button>
         </div>
 
         {sorted.length === 0 ? (
-          <p className="empty">Nessuna carta salvata.</p>
+          <p className="empty">{t('cards.noCards')}</p>
         ) : (
           <div className="vault-doc-grid">
             {sorted.map((c) => {
@@ -216,15 +215,15 @@ export default function LoyaltyCards({ onClose }) {
               const brand = matchStoreBrand(c.label)
               return (
                 <div className="vault-doc-card" key={c.id}>
-                  <button className="vault-doc-thumb" onClick={() => setViewing(c)} aria-label={`Apri ${c.label}`}>
+                  <button className="vault-doc-thumb" onClick={() => setViewing(c)} aria-label={t('vault.openDocument', { name: c.label })}>
                     {previewSrc ? <img src={previewSrc} alt={c.label} /> : <BrandCover label={c.label} brand={brand} size={22} />}
                   </button>
-                  <button className="vault-doc-del" onClick={() => handleDelete(c.id)} aria-label="Elimina carta">
+                  <button className="vault-doc-del" onClick={() => handleDelete(c.id)} aria-label={t('cards.deleteCard')}>
                     <Icon name="Trash2" size={14} />
                   </button>
                   <div className="vault-doc-card-text">
                     <b>{c.label}</b>
-                    <span>{c.number || 'Numero non inserito'}</span>
+                    <span>{c.number || t('cards.numberNotSet')}</span>
                   </div>
                 </div>
               )
@@ -239,9 +238,9 @@ export default function LoyaltyCards({ onClose }) {
             <div className="vault-viewer-head">
               <span className="vault-viewer-title">{viewing.label}</span>
               <div className="vault-viewer-actions">
-                {viewing.fileDataUrl && <button onClick={() => shareCard(viewing)} aria-label="Condividi"><Icon name="Share2" size={17} /></button>}
-                {viewing.fileDataUrl && <button onClick={() => downloadCard(viewing)} aria-label="Esporta"><Icon name="Download" size={17} /></button>}
-                <button onClick={() => setViewing(null)} aria-label="Chiudi"><Icon name="X" size={19} /></button>
+                {viewing.fileDataUrl && <button onClick={() => shareCard(viewing)} aria-label={t('common.share')}><Icon name="Share2" size={17} /></button>}
+                {viewing.fileDataUrl && <button onClick={() => downloadCard(viewing)} aria-label={t('common.export')}><Icon name="Download" size={17} /></button>}
+                <button onClick={() => setViewing(null)} aria-label={t('common.close')}><Icon name="X" size={19} /></button>
               </div>
             </div>
             <div className="vault-viewer-body">
@@ -255,7 +254,7 @@ export default function LoyaltyCards({ onClose }) {
                 <p className="notice">{pdfError}</p>
               ) : (
                 <div className="pdf-pages">
-                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={`Pagina ${i + 1}`} />)}
+                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={t('vault.page', { n: i + 1 })} />)}
                 </div>
               )}
             </div>

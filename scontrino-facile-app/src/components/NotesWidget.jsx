@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Icon from './Icon'
+import { useI18n } from '../i18n'
 
 // Colori da bigliettino adesivo — ciclati per id invece che per posizione, così una nota
 // non cambia colore ogni volta che se ne aggiunge un'altra prima nell'elenco.
@@ -12,6 +13,7 @@ function colorFor(id) {
 }
 
 export default function NotesWidget({ notes = [], onAddNote, onDeleteNote }) {
+  const { t } = useI18n()
   const [text, setText] = useState('')
 
   function submit(e) {
@@ -23,24 +25,24 @@ export default function NotesWidget({ notes = [], onAddNote, onDeleteNote }) {
 
   return (
     <div className="widget-card">
-      <p className="widget-title"><Icon name="StickyNote" size={14} /> Note</p>
+      <p className="widget-title"><Icon name="StickyNote" size={14} /> {t('notesWidget.title')}</p>
 
       <form className="reminder-add" onSubmit={submit}>
         <input
-          placeholder="Scrivi una nota…"
+          placeholder={t('notesWidget.placeholder')}
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button type="submit" aria-label="Aggiungi"><Icon name="Plus" size={15} /></button>
+        <button type="submit" aria-label={t('common.add')}><Icon name="Plus" size={15} /></button>
       </form>
 
       {notes.length === 0 ? (
-        <p className="empty" style={{ margin: '4px 0 0' }}>Nessuna nota ancora.</p>
+        <p className="empty" style={{ margin: '4px 0 0' }}>{t('notesWidget.empty')}</p>
       ) : (
         <div className="notes-grid">
           {notes.map((n) => (
             <div className="sticky-note" key={n.id} style={{ background: colorFor(n.id) }}>
-              <button className="sticky-note-del" onClick={() => onDeleteNote?.(n.id)} aria-label="Elimina nota">
+              <button className="sticky-note-del" onClick={() => onDeleteNote?.(n.id)} aria-label={t('notesWidget.deleteNote')}>
                 <Icon name="X" size={12} />
               </button>
               <p>{n.text}</p>
@@ -49,7 +51,7 @@ export default function NotesWidget({ notes = [], onAddNote, onDeleteNote }) {
         </div>
       )}
 
-      <p className="widget-hint">Note salvate solo su questo dispositivo.</p>
+      <p className="widget-hint">{t('notesWidget.hint')}</p>
     </div>
   )
 }

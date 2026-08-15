@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import Icon from '../components/Icon'
 import { disableLock, verifyBiometric } from '../utils/auth'
+import { useI18n } from '../i18n'
 
 export default function LockScreen({ onUnlock }) {
+  const { t } = useI18n()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -13,7 +15,7 @@ export default function LockScreen({ onUnlock }) {
       await verifyBiometric()
       onUnlock()
     } catch {
-      setError('Verifica non riuscita. Riprova.')
+      setError(t('lock.error'))
     } finally {
       setBusy(false)
     }
@@ -27,16 +29,16 @@ export default function LockScreen({ onUnlock }) {
   return (
     <div className="lock-screen">
       <div className="lock-icon"><Icon name="ScanFace" size={38} /></div>
-      <h1>ScontrinoFacile</h1>
-      <p>Sblocca per vedere le tue ricevute</p>
+      <h1>{t('lock.title')}</h1>
+      <p>{t('lock.subtitle')}</p>
 
       <button className="lock-btn" onClick={unlock} disabled={busy}>
-        {busy ? 'Verifica in corso…' : 'Sblocca con Face ID'}
+        {busy ? t('lock.unlocking') : t('lock.unlockWithFaceId')}
       </button>
       {error && <p className="lock-error">{error}</p>}
 
       <button className="lock-fallback" onClick={bypassLock}>
-        Problemi con Face ID? Disattiva il blocco
+        {t('lock.faceIdProblem')}
       </button>
     </div>
   )

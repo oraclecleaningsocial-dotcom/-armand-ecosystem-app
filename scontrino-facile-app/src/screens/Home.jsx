@@ -5,8 +5,10 @@ import { eur } from '../utils/format'
 import { last6MonthsTrend } from '../state'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
+import { useI18n } from '../i18n'
 
 export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
+  const { t } = useI18n()
   const scrollRef = useScrollRestore('home')
   const trend = last6MonthsTrend(receipts)
   const current = trend[trend.length - 1].total
@@ -21,19 +23,19 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
       <div className="pad">
         <div className="hero-card">
           <div className="hero-actions">
-            <button className="hero-icon-btn" onClick={() => onNavigate('cards')} aria-label="Apri carte">
-              <Icon name="CreditCard" size={15} /> Carte
+            <button className="hero-icon-btn" onClick={() => onNavigate('cards')} aria-label={t('home.openCards')}>
+              <Icon name="CreditCard" size={15} /> {t('home.cards')}
             </button>
-            <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label="Apri calcolatrice">
-              <Icon name="Calculator" size={15} /> Calcolatrice
+            <button className="hero-icon-btn" onClick={() => onNavigate('calculator')} aria-label={t('home.openCalculator')}>
+              <Icon name="Calculator" size={15} /> {t('home.calculator')}
             </button>
           </div>
-          <p className="greet">Ciao 👋</p>
+          <p className="greet">{t('home.greeting')}</p>
           <h1 className="hero-total">{eur(animatedCurrent)}</h1>
-          <p className="hero-caption">speso questo mese</p>
+          <p className="hero-caption">{t('home.spentThisMonth')}</p>
           {previous > 0 && (
             <span className={`delta ${up ? 'up' : 'down'}`}>
-              {up ? '▲' : '▼'} {pct}% rispetto al mese scorso
+              {up ? '▲' : '▼'} {pct}% {t('home.vsLastMonth')}
             </span>
           )}
         </div>
@@ -41,7 +43,7 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
 
       <button className="cta-scan" onClick={() => onNavigate('scan')}>
         <span className="cta-scan-icon"><Icon name="Camera" size={17} strokeWidth={2.3} /></span>
-        Scansiona ricevuta
+        {t('nav.scanReceipt')}
       </button>
 
       <div className="quick-cats">
@@ -50,16 +52,16 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
             <span className="quick-cat-ic" style={{ background: `${c.color}33`, color: c.color }}>
               <Icon name={c.icon} size={18} />
             </span>
-            <span>{c.label}</span>
+            <span>{t(`category.${c.id}`)}</span>
           </button>
         ))}
       </div>
 
       <div className="pad">
-        <p className="sect-label">Ricevute recenti</p>
+        <p className="sect-label">{t('home.recentReceipts')}</p>
       </div>
       {recent.length === 0 ? (
-        <p className="empty">Nessuna ricevuta ancora. Scansionane una per iniziare.</p>
+        <p className="empty">{t('home.noReceiptsYet')}</p>
       ) : (
         <div className="list list-cards">
           {recent.map((r) => (

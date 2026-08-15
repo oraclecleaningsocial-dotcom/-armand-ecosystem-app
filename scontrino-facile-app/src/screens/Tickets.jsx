@@ -4,6 +4,7 @@ import { isPastTicket, sortTickets, TICKET_TYPES, useTickets } from '../utils/ti
 import { formatDate } from '../utils/format'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 import { compressImage } from '../utils/compressImage'
+import { useI18n } from '../i18n'
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -23,6 +24,7 @@ function dataUrlToFile(dataUrl, fileName, mime) {
 }
 
 export default function Tickets({ onClose }) {
+  const { t } = useI18n()
   const [tickets, updateTickets] = useTickets()
   const [label, setLabel] = useState('')
   const [type, setType] = useState('treno')
@@ -42,7 +44,7 @@ export default function Tickets({ onClose }) {
     setPdfPages(null)
     renderPdfPages(viewing.fileDataUrl)
       .then((pages) => { if (!cancelled) setPdfPages(pages) })
-      .catch(() => { if (!cancelled) setPdfError('Non riesco a visualizzare questo documento qui. Puoi comunque scaricarlo o condividerlo.') })
+      .catch(() => { if (!cancelled) setPdfError(t('vault.pdfViewError')) })
       .finally(() => { if (!cancelled) setPdfLoading(false) })
     return () => { cancelled = true }
   }, [viewing])
@@ -61,7 +63,7 @@ export default function Tickets({ onClose }) {
       const fileName = isImage ? file.name.replace(/\.\w+$/, '') + '.jpg' : file.name
       const ticket = {
         id: `ticket_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
-        label: label.trim() || TICKET_TYPES.find((t) => t.id === type)?.label || 'Biglietto',
+        label: label.trim() || t(`ticketType.${type}`) || 'Biglietto',
         type,
         date: date || null,
         fileName,
@@ -87,7 +89,7 @@ export default function Tickets({ onClose }) {
   }
 
   function handleDelete(id) {
-    if (!window.confirm('Eliminare questo biglietto?')) return
+    if (!window.confirm(t('tickets.deleteConfirm'))) return
     updateTickets((prev) => prev.filter((t) => t.id !== id))
     if (viewing?.id === id) setViewing(null)
   }
@@ -117,52 +119,49 @@ export default function Tickets({ onClose }) {
   return (
     <div className="screen tickets-screen">
       <div className="det-top">
-        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> Indietro</button>
+        <button className="link-btn" onClick={onClose}><Icon name="ChevronLeft" size={17} /> {t('common.back')}</button>
       </div>
 
       <div className="pad">
-        <h1 className="scr-title">Biglietti</h1>
-        <p className="backup-hint">
-          Biglietti del treno, aereo, bus o eventi: carica la foto o il PDF e ritrovali qui, senza codici da
-          inserire — comodi da mostrare al volo.
-        </p>
+        <h1 className="scr-title">{t('tickets.title')}</h1>
+        <p className="backup-hint">{t('tickets.description')}</p>
 
         <div className="vault-upload">
           <select className="edit-input" value={type} onChange={(e) => setType(e.target.value)}>
-            {TICKET_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            {TICKET_TYPES.map((tt) => <option key={tt.id} value={tt.id}>{t(`ticketType.${tt.id}`)}</option>)}
           </select>
-          <input className="edit-input" placeholder="Nome (es. Milano-Roma 12 set)" value={label} onChange={(e) => setLabel(e.target.value)} />
+          <input className="edit-input" placeholder={t('tickets.namePlaceholder')} value={label} onChange={(e) => setLabel(e.target.value)} />
           <input className="edit-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           <label className={`btn vault-upload-btn ${busy ? 'is-busy' : ''}`}>
-            <Icon name={busy ? 'Loader2' : 'Upload'} size={15} className={busy ? 'spin' : ''} /> {busy ? 'Caricamento…' : 'Carica biglietto'}
+            <Icon name={busy ? 'Loader2' : 'Upload'} size={15} className={busy ? 'spin' : ''} /> {busy ? t('vault.uploading') : t('tickets.upload')}
             <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFile} disabled={busy} hidden />
           </label>
         </div>
 
         {sorted.length === 0 ? (
-          <p className="empty">Nessun biglietto salvato.</p>
+          <p className="empty">{t('tickets.noTickets')}</p>
         ) : (
           <div className="vault-doc-grid ticket-grid">
-            {sorted.map((t) => {
-              const meta = TICKET_TYPES.find((m) => m.id === t.type) || TICKET_TYPES[3]
-              const isImage = t.fileMime?.startsWith('image/')
-              const previewSrc = isImage ? t.fileDataUrl : t.thumbnailDataUrl
-              const past = isPastTicket(t)
+            {sorted.map((tk) => {
+              const meta = TICKET_TYPES.find((m) => m.id === tk.type) || TICKET_TYPES[3]
+              const isImage = tk.fileMime?.startsWith('image/')
+              const previewSrc = isImage ? tk.fileDataUrl : tk.thumbnailDataUrl
+              const past = isPastTicket(tk)
               return (
-                <div className={`vault-doc-card ticket-card ${past ? 'is-past' : ''}`} key={t.id}>
-                  <button className="vault-doc-thumb" onClick={() => setViewing(t)} aria-label={`Apri ${t.label}`}>
+                <div className={`vault-doc-card ticket-card ${past ? 'is-past' : ''}`} key={tk.id}>
+                  <button className="vault-doc-thumb" onClick={() => setViewing(tk)} aria-label={t('vault.openDocument', { name: tk.label })}>
                     {previewSrc ? (
-                      <img src={previewSrc} alt={t.label} />
+                      <img src={previewSrc} alt={tk.label} />
                     ) : (
                       <span className="vault-doc-thumb-ic"><Icon name={meta.icon} size={26} /></span>
                     )}
                   </button>
-                  <button className="vault-doc-del" onClick={() => handleDelete(t.id)} aria-label="Elimina biglietto">
+                  <button className="vault-doc-del" onClick={() => handleDelete(tk.id)} aria-label={t('tickets.deleteTicket')}>
                     <Icon name="Trash2" size={14} />
                   </button>
                   <div className="vault-doc-card-text">
-                    <b>{t.label}</b>
-                    <span>{t.date ? formatDate(t.date) : meta.label}{past ? ' · passato' : ''}</span>
+                    <b>{tk.label}</b>
+                    <span>{tk.date ? formatDate(tk.date) : t(`ticketType.${meta.id}`)}{past ? ` · ${t('tickets.past')}` : ''}</span>
                   </div>
                 </div>
               )
@@ -177,9 +176,9 @@ export default function Tickets({ onClose }) {
             <div className="vault-viewer-head">
               <span className="vault-viewer-title">{viewing.label}</span>
               <div className="vault-viewer-actions">
-                <button onClick={() => shareTicket(viewing)} aria-label="Condividi"><Icon name="Share2" size={17} /></button>
-                <button onClick={() => downloadTicket(viewing)} aria-label="Esporta"><Icon name="Download" size={17} /></button>
-                <button onClick={() => setViewing(null)} aria-label="Chiudi"><Icon name="X" size={19} /></button>
+                <button onClick={() => shareTicket(viewing)} aria-label={t('common.share')}><Icon name="Share2" size={17} /></button>
+                <button onClick={() => downloadTicket(viewing)} aria-label={t('common.export')}><Icon name="Download" size={17} /></button>
+                <button onClick={() => setViewing(null)} aria-label={t('common.close')}><Icon name="X" size={19} /></button>
               </div>
             </div>
             <div className="vault-viewer-body">
@@ -191,7 +190,7 @@ export default function Tickets({ onClose }) {
                 <p className="notice">{pdfError}</p>
               ) : (
                 <div className="pdf-pages">
-                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={`Pagina ${i + 1}`} />)}
+                  {pdfPages?.map((src, i) => <img key={i} src={src} alt={t('vault.page', { n: i + 1 })} />)}
                 </div>
               )}
             </div>

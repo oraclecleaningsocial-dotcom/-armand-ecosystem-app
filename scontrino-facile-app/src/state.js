@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { guessCategory, normalizeMerchant } from './categories'
-import { fromLocalDateKey, toLocalDateKey } from './utils/format'
+import { fromLocalDateKey, getFormatLocale, toLocalDateKey } from './utils/format'
 import { useIdbState } from './utils/idb'
 
 const STORAGE_KEY = 'scontrino_facile_state'
@@ -106,7 +106,7 @@ export function last6MonthsTrend(receipts) {
   const now = new Date()
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    months.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('it-IT', { month: 'short' }) })
+    months.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString(getFormatLocale(), { month: 'short' }) })
   }
   return months.map((m) => ({ ...m, total: totalsByPeriod(receipts, m).total }))
 }

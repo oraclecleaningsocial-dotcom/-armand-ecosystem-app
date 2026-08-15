@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Icon from './Icon'
+import { useI18n } from '../i18n'
 
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD', 'MUR', 'INR', 'CNY', 'ZAR', 'BRL', 'MXN', 'AED', 'SGD']
 
@@ -8,6 +9,7 @@ const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD', 'MUR', 'INR
 // restituisce tutti i cambi per la valuta di partenza, così anche "inverti" non richiede
 // una seconda richiesta.
 export default function CurrencyWidget() {
+  const { t } = useI18n()
   const [amount, setAmount] = useState('1')
   const [from, setFrom] = useState('EUR')
   const [to, setTo] = useState('USD')
@@ -27,7 +29,7 @@ export default function CurrencyWidget() {
       if (!rate) throw new Error('valuta non disponibile')
       setResult(Number(nextAmount) * rate)
     } catch {
-      setError('Cambio non disponibile in questo momento. Controlla la connessione e riprova.')
+      setError(t('currencyWidget.error'))
       setResult(null)
     } finally {
       setLoading(false)
@@ -44,7 +46,7 @@ export default function CurrencyWidget() {
 
   return (
     <div className="widget-card">
-      <p className="widget-title">Convertitore di valute</p>
+      <p className="widget-title">{t('currencyWidget.title')}</p>
       <div className="currency-row">
         <input
           className="currency-amount"
@@ -57,7 +59,7 @@ export default function CurrencyWidget() {
         <select className="currency-select" value={from} onChange={(e) => { setFrom(e.target.value); convert(e.target.value, to, amount) }}>
           {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button className="currency-swap" onClick={swap} aria-label="Inverti valute">
+        <button className="currency-swap" onClick={swap} aria-label={t('currencyWidget.swap')}>
           <Icon name="ArrowLeftRight" size={15} />
         </button>
         <select className="currency-select" value={to} onChange={(e) => { setTo(e.target.value); convert(from, e.target.value, amount) }}>
@@ -65,13 +67,13 @@ export default function CurrencyWidget() {
         </select>
       </div>
       <button className="btn currency-convert-btn" onClick={() => convert()} disabled={loading}>
-        {loading ? 'Converto…' : 'Converti'}
+        {loading ? t('currencyWidget.converting') : t('currencyWidget.convert')}
       </button>
       {result != null && (
         <p className="currency-result">{amount} {from} = <b>{result.toFixed(2)} {to}</b></p>
       )}
       {error && <p className="notice">{error}</p>}
-      <p className="widget-hint">Cambi aggiornati quotidianamente.</p>
+      <p className="widget-hint">{t('currencyWidget.hint')}</p>
     </div>
   )
 }

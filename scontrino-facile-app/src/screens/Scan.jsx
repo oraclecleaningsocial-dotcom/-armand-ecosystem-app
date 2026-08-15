@@ -4,6 +4,7 @@ import { CATEGORIES } from '../categories'
 import { recognizeReceipt } from '../ocr'
 import { eur, toLocalDateKey } from '../utils/format'
 import { compressImage } from '../utils/compressImage'
+import { useI18n } from '../i18n'
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -15,6 +16,7 @@ function readAsDataUrl(file) {
 }
 
 export default function Scan({ categorize, onSave, onCancel }) {
+  const { t } = useI18n()
   const [step, setStep] = useState('camera') // camera | processing | review
   const [imageDataUrl, setImageDataUrl] = useState(null)
   const [draft, setDraft] = useState(null)
@@ -46,9 +48,7 @@ export default function Scan({ categorize, onSave, onCancel }) {
       const parsed = await Promise.race([recognizeReceipt(rawDataUrl), globalErrorGuard])
       setDraft({ ...parsed, category: categorize(parsed.merchant, parsed.items?.map((it) => it.name)), note: '' })
     } catch {
-      setNotice(source === 'screenshot'
-        ? 'Non sono riuscito a leggere lo screenshot: compila i campi a mano.'
-        : 'Non sono riuscito a leggere lo scontrino: compila i campi a mano.')
+      setNotice(source === 'screenshot' ? t('scan.errorScreenshot') : t('scan.errorReceipt'))
       setDraft({ merchant: '', date: toLocalDateKey(), total: 0, totalSource: 'manualOverride', items: [], address: '', phone: '', vat: '', ocrRawText: '', category: 'altro', note: '' })
     } finally {
       removeGuard()
@@ -76,36 +76,36 @@ export default function Scan({ categorize, onSave, onCancel }) {
     return (
       <div className="screen">
         <div className="rev-top">
-          <button className="link-btn" onClick={onCancel}><Icon name="X" size={16} /> Annulla</button>
-          <button className="link-btn accent" onClick={save}>Salva <Icon name="Check" size={15} /></button>
+          <button className="link-btn" onClick={onCancel}><Icon name="X" size={16} /> {t('common.cancel')}</button>
+          <button className="link-btn accent" onClick={save}>{t('common.save')} <Icon name="Check" size={15} /></button>
         </div>
         <div className="pad">
           {notice && <p className="notice">{notice}</p>}
 
           {sourceType !== 'manuale' && (
             <div className="thumb-strip">
-              {imageDataUrl ? <img src={imageDataUrl} alt={sourceType === 'screenshot' ? 'Screenshot del pagamento' : 'Scontrino scansionato'} /> : <div className="thumb-strip-empty" />}
+              {imageDataUrl ? <img src={imageDataUrl} alt={sourceType === 'screenshot' ? t('scan.screenshotAlt') : t('scan.receiptAlt')} /> : <div className="thumb-strip-empty" />}
             </div>
           )}
 
           <label className="field">
-            <span>{sourceType === 'screenshot' ? 'Beneficiario' : 'Negozio'}</span>
-            <input value={draft.merchant} onChange={(e) => setDraft({ ...draft, merchant: e.target.value })} placeholder={sourceType === 'manuale' ? 'Es. Negozio, persona, servizio…' : undefined} />
+            <span>{sourceType === 'screenshot' ? t('scan.beneficiary') : t('scan.merchant')}</span>
+            <input value={draft.merchant} onChange={(e) => setDraft({ ...draft, merchant: e.target.value })} placeholder={sourceType === 'manuale' ? t('scan.merchantPlaceholder') : undefined} />
           </label>
 
           {sourceType === 'foto' && (
             <>
               <label className="field">
-                <span><Icon name="MapPin" size={13} /> Indirizzo <em>(letto dallo scontrino)</em></span>
-                <input value={draft.address || ''} onChange={(e) => setDraft({ ...draft, address: e.target.value })} placeholder="Non rilevato, inserisci a mano" />
+                <span><Icon name="MapPin" size={13} /> {t('scan.address')} <em>{t('scan.addressReadFromReceipt')}</em></span>
+                <input value={draft.address || ''} onChange={(e) => setDraft({ ...draft, address: e.target.value })} placeholder={t('scan.addressPlaceholder')} />
               </label>
               <div className="field-row">
                 <label className="field">
-                  <span><Icon name="Phone" size={13} /> Telefono</span>
+                  <span><Icon name="Phone" size={13} /> {t('scan.phone')}</span>
                   <input value={draft.phone || ''} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} placeholder="—" />
                 </label>
                 <label className="field">
-                  <span><Icon name="FileText" size={13} /> Partita IVA</span>
+                  <span><Icon name="FileText" size={13} /> {t('scan.vat')}</span>
                   <input value={draft.vat || ''} onChange={(e) => setDraft({ ...draft, vat: e.target.value })} placeholder="—" />
                 </label>
               </div>
@@ -113,28 +113,28 @@ export default function Scan({ categorize, onSave, onCancel }) {
           )}
 
           <label className="field">
-            <span>Data</span>
+            <span>{t('scan.date')}</span>
             <input type="date" value={draft.date} onChange={(e) => setDraft({ ...draft, date: e.target.value })} />
           </label>
 
           <label className="field">
-            <span>Totale</span>
+            <span>{t('scan.total')}</span>
             <input type="number" step="0.01" value={draft.total} onChange={(e) => setDraft({ ...draft, total: e.target.value, totalSource: 'manualOverride' })} />
-            {draft.totalSource === 'ocrDetected' && <span className="ok-pill"><Icon name="Check" size={12} /> letto dallo scontrino</span>}
-            {draft.totalSource === 'calculatedFromItems' && <span className="ok-pill warn">Totale stimato dalle voci, verifica</span>}
+            {draft.totalSource === 'ocrDetected' && <span className="ok-pill"><Icon name="Check" size={12} /> {t('scan.readFromReceipt')}</span>}
+            {draft.totalSource === 'calculatedFromItems' && <span className="ok-pill warn">{t('scan.estimatedFromItems')}</span>}
           </label>
 
           <label className="field">
-            <span>Categoria{sourceType !== 'manuale' && <em> (suggerita)</em>}</span>
+            <span>{t('scan.category')}{sourceType !== 'manuale' && <em> {t('scan.suggested')}</em>}</span>
             <select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
-              {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+              {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{t(`category.${c.id}`)}</option>)}
             </select>
           </label>
 
           {draft.items.length > 0 && (
             <>
               <button className="disclosure" onClick={() => setShowItems((v) => !v)}>
-                <Icon name={showItems ? 'ChevronDown' : 'ChevronRight'} size={14} /> Vedi voci lette ({draft.items.length})
+                <Icon name={showItems ? 'ChevronDown' : 'ChevronRight'} size={14} /> {t('scan.seeItemsRead', { n: draft.items.length })}
               </button>
               {showItems && (
                 <div className="items">
@@ -150,8 +150,8 @@ export default function Scan({ categorize, onSave, onCancel }) {
           )}
 
           <label className="field">
-            <span><Icon name="StickyNote" size={13} /> Nota (opzionale)</span>
-            <input value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} placeholder="Aggiungi una nota…" />
+            <span><Icon name="StickyNote" size={13} /> {t('scan.note')}</span>
+            <input value={draft.note} onChange={(e) => setDraft({ ...draft, note: e.target.value })} placeholder={t('scan.notePlaceholder')} />
           </label>
         </div>
       </div>
@@ -171,18 +171,18 @@ export default function Scan({ categorize, onSave, onCancel }) {
           </div>
         </div>
       </div>
-      <p className="cam-hint">{step === 'processing' ? 'Lettura in corso…' : 'Inquadra lo scontrino'}</p>
+      <p className="cam-hint">{step === 'processing' ? t('scan.readingInProgress') : t('scan.frameReceipt')}</p>
       <div className="cam-bottom">
         <label className={`shutter ${step === 'processing' ? 'is-busy' : ''}`}>
           {step === 'processing' ? <Icon name="Loader2" size={22} className="spin" /> : <span className="shutter-dot" />}
           <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={(e) => handleFile(e, 'foto')} disabled={step === 'processing'} hidden />
         </label>
         <label className="cam-gallery">
-          <Icon name="Image" size={15} /> Carica screenshot di un pagamento
+          <Icon name="Image" size={15} /> {t('scan.uploadScreenshot')}
           <input ref={galleryRef} type="file" accept="image/*" onChange={(e) => handleFile(e, 'screenshot')} disabled={step === 'processing'} hidden />
         </label>
         <button className="cam-gallery" onClick={addManually} disabled={step === 'processing'}>
-          <Icon name="Pencil" size={15} /> Aggiungi manualmente
+          <Icon name="Pencil" size={15} /> {t('scan.addManually')}
         </button>
       </div>
     </div>

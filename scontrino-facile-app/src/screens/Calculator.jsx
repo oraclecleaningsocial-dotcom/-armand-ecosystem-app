@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Icon from '../components/Icon'
+import { useI18n } from '../i18n'
 
 function compute(a, b, op) {
   if (op === '+') return a + b
@@ -9,17 +10,18 @@ function compute(a, b, op) {
   return b
 }
 
-function formatResult(n) {
-  if (!isFinite(n)) return 'Errore'
-  let s = Number(n.toPrecision(12)).toString()
-  if (s.length > 12) s = n.toExponential(4)
-  return s
-}
-
 const INITIAL = { display: '0', stored: null, op: null, overwrite: true }
 
 export default function Calculator({ onClose }) {
+  const { t, lang } = useI18n()
   const [s, setS] = useState(INITIAL)
+
+  function formatResult(n) {
+    if (!isFinite(n)) return t('calc.error')
+    let str = Number(n.toPrecision(12)).toString()
+    if (str.length > 12) str = n.toExponential(4)
+    return str
+  }
 
   function digit(d) {
     setS((prev) => {
@@ -82,9 +84,12 @@ export default function Calculator({ onClose }) {
     })
   }
 
-  // Virgola invece del punto in tutti i numeri mostrati, come da convenzione italiana.
-  function itFmt(str) {
-    return String(str).replace('.', ',')
+  // Virgola come separatore decimale per italiano/francese, punto per l'inglese — la
+  // logica interna (parseFloat, display state) resta sempre a punto, questa è solo
+  // la resa a schermo secondo la convenzione della lingua attiva.
+  const decimalSep = lang === 'en' ? '.' : ','
+  function localeFmt(str) {
+    return decimalSep === ',' ? String(str).replace('.', ',') : String(str)
   }
 
   const KEYS = [
@@ -92,14 +97,14 @@ export default function Calculator({ onClose }) {
     ['7', '8', '9', '×'],
     ['4', '5', '6', '-'],
     ['1', '2', '3', '+'],
-    ['+/-', '0', ',', '='],
+    ['+/-', '0', decimalSep, '='],
   ]
 
   function press(k) {
     if (k === 'C') return clear()
     if (k === '⌫') return backspace()
     if (k === '%') return percent()
-    if (k === ',') return decimal()
+    if (k === decimalSep) return decimal()
     if (k === '+/-') return sign()
     if (k === '=') return equals()
     if (['+', '-', '×', '÷'].includes(k)) return operator(k)
@@ -112,8 +117,8 @@ export default function Calculator({ onClose }) {
         <button className="cam-x" onClick={onClose}><Icon name="X" size={18} /></button>
       </div>
       <div className="calc-display">
-        {s.op && <span className="calc-pending">{itFmt(formatResult(s.stored))} {s.op}</span>}
-        <span className="calc-value">{itFmt(s.display)}</span>
+        {s.op && <span className="calc-pending">{localeFmt(formatResult(s.stored))} {s.op}</span>}
+        <span className="calc-value">{localeFmt(s.display)}</span>
       </div>
       <div className="calc-pad">
         {KEYS.map((row, i) => (

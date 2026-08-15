@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import Icon from './Icon'
+import { useI18n } from '../i18n'
 
 export default function TodoWidget({ todos = [], onAddTodo, onToggleTodo, onDeleteTodo }) {
+  const { t } = useI18n()
   const [text, setText] = useState('')
 
   function submit(e) {
@@ -11,29 +13,29 @@ export default function TodoWidget({ todos = [], onAddTodo, onToggleTodo, onDele
     setText('')
   }
 
-  const pending = todos.filter((t) => !t.done)
-  const done = todos.filter((t) => t.done)
+  const pending = todos.filter((td) => !td.done)
+  const done = todos.filter((td) => td.done)
 
   return (
     <div className="widget-card">
-      <p className="widget-title"><Icon name="CheckSquare" size={14} /> Da fare</p>
+      <p className="widget-title"><Icon name="CheckSquare" size={14} /> {t('todoWidget.title')}</p>
 
       <form className="reminder-add" onSubmit={submit}>
-        <input placeholder="Aggiungi un'attività…" value={text} onChange={(e) => setText(e.target.value)} />
-        <button type="submit" aria-label="Aggiungi"><Icon name="Plus" size={15} /></button>
+        <input placeholder={t('todoWidget.placeholder')} value={text} onChange={(e) => setText(e.target.value)} />
+        <button type="submit" aria-label={t('common.add')}><Icon name="Plus" size={15} /></button>
       </form>
 
       {todos.length === 0 ? (
-        <p className="empty" style={{ margin: '4px 0 0' }}>Nessuna attività ancora.</p>
+        <p className="empty" style={{ margin: '4px 0 0' }}>{t('todoWidget.empty')}</p>
       ) : (
         <div className="todo-list">
-          {[...pending, ...done].map((t) => (
-            <div className={`todo-row ${t.done ? 'is-done' : ''}`} key={t.id}>
-              <button className="todo-check" onClick={() => onToggleTodo?.(t.id)} aria-label={t.done ? 'Segna da fare' : 'Segna come fatto'}>
-                <Icon name={t.done ? 'CheckSquare' : 'Square'} size={17} />
+          {[...pending, ...done].map((td) => (
+            <div className={`todo-row ${td.done ? 'is-done' : ''}`} key={td.id}>
+              <button className="todo-check" onClick={() => onToggleTodo?.(td.id)} aria-label={td.done ? t('todoWidget.markPending') : t('todoWidget.markDone')}>
+                <Icon name={td.done ? 'CheckSquare' : 'Square'} size={17} />
               </button>
-              <span>{t.text}</span>
-              <button className="todo-del" onClick={() => onDeleteTodo?.(t.id)} aria-label="Elimina attività">
+              <span>{td.text}</span>
+              <button className="todo-del" onClick={() => onDeleteTodo?.(td.id)} aria-label={t('todoWidget.deleteTodo')}>
                 <Icon name="X" size={13} />
               </button>
             </div>
@@ -42,7 +44,7 @@ export default function TodoWidget({ todos = [], onAddTodo, onToggleTodo, onDele
       )}
 
       <p className="widget-hint">
-        {pending.length} da fare{done.length > 0 ? ` · ${done.length} completate` : ''}. Salvate solo su questo dispositivo.
+        {t('todoWidget.hint', { pending: pending.length, done: done.length > 0 ? t('todoWidget.doneSuffix', { n: done.length }) : '' })}
       </p>
     </div>
   )

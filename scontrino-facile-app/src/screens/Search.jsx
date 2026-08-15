@@ -4,8 +4,10 @@ import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORIES } from '../categories'
 import { normalizeMerchant } from '../categories'
 import { useScrollRestore } from '../utils/scrollRestore'
+import { useI18n } from '../i18n'
 
 export default function Search({ receipts, onOpen, presetCategory, onConsumePreset }) {
+  const { t } = useI18n()
   const scrollRef = useScrollRestore('search')
   const [query, setQuery] = useState('')
   const [activeCats, setActiveCats] = useState(() => (presetCategory ? new Set([presetCategory]) : new Set()))
@@ -42,7 +44,7 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
           <Icon name="Search" size={17} className="muted-ic" />
           <input
             autoFocus
-            placeholder="Cerca negozio o voce…"
+            placeholder={t('search.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -57,17 +59,17 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
             style={activeCats.has(c.id) ? { borderColor: c.color, background: `${c.color}33`, color: c.color } : undefined}
             onClick={() => toggleCat(c.id)}
           >
-            <Icon name={c.icon} size={13} /> {c.label}
+            <Icon name={c.icon} size={13} /> {t(`category.${c.id}`)}
           </button>
         ))}
       </div>
 
       <div className="pad">
-        <p className="sect-label">{results.length} {results.length === 1 ? 'ricevuta' : 'ricevute'}</p>
+        <p className="sect-label">{results.length} {results.length === 1 ? t('common.receipt_one') : t('common.receipt_other')}</p>
       </div>
 
       {results.length === 0 ? (
-        <p className="empty">Nessuna ricevuta trovata.</p>
+        <p className="empty">{t('search.noResults')}</p>
       ) : (
         <div className="list">
           {results.map((r) => (
