@@ -43,7 +43,6 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
         <div className="search-box">
           <Icon name="Search" size={17} className="muted-ic" />
           <input
-            autoFocus
             placeholder={t('search.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}

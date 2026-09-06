@@ -108,5 +108,8 @@ export function last6MonthsTrend(receipts) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     months.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString(getFormatLocale(), { month: 'short' }) })
   }
-  return months.map((m) => ({ ...m, total: totalsByPeriod(receipts, m).total }))
+  return months.map((m) => {
+    const { total, count } = totalsByPeriod(receipts, m)
+    return { ...m, total, count }
+  })
 }

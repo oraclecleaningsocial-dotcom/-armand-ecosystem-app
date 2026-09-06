@@ -20,6 +20,7 @@ export default function Dashboard({
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [expandedCat, setExpandedCat] = useState(null)
+  const [selectedMonth, setSelectedMonth] = useState(null)
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
   const animatedTotal = useCountUp(total)
   const trend = useMemo(() => last6MonthsTrend(receipts), [receipts])
@@ -40,6 +41,13 @@ export default function Dashboard({
   })
 
   const maxTrend = Math.max(1, ...trend.map((tr) => tr.total))
+  const activeIdx = selectedMonth ?? trend.length - 1
+  const activeMonth = trend[activeIdx]
+  const prevTrendMonth = trend[activeIdx - 1]
+  const activeDeltaPct = prevTrendMonth && prevTrendMonth.total > 0
+    ? Math.round(((activeMonth.total - prevTrendMonth.total) / prevTrendMonth.total) * 100)
+    : null
+  const activeUp = prevTrendMonth ? activeMonth.total >= prevTrendMonth.total : true
   const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
   const monthName = new Date(period.year, period.month).toLocaleDateString(dateLocale, { month: 'long' })
   const expandedReceipts = expandedCat ? periodReceipts.filter((r) => r.category === expandedCat) : []
@@ -128,14 +136,43 @@ export default function Dashboard({
         <div className="bars">
           {trend.map((tr, i) => {
             const isNow = i === trend.length - 1
+            const isSelected = i === activeIdx
             return (
-              <div className="bar-col" key={`${tr.year}-${tr.month}`}>
-                {isNow && <span className="bar-val">{Math.round(tr.total)}</span>}
-                <div className={`bar ${isNow ? 'is-now' : ''}`} style={{ height: `${Math.max(4, (tr.total / maxTrend) * 100)}%` }} />
+              <button
+                type="button"
+                className={`bar-col ${isSelected ? 'is-selected' : ''}`}
+                key={`${tr.year}-${tr.month}`}
+                onClick={() => setSelectedMonth((prev) => (prev === i ? null : i))}
+              >
+                {tr.total > 0 && (
+                  <span className={`bar-val ${isNow || isSelected ? 'is-highlight' : ''}`}>{Math.round(tr.total)}</span>
+                )}
+                <div
+                  className={`bar ${isNow ? 'is-now' : ''} ${isSelected ? 'is-selected' : ''}`}
+                  style={{ height: `${Math.max(4, (tr.total / maxTrend) * 100)}%` }}
+                />
                 <span className="bar-label">{tr.label}</span>
-              </div>
+              </button>
             )
           })}
+        </div>
+
+        {/* Prima si vedeva un valore solo sul mese corrente — ora ogni barra mostra il
+            proprio importo, e toccandola si apre questo riepilogo con numero di
+            ricevute e variazione rispetto al mese precedente, così "quanto ho speso"
+            non richiede più di aprire ogni singola voce per capirlo. */}
+        <div className="trend-detail">
+          <div className="trend-detail-info">
+            <b>{activeMonth.label} {activeMonth.year}</b>
+            <span>
+              {activeMonth.count} {activeMonth.count === 1 ? t('common.receipt_one') : t('common.receipt_other')} · {eur(activeMonth.total)}
+            </span>
+          </div>
+          {activeDeltaPct != null && (
+            <span className={`delta-inline ${activeUp ? 'up' : 'down'}`}>
+              {activeUp ? '▲' : '▼'} {Math.abs(activeDeltaPct)}%
+            </span>
+          )}
         </div>
       </div>
 
