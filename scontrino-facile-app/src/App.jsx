@@ -21,6 +21,9 @@ import { useNotes } from './notes'
 import { useTodos } from './todos'
 import { isLockEnabled } from './utils/auth'
 import { onStorageError } from './utils/storageAlert'
+import { useUpdateChecker } from './utils/updateChecker'
+import { useI18n } from './i18n'
+import Icon from './components/Icon'
 
 // Cambio schermata con la View Transitions API nativa del browser (Safari 18+/iOS 18+,
 // Chrome/Edge recenti): invece del solo fade in dissolvenza della singola schermata in
@@ -41,6 +44,8 @@ function withViewTransition(updateFn) {
 }
 
 export default function App() {
+  const { t } = useI18n()
+  const updateAvailable = useUpdateChecker()
   const [locked, setLocked] = useState(isLockEnabled)
   const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
   const { reminders, addReminder, deleteReminder } = useReminders()
@@ -160,6 +165,15 @@ export default function App() {
         {screen === 'cards' && <LoyaltyCards onClose={() => withViewTransition(() => setScreen(tab))} />}
 
         {toast && <div className="toast">{toast}</div>}
+
+        {updateAvailable && (
+          <div className="update-banner">
+            <span>{t('common.updateAvailable')}</span>
+            <button onClick={() => window.location.reload()}>
+              <Icon name="RotateCw" size={14} /> {t('common.updateReload')}
+            </button>
+          </div>
+        )}
 
         {/* Niente più position:fixed qui (prima direttamente, poi anche via portale in
             document.body): su alcuni device/versioni di iOS in modalità standalone quella
