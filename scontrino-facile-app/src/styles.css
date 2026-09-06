@@ -56,7 +56,7 @@ button{cursor:pointer;}
    base, quindi qui sotto viene riaggiunto puntualmente dove serve di più (liste, card,
    pulsanti principali) così il rientro a fine tocco resta morbido invece che a scatto. */
 @media (prefers-reduced-motion: no-preference){
-  button:active{transform:scale(.96);}
+  button:active{transform:scale(.94);}
 }
 
 /* position:fixed+inset:0 da solo ancora la shell ai bordi del viewport "di layout": su
@@ -260,12 +260,27 @@ button{cursor:pointer;}
 .tab{
   all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
   color:var(--ink-soft);font-size:12px;font-weight:650;width:58px;padding:4px 0;
-  transition:color .12s ease;
+  transition:color .16s ease;
 }
-.tab.is-active{color:var(--ink);}
+/* Ogni sezione ha un colore proprio invece del solito nero/grigio uniforme — la tab
+   attiva prende quel colore sia sul testo sia sull'icona, con un badge colorato dietro
+   l'icona che "scoppia" con un piccolo rimbalzo quando diventa attiva. */
+.tab-home{--tab-color:#12B8A0;}
+.tab-search{--tab-color:#3B82F6;}
+.tab-calendar{--tab-color:#8A63D2;}
+.tab-dashboard{--tab-color:#CD295A;}
+.tab.is-active{color:var(--tab-color, var(--ink));}
+.tab-ic{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:26px;border-radius:10px;
+  transition:background .18s ease;
+}
+.tab.is-active .tab-ic{background:color-mix(in srgb, var(--tab-color, var(--accent)) 18%, transparent);}
 @media (prefers-reduced-motion: no-preference){
   @keyframes tabPop{0%{transform:scale(.82);}55%{transform:scale(1.18);}100%{transform:scale(1);}}
   .tab.is-active{animation:tabPop .32s var(--ease-pop);}
+  @keyframes pillPop{0%{transform:scale(.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  .tab.is-active .tab-ic{animation:pillPop .32s var(--ease-pop);}
 }
 .tab-scan{
   all:unset;position:relative;cursor:pointer;width:50px;height:50px;border-radius:50%;flex:none;
@@ -280,10 +295,10 @@ button{cursor:pointer;}
 @media (prefers-reduced-motion: no-preference){
   .tab-scan::after{
     content:"";position:absolute;inset:-6px;border-radius:50%;
-    border:2px solid var(--accent);opacity:.6;pointer-events:none;
-    animation:fabPulse 2.4s ease-out infinite;
+    border:2.5px solid var(--accent);opacity:.7;pointer-events:none;
+    animation:fabPulse 2s ease-out infinite;
   }
-  @keyframes fabPulse{0%{transform:scale(.82);opacity:.6;}100%{transform:scale(1.4);opacity:0;}}
+  @keyframes fabPulse{0%{transform:scale(.8);opacity:.7;}100%{transform:scale(1.65);opacity:0;}}
 }
 
 /* ---------- search ---------- */
@@ -977,8 +992,8 @@ button{cursor:pointer;}
 @media (prefers-reduced-motion: no-preference){
   @keyframes iconWiggle{
     0%{transform:scale(1) rotate(0);}
-    35%{transform:scale(1.16) rotate(-11deg);}
-    65%{transform:scale(1.05) rotate(7deg);}
+    35%{transform:scale(1.26) rotate(-16deg);}
+    65%{transform:scale(1.08) rotate(10deg);}
     100%{transform:scale(1) rotate(0);}
   }
   .quick-cat:active .quick-cat-ic,
@@ -1013,17 +1028,17 @@ button{cursor:pointer;}
    scrivere qui, se ne occupa già il feature-detection lato JS. */
 @media (prefers-reduced-motion: no-preference){
   ::view-transition-old(root){
-    animation: vtOut .32s var(--ease-pop) both;
+    animation: vtOut .38s var(--ease-pop) both;
   }
   ::view-transition-new(root){
-    animation: vtIn .38s var(--ease-pop) both;
+    animation: vtIn .46s var(--ease-pop) both;
   }
   @keyframes vtOut{
     from{opacity:1;transform:scale(1);}
-    to{opacity:0;transform:scale(.96);}
+    to{opacity:0;transform:scale(.9);}
   }
   @keyframes vtIn{
-    from{opacity:0;transform:scale(1.035);}
+    from{opacity:0;transform:scale(1.08);}
     to{opacity:1;transform:scale(1);}
   }
 }
