@@ -39,8 +39,21 @@
 /* overflow:hidden qui, non più position:fixed su .app-shell più sotto, è quello che
    impedisce il rimbalzo/scroll della pagina intera su iOS: nulla scorre a livello di
    html/body, solo .screen al suo interno (overflow-y:auto), quindi non c'è comunque
-   nulla verso cui "rimbalzare". */
-html,body,#root{height:100%;overflow:hidden;}
+   nulla verso cui "rimbalzare".
+   height:100% da solo si è già dimostrato insufficiente da solo in questa stessa app
+   (era il tentativo precedente): su iOS Safari può risolversi contro un viewport "di
+   layout" più corto di quello davvero visibile in quel momento. Le due min-height sotto
+   sono reti di sicurezza indipendenti che si sommano invece di sostituirsi a vicenda —
+   ognuna misura l'altezza vera in un modo diverso, e la più alta delle tre "vince" (min-
+   height non può mai far scendere sotto queste soglie): 100dvh è il valore dinamico
+   nativo del browser; --vh-fallback (impostato da JS in main.jsx da window.innerHeight,
+   ricalcolato ad ogni resize/orientamento/ritorno in primo piano, non solo una volta al
+   caricamento) copre i casi in cui anche dvh restasse ancorato a un valore scaduto. */
+html,body,#root{
+  height:100%;
+  min-height:max(100dvh, calc(var(--vh-fallback, 1vh) * 100));
+  overflow:hidden;
+}
 body{
   margin:0;
   background:var(--paper);
