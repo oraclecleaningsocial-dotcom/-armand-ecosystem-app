@@ -1,11 +1,15 @@
+// Colori ripensati per il tema chiaro: le tonalità smorzate che si leggevano bene su
+// sfondo scuro risultavano spente/poco leggibili su carta bianca, quindi più
+// saturazione a parità di tinta (stessa identità per categoria, solo più vivida) —
+// Cibo esclusa perché il blu era già leggibile su entrambi gli sfondi.
 export const CATEGORIES = [
   { id: 'cibo', label: 'Cibo', icon: 'ShoppingCart', color: '#3B82F6' },
-  { id: 'trasporti', label: 'Trasporti', icon: 'Fuel', color: '#4c6b7a' },
-  { id: 'casa', label: 'Casa', icon: 'Home', color: '#6b7b4c' },
-  { id: 'salute', label: 'Salute', icon: 'HeartPulse', color: '#9c6b6b' },
-  { id: 'shopping', label: 'Shopping', icon: 'ShoppingBag', color: '#7a6b9c' },
-  { id: 'tempolibero', label: 'Tempo libero', icon: 'Popcorn', color: '#3f8a8c' },
-  { id: 'altro', label: 'Altro', icon: 'MoreHorizontal', color: '#8a8578' },
+  { id: 'trasporti', label: 'Trasporti', icon: 'Fuel', color: '#1F8FBF' },
+  { id: 'casa', label: 'Casa', icon: 'Home', color: '#4C9A4C' },
+  { id: 'salute', label: 'Salute', icon: 'HeartPulse', color: '#D9607A' },
+  { id: 'shopping', label: 'Shopping', icon: 'ShoppingBag', color: '#8A63D2' },
+  { id: 'tempolibero', label: 'Tempo libero', icon: 'Popcorn', color: '#17A398' },
+  { id: 'altro', label: 'Altro', icon: 'MoreHorizontal', color: '#9C9683' },
 ]
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]))
