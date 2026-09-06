@@ -36,7 +36,11 @@
 }
 
 *{box-sizing:border-box;}
-html,body,#root{height:100%;}
+/* overflow:hidden qui, non più position:fixed su .app-shell più sotto, è quello che
+   impedisce il rimbalzo/scroll della pagina intera su iOS: nulla scorre a livello di
+   html/body, solo .screen al suo interno (overflow-y:auto), quindi non c'è comunque
+   nulla verso cui "rimbalzare". */
+html,body,#root{height:100%;overflow:hidden;}
 body{
   margin:0;
   background:var(--paper);
@@ -59,23 +63,21 @@ button{cursor:pointer;}
   button:active{transform:scale(.94);}
 }
 
-/* position:fixed+inset:0 da solo ancora la shell ai bordi del viewport "di layout": su
-   iOS Safari, quando la barra degli indirizzi si nasconde/mostra (o su modelli con
-   Dynamic Island/notch come iPhone 14 Pro), quel viewport di layout può restare più
-   corto (o più lungo) di quello davvero visibile in quel momento, lasciando la tab bar
-   ancorata più in alto del bordo reale con uno spazio vuoto sotto — sembra "salire"
-   invece di restare incollata in fondo. 100dvh da solo ha aiutato ma non basta sempre
-   (l'unità CSS può restare ancorata a un valore ormai scaduto per un istante, es. al
-   primo caricamento o cambiando orientamento). --app-height (impostata da JS in
-   main.jsx leggendo visualViewport.height, la fonte più autorevole) prende il
-   sopravvento quando disponibile; 100dvh resta come valore iniziale finché quello
-   script non ha ancora girato, 100vh come ultimo fallback per i browser senza dvh. */
+/* Storia di questa regola: prima era position:fixed+inset:0, poi +100dvh, poi
+   un'altezza --app-height ricalcolata da JS leggendo visualViewport.height — ogni
+   round pensato per risolvere lo stesso sintomo (spazio vuoto sotto la tab bar su iOS,
+   che sembra "salire" invece di restare incollata in fondo) e ogni volta riapparso, perché
+   un elemento fixed viene dimensionato rispetto al viewport "di layout", che su Safari
+   può differire da quello davvero visibile in quel momento — e qualunque unità o script
+   provi a colmare quel divario può restare ancorato a un valore ormai scaduto per un
+   istante (es. al primo caricamento, prima che la barra di Safari si assesti).
+   La soluzione che non dipende da nessuna di queste misurazioni: niente più position:
+   fixed qui. html,body,#root hanno già height:100% (sotto), quindi bastano un normale
+   height:100% e l'overflow:hidden su html/body per ottenere lo stesso box a schermo
+   intero — ma calcolato dal motore di layout normale del browser in continuo, non da
+   un valore fissato una tantum, quindi non può mai restare "vecchio". */
 .app-shell{
-  position:fixed;
-  inset:0;
-  height:100vh;
-  height:100dvh;
-  height:var(--app-height, 100dvh);
+  height:100%;
   display:flex;
   justify-content:center;
   background:var(--paper);
