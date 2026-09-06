@@ -98,7 +98,11 @@ export default function Tickets({ onClose }) {
     const a = document.createElement('a')
     a.href = ticket.fileDataUrl
     a.download = ticket.fileName || ticket.label
+    // Senza essere agganciato al DOM, .click() su alcuni browser (Firefox in testa) non
+    // avvia affatto il download: lo si vede solo cliccare a vuoto, senza errori in console.
+    document.body.appendChild(a)
     a.click()
+    a.remove()
   }
 
   async function shareTicket(ticket) {

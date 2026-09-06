@@ -116,7 +116,11 @@ export default function Vault({ onClose }) {
     const a = document.createElement('a')
     a.href = doc.fileDataUrl
     a.download = doc.fileName || doc.label
+    // Senza essere agganciato al DOM, .click() su alcuni browser (Firefox in testa) non
+    // avvia affatto il download: lo si vede solo cliccare a vuoto, senza errori in console.
+    document.body.appendChild(a)
     a.click()
+    a.remove()
   }
 
   async function shareDoc(doc) {

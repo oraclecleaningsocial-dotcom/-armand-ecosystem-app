@@ -128,7 +128,11 @@ export default function LoyaltyCards({ onClose }) {
     const a = document.createElement('a')
     a.href = card.fileDataUrl
     a.download = card.fileName || card.label
+    // Senza essere agganciato al DOM, .click() su alcuni browser (Firefox in testa) non
+    // avvia affatto il download: lo si vede solo cliccare a vuoto, senza errori in console.
+    document.body.appendChild(a)
     a.click()
+    a.remove()
   }
 
   async function shareCard(card) {
