@@ -59,14 +59,20 @@ button{cursor:pointer;}
   button:active{transform:scale(.96);}
 }
 
-/* Nessun calcolo di altezza qui (100vh/100dvh/100svh/JS/visualViewport/screen.height
-   sono tutti stati provati e, da icona installata, hanno sbagliato in una direzione o
-   nell'altra). position:fixed+inset:0 ancora la shell ai quattro bordi del viewport senza
-   calcolare nulla — il gap residuo eventuale è comunque assorbito dal fatto che la tab
-   bar (sotto) è ora ancorata per conto suo al vero bordo dello schermo, non a questa. */
+/* position:fixed+inset:0 da solo ancora la shell ai bordi del viewport "di layout": su
+   iOS Safari, quando la barra degli indirizzi si nasconde/mostra (o su modelli con
+   Dynamic Island/notch come iPhone 14 Pro), quel viewport di layout può restare più
+   corto di quello davvero visibile in quel momento, lasciando la tab bar ancorata più
+   in alto del bordo reale — sembra "salire" invece di restare incollata in fondo.
+   100dvh (dynamic viewport height, non 100vh/100svh: quelli sono stati provati prima e
+   sbagliavano in una direzione o nell'altra) si ricalcola invece in tempo reale sulla
+   dimensione visibile vera, sia in Safari normale sia da icona installata. Il 100vh
+   prima resta come fallback per i browser che non conoscono ancora dvh. */
 .app-shell{
   position:fixed;
   inset:0;
+  height:100vh;
+  height:100dvh;
   display:flex;
   justify-content:center;
   background:var(--paper);
