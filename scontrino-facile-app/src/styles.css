@@ -21,6 +21,11 @@
 
   --f-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
   --f-mono:ui-monospace,"SF Mono",Menlo,"Cascadia Mono",monospace;
+
+  /* Curva di decelerazione pronunciata ("ease-out" morbido) per gli ingressi più in
+     vista — dona una sensazione più viva del solito ease lineare senza risultare
+     frenetica. Usata da schermate, griglie, grafici. */
+  --ease-pop:cubic-bezier(.16,1,.3,1);
 }
 
 *{box-sizing:border-box;}
@@ -88,7 +93,7 @@ button{cursor:pointer;}
      — .screen e .tabbar sono semplicemente due fratelli in fila nello stesso flex-column,
      senza sovrapposizione possibile. Questo padding resta solo per respiro visivo. */
   padding-bottom:20px;
-  animation:fadein .22s ease;
+  animation:fadein .34s var(--ease-pop, cubic-bezier(.16,1,.3,1));
   /* overscroll-behavior-y:contain è stata tolta apposta: su alcune versioni di iOS Safari,
      combinata con lo scroll a inerzia, è documentata bloccare del tutto lo scroll invece
      di limitarsi a impedire il rimbalzo verso la pagina sotto. .app-viewport ha già
@@ -100,7 +105,7 @@ button{cursor:pointer;}
    scroll interno — sintomo osservato: pagina "bloccata" e icone tagliate. */
 .screen > *{flex-shrink:0;}
 .cam-screen{padding-bottom:0;overflow-y:hidden;}
-@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+@keyframes fadein{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
 @media (prefers-reduced-motion: reduce){.screen{animation:none;}}
 
 .pad{padding:0 20px;}
@@ -139,6 +144,18 @@ button{cursor:pointer;}
 .hero-card::after{
   content:"";position:absolute;right:-34px;bottom:-46px;width:150px;height:150px;
   border-radius:50%;background:rgba(255,255,255,0.08);
+}
+/* Un riflesso di luce che attraversa la card una sola volta all'apertura di Home — un
+   tocco vivo in più oltre al gradiente statico, senza diventare un effetto invadente
+   o ripetuto (parte da fuori a sinistra, esce da fuori a destra, non ricompare). */
+@media (prefers-reduced-motion: no-preference){
+  .hero-card::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,.32) 48%, transparent 62%);
+    transform:translateX(-130%);
+    animation:heroSheen 1.15s var(--ease-pop) .2s 1;
+  }
+  @keyframes heroSheen{to{transform:translateX(130%);}}
 }
 .hero-card .greet{color:rgba(255,255,255,0.78);}
 .hero-card .hero-total{color:var(--hero-ink);}
@@ -233,14 +250,28 @@ button{cursor:pointer;}
   transition:color .12s ease;
 }
 .tab.is-active{color:var(--ink);}
+@media (prefers-reduced-motion: no-preference){
+  @keyframes tabPop{0%{transform:scale(.82);}55%{transform:scale(1.18);}100%{transform:scale(1);}}
+  .tab.is-active{animation:tabPop .32s var(--ease-pop);}
+}
 .tab-scan{
-  all:unset;cursor:pointer;width:50px;height:50px;border-radius:50%;flex:none;
+  all:unset;position:relative;cursor:pointer;width:50px;height:50px;border-radius:50%;flex:none;
   background:var(--accent);color:var(--accent-ink);
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 10px 20px -8px rgba(200,134,42,.6);
   transform:translateY(-14px);transition:transform .12s ease;
 }
 .tab-scan:active{transform:translateY(-14px) scale(.94);}
+/* Anello che respira intorno al pulsante di scansione: invita al tocco senza essere
+   invadente, un anello alla volta che si espande e svanisce all'infinito. */
+@media (prefers-reduced-motion: no-preference){
+  .tab-scan::after{
+    content:"";position:absolute;inset:-6px;border-radius:50%;
+    border:2px solid var(--accent);opacity:.6;pointer-events:none;
+    animation:fabPulse 2.4s ease-out infinite;
+  }
+  @keyframes fabPulse{0%{transform:scale(.82);opacity:.6;}100%{transform:scale(1.4);opacity:0;}}
+}
 
 /* ---------- search ---------- */
 .search-box{
@@ -324,6 +355,10 @@ button{cursor:pointer;}
 .donut-row{display:flex;margin-top:20px;}
 .donut-row.centered{justify-content:center;}
 .donut{width:148px;height:148px;border-radius:50%;position:relative;flex:none;}
+@media (prefers-reduced-motion: no-preference){
+  .donut{animation:donutIn .55s var(--ease-pop) backwards;}
+  @keyframes donutIn{from{opacity:0;transform:scale(.7) rotate(-90deg);}to{opacity:1;transform:none;}}
+}
 .donut-hole{
   position:absolute;inset:21%;background:var(--paper);border-radius:50%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -353,8 +388,21 @@ button{cursor:pointer;}
 .trend-block{margin-top:28px;}
 .bars{display:flex;align-items:flex-end;gap:8px;height:104px;margin-top:14px;}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;}
-.bar{width:100%;border-radius:6px 6px 3px 3px;background:var(--line);transition:height .4s ease;}
+.bar{width:100%;border-radius:6px 6px 3px 3px;background:var(--line);transition:height .4s ease;transform-origin:bottom;}
 .bar.is-now{background:var(--accent);}
+/* Le barre crescono dal basso al primo montaggio del grafico, una dopo l'altra — la
+   transizione su "height" già presente gestisce solo i cambi successivi (es. cambio
+   periodo), qui serve un'animazione a parte per l'ingresso iniziale. */
+@media (prefers-reduced-motion: no-preference){
+  .bars .bar{animation:growBar .5s var(--ease-pop) backwards;}
+  @keyframes growBar{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+  .bar-col:nth-child(1) .bar{animation-delay:0s;}
+  .bar-col:nth-child(2) .bar{animation-delay:.05s;}
+  .bar-col:nth-child(3) .bar{animation-delay:.1s;}
+  .bar-col:nth-child(4) .bar{animation-delay:.15s;}
+  .bar-col:nth-child(5) .bar{animation-delay:.2s;}
+  .bar-col:nth-child(6) .bar{animation-delay:.25s;}
+}
 .bar-val{font-family:var(--f-mono);font-size:13px;font-weight:650;color:var(--accent);}
 .bar-label{font-size:12.5px;color:var(--ink-soft);font-weight:650;text-transform:capitalize;}
 
@@ -780,3 +828,65 @@ button{cursor:pointer;}
 .card-preview-thumb{width:44px;height:44px;border-radius:12px;overflow:hidden;flex:none;background:var(--paper-raised);display:flex;align-items:center;justify-content:center;}
 .card-preview-thumb img{width:100%;height:100%;object-fit:cover;}
 .card-preview-hint{font-size:14.5px;color:var(--ink-soft);line-height:1.3;}
+
+/* ---------- animazioni: ingressi a cascata, feedback vivi ---------- */
+/* Stesso schema di sfalsamento già usato per .list .row, esteso a tutte le griglie di
+   card dell'app (categorie rapide, categorie Report, strumenti, documenti/prodotti/
+   carte, mesi dell'anno, scadenze fiscali, promemoria/to-do, punteggi prodotto, chip
+   di ricerca) così ogni schermata a griglia si "accende" pezzo per pezzo invece di
+   comparire tutta insieme di scatto. Si attiva solo al montaggio reale della griglia
+   (cambio schermata, o comparsa di un nuovo elemento con key nuova) grazie a
+   backwards+nessun'altra regola che tocchi opacity/transform su questi selettori. */
+@media (prefers-reduced-motion: no-preference){
+  @keyframes popIn{from{opacity:0;transform:translateY(10px) scale(.94);}to{opacity:1;transform:none;}}
+
+  .quick-cats .quick-cat, .cat-grid .cat-card, .tool-cards .tool-card,
+  .vault-doc-grid .vault-doc-card, .cal-year-grid .cal-year-cell,
+  .fiscal-list .fiscal-card, .todo-list .todo-row, .score-row .score-badge,
+  .chips .chip{
+    animation:popIn .34s var(--ease-pop) backwards;
+  }
+  .quick-cats .quick-cat:nth-child(2), .cat-grid .cat-card:nth-child(2), .tool-cards .tool-card:nth-child(2),
+  .vault-doc-grid .vault-doc-card:nth-child(2), .cal-year-grid .cal-year-cell:nth-child(2),
+  .fiscal-list .fiscal-card:nth-child(2), .todo-list .todo-row:nth-child(2), .score-row .score-badge:nth-child(2),
+  .chips .chip:nth-child(2){animation-delay:.035s;}
+  .quick-cats .quick-cat:nth-child(3), .cat-grid .cat-card:nth-child(3), .tool-cards .tool-card:nth-child(3),
+  .vault-doc-grid .vault-doc-card:nth-child(3), .cal-year-grid .cal-year-cell:nth-child(3),
+  .fiscal-list .fiscal-card:nth-child(3), .todo-list .todo-row:nth-child(3), .score-row .score-badge:nth-child(3),
+  .chips .chip:nth-child(3){animation-delay:.07s;}
+  .quick-cats .quick-cat:nth-child(4), .cat-grid .cat-card:nth-child(4), .tool-cards .tool-card:nth-child(4),
+  .vault-doc-grid .vault-doc-card:nth-child(4), .cal-year-grid .cal-year-cell:nth-child(4),
+  .fiscal-list .fiscal-card:nth-child(4), .todo-list .todo-row:nth-child(4), .score-row .score-badge:nth-child(4),
+  .chips .chip:nth-child(4){animation-delay:.105s;}
+  .quick-cats .quick-cat:nth-child(5), .cat-grid .cat-card:nth-child(5), .tool-cards .tool-card:nth-child(5),
+  .vault-doc-grid .vault-doc-card:nth-child(5), .cal-year-grid .cal-year-cell:nth-child(5),
+  .fiscal-list .fiscal-card:nth-child(5), .todo-list .todo-row:nth-child(5), .score-row .score-badge:nth-child(5),
+  .chips .chip:nth-child(5){animation-delay:.14s;}
+  .quick-cats .quick-cat:nth-child(6), .cat-grid .cat-card:nth-child(6), .tool-cards .tool-card:nth-child(6),
+  .vault-doc-grid .vault-doc-card:nth-child(6), .cal-year-grid .cal-year-cell:nth-child(6),
+  .fiscal-list .fiscal-card:nth-child(6), .todo-list .todo-row:nth-child(6), .score-row .score-badge:nth-child(6),
+  .chips .chip:nth-child(6){animation-delay:.175s;}
+  .quick-cats .quick-cat:nth-child(n+7), .cat-grid .cat-card:nth-child(n+7), .tool-cards .tool-card:nth-child(n+7),
+  .vault-doc-grid .vault-doc-card:nth-child(n+7), .cal-year-grid .cal-year-cell:nth-child(n+7),
+  .fiscal-list .fiscal-card:nth-child(n+7), .todo-list .todo-row:nth-child(n+7), .score-row .score-badge:nth-child(n+7),
+  .chips .chip:nth-child(n+7){animation-delay:.21s;}
+
+  /* I bigliettini adesivi hanno un ingresso dedicato con una leggera rotazione che si
+     assesta, coerente con l'idea di "note attaccate al volo" invece che semplici card. */
+  @keyframes noteIn{from{opacity:0;transform:translateY(10px) scale(.9) rotate(-3deg);}to{opacity:1;transform:none;}}
+  .notes-grid .sticky-note{animation:noteIn .38s var(--ease-pop) backwards;}
+  .notes-grid .sticky-note:nth-child(2){animation-delay:.05s;}
+  .notes-grid .sticky-note:nth-child(3){animation-delay:.1s;}
+  .notes-grid .sticky-note:nth-child(4){animation-delay:.15s;}
+  .notes-grid .sticky-note:nth-child(n+5){animation-delay:.2s;}
+
+  /* Un piccolo "pop" quando una voce da fare viene spuntata, invece di un cambio di
+     colore secco — lo stesso trucco della spunta di iOS/Gmail. */
+  @keyframes checkPop{0%{transform:scale(1);}50%{transform:scale(1.3);}100%{transform:scale(1);}}
+  .todo-row.is-done .todo-check{animation:checkPop .3s var(--ease-pop);}
+
+  /* Un lieve tremolio orizzontale sui messaggi di errore: un feedback più "vivo" del
+     solo colore rosso, senza risultare fastidioso (dura meno di mezzo secondo). */
+  @keyframes shake{10%,90%{transform:translateX(-1px);}20%,80%{transform:translateX(2px);}30%,50%,70%{transform:translateX(-4px);}40%,60%{transform:translateX(4px);}}
+  .notice, .vault-lock-error, .lock-error{animation:shake .4s ease;}
+}
