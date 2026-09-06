@@ -114,7 +114,7 @@ export default function Calculator({ onClose }) {
   return (
     <div className="screen calc-screen">
       <div className="calc-top">
-        <button className="cam-x" onClick={onClose}><Icon name="X" size={18} /></button>
+        <button className="calc-x" onClick={onClose} aria-label={t('common.close')}><Icon name="X" size={18} /></button>
       </div>
       <div className="calc-display">
         {s.op && <span className="calc-pending">{localeFmt(formatResult(s.stored))} {s.op}</span>}

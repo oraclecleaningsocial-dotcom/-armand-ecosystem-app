@@ -638,9 +638,23 @@ button{cursor:pointer;}
 /* ---------- calcolatrice ---------- */
 .calc-screen{background:var(--paper);padding-bottom:0;}
 .calc-top{display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;}
+/* .cam-x (icona bianca su cerchio bianco translucido) è pensata per lo sfondo scuro
+   della fotocamera: su questo schermo, chiaro, era invisibile — da qui il "non vedo
+   come uscire" segnalato. Icona e cerchio scuri, pensati apposta per questo sfondo. */
+.calc-x{
+  all:unset;cursor:pointer;width:32px;height:32px;border-radius:50%;
+  background:var(--paper-raised);color:var(--ink);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+}
+.calc-x:active{filter:brightness(.95);}
+/* Prima .calc-display era flex:1, cioè si prendeva tutto lo spazio verticale non
+   occupato dai tasti: con pochi tasti sotto restava un vuoto enorme sopra al numero
+   (esattamente lo "spazio sotto" segnalato). Ora ha un'altezza contenuta e basata sul
+   contenuto, e .calc-pad (flex:1) riempie lui il resto, con i tasti distribuiti nello
+   spazio invece che ammassati in fondo sotto un vuoto. */
 .calc-display{
-  flex:1;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;
-  padding:0 24px 20px;gap:6px;min-height:120px;
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;
+  padding:18px 24px 14px;gap:6px;min-height:88px;
 }
 .calc-pending{font-family:var(--f-mono);font-size:15px;color:var(--ink-soft);}
 .calc-value{
@@ -648,7 +662,10 @@ button{cursor:pointer;}
   font-size:52px;font-weight:650;color:var(--ink);line-height:1;
   overflow-x:auto;max-width:100%;
 }
-.calc-pad{display:flex;flex-direction:column;gap:12px;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 20px);}
+.calc-pad{
+  flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;
+  padding:0 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+}
 .calc-row{display:flex;gap:12px;}
 .calc-key{
   all:unset;cursor:pointer;box-sizing:border-box;flex:1;aspect-ratio:1;
