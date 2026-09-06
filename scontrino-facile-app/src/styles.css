@@ -657,7 +657,19 @@ button{cursor:pointer;}
 .vault-doc-card-text span{color:var(--ink-soft);font-size:14.5px;}
 
 .vault-viewer-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:60;
+  position:fixed;inset:0;z-index:60;
+  /* Vetro scuro sfumato/sfocato invece del nero piatto di prima — ispirato al
+     riferimento con card scure semi-trasparenti condiviso in chat. Ridefinire qui le
+     variabili di tema (invece che su ogni figlio) basta a rendere leggibile testo,
+     etichette e badge di Vault/Prodotti/Carte, che nel tema chiaro ereditavano il nuovo
+     --ink quasi nero e sparivano su questo sfondo scuro. */
+  --ink:#F5F5FA;
+  --ink-soft:#B7B6C6;
+  --line:rgba(255,255,255,.16);
+  --paper-raised:rgba(255,255,255,.08);
+  color:var(--ink);
+  background:rgba(9,11,16,.88);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
 }
 .vault-viewer{width:100%;height:100%;display:flex;flex-direction:column;}
@@ -669,8 +681,11 @@ button{cursor:pointer;}
 .vault-viewer-actions{display:flex;align-items:center;gap:6px;flex:none;}
 .vault-viewer-actions button{
   all:unset;cursor:pointer;width:36px;height:36px;border-radius:50%;color:#fff;
-  display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
+.vault-viewer-actions button:active{background:rgba(255,255,255,.24);}
 .vault-viewer-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:auto;padding:14px;box-sizing:border-box;}
 .vault-viewer-body img{max-width:100%;max-height:100%;object-fit:contain;}
 /* align-self invece di cambiare align-items del genitore: le pagine, potendo essere più
