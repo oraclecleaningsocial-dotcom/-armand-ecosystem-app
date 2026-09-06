@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import TabBar from './components/TabBar'
 import Home from './screens/Home'
 import Search from './screens/Search'
@@ -21,6 +22,24 @@ import { useTodos } from './todos'
 import { isLockEnabled } from './utils/auth'
 import { onStorageError } from './utils/storageAlert'
 
+// Cambio schermata con la View Transitions API nativa del browser (Safari 18+/iOS 18+,
+// Chrome/Edge recenti): invece del solo fade in dissolvenza della singola schermata in
+// montaggio, il browser cattura un fermo immagine di "prima" e "dopo" e li sfuma/scala
+// l'uno nell'altro a livello dell'intera pagina — l'effetto "cambio schermata da app
+// vera" che un fade CSS sul singolo componente non può dare da solo. flushSync forza
+// l'aggiornamento di stato React a essere sincrono dentro il callback, come richiesto
+// dall'API per poter catturare il "dopo" nello stesso istante. Nessun errore se il
+// browser non la supporta (Firefox, iOS più vecchi) o se l'utente ha ridotto le
+// animazioni: si applica semplicemente l'aggiornamento di stato senza transizione.
+function withViewTransition(updateFn) {
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  if (reduceMotion || typeof document.startViewTransition !== 'function') {
+    updateFn()
+    return
+  }
+  document.startViewTransition(() => flushSync(updateFn))
+}
+
 export default function App() {
   const [locked, setLocked] = useState(isLockEnabled)
   const { receipts, merchantCategoryMap, addReceipt, updateReceipt, deleteReceipt, categorize, replaceAll } = useReceipts()
@@ -35,8 +54,10 @@ export default function App() {
   const [searchPreset, setSearchPreset] = useState(null)
 
   function navigate(target) {
-    setScreen(target)
-    if (['home', 'search', 'calendar', 'dashboard'].includes(target)) setTab(target)
+    withViewTransition(() => {
+      setScreen(target)
+      if (['home', 'search', 'calendar', 'dashboard'].includes(target)) setTab(target)
+    })
   }
 
   function quickFilter(categoryId) {
@@ -45,9 +66,11 @@ export default function App() {
   }
 
   function openDetail(id, from) {
-    setDetailId(id)
-    setDetailBack(from)
-    setScreen('detail')
+    withViewTransition(() => {
+      setDetailId(id)
+      setDetailBack(from)
+      setScreen('detail')
+    })
   }
 
   function handleSave(draft) {
@@ -59,7 +82,7 @@ export default function App() {
   function handleDelete(id) {
     deleteReceipt(id)
     showToast('Ricevuta eliminata')
-    setScreen(detailBack)
+    withViewTransition(() => setScreen(detailBack))
   }
 
   function showToast(msg, duration = 2200) {
@@ -121,20 +144,20 @@ export default function App() {
           />
         )}
         {screen === 'detail' && (
-          <Detail receipt={activeReceipt} onBack={() => setScreen(detailBack)} onUpdate={updateReceipt} onDelete={handleDelete} />
+          <Detail receipt={activeReceipt} onBack={() => withViewTransition(() => setScreen(detailBack))} onUpdate={updateReceipt} onDelete={handleDelete} />
         )}
         {screen === 'scan' && (
           <Scan categorize={categorize} onSave={handleSave} onCancel={() => navigate('home')} />
         )}
-        {screen === 'calculator' && <Calculator onClose={() => setScreen(tab)} />}
-        {screen === 'vault' && <VaultScreen onClose={() => setScreen(tab)} />}
-        {screen === 'fiscal' && <FiscalDeadlines onClose={() => setScreen(tab)} />}
+        {screen === 'calculator' && <Calculator onClose={() => withViewTransition(() => setScreen(tab))} />}
+        {screen === 'vault' && <VaultScreen onClose={() => withViewTransition(() => setScreen(tab))} />}
+        {screen === 'fiscal' && <FiscalDeadlines onClose={() => withViewTransition(() => setScreen(tab))} />}
         {screen === 'settings' && (
-          <Settings receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onClose={() => setScreen(tab)} />
+          <Settings receipts={receipts} merchantCategoryMap={merchantCategoryMap} onRestore={handleRestore} onClose={() => withViewTransition(() => setScreen(tab))} />
         )}
-        {screen === 'products' && <Products onClose={() => setScreen(tab)} />}
-        {screen === 'tickets' && <Tickets onClose={() => setScreen(tab)} />}
-        {screen === 'cards' && <LoyaltyCards onClose={() => setScreen(tab)} />}
+        {screen === 'products' && <Products onClose={() => withViewTransition(() => setScreen(tab))} />}
+        {screen === 'tickets' && <Tickets onClose={() => withViewTransition(() => setScreen(tab))} />}
+        {screen === 'cards' && <LoyaltyCards onClose={() => withViewTransition(() => setScreen(tab))} />}
 
         {toast && <div className="toast">{toast}</div>}
 

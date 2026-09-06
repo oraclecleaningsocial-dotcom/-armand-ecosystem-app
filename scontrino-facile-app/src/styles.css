@@ -1001,3 +1001,44 @@ button{cursor:pointer;}
   @keyframes iconBreathe{0%,100%{transform:scale(1);}50%{transform:scale(1.14);}}
   .tab-scan svg{animation:iconBreathe 2.6s ease-in-out infinite;}
 }
+
+/* ---------- transizioni tra schermate (View Transitions API) ---------- */
+/* Il browser (dove supportata: Safari 18+/iOS 18+, Chrome/Edge recenti — vedi
+   withViewTransition in App.jsx) cattura un fermo immagine di com'era la app prima e
+   com'è subito dopo il cambio schermata, e sfuma/scala l'uno nell'altro qui sotto:
+   l'uscita rimpicciolisce leggermente mentre sparisce, l'ingresso parte un po' più
+   grande e si assesta — la stessa sensazione di "spinta" delle transizioni native, che
+   il solo fade sul singolo componente montato non può dare da sé. Su browser che non
+   supportano l'API questi selettori semplicemente non esistono: nessun fallback da
+   scrivere qui, se ne occupa già il feature-detection lato JS. */
+@media (prefers-reduced-motion: no-preference){
+  ::view-transition-old(root){
+    animation: vtOut .32s var(--ease-pop) both;
+  }
+  ::view-transition-new(root){
+    animation: vtIn .38s var(--ease-pop) both;
+  }
+  @keyframes vtOut{
+    from{opacity:1;transform:scale(1);}
+    to{opacity:0;transform:scale(.96);}
+  }
+  @keyframes vtIn{
+    from{opacity:0;transform:scale(1.035);}
+    to{opacity:1;transform:scale(1);}
+  }
+}
+
+/* ---------- carte più "fisiche" al tocco ---------- */
+/* Oltre al rimpicciolimento generale (riga 47), le card sollevate acquistano una vera
+   ombra di riposo che si appiattisce quando vengono premute — come se la si spingesse
+   davvero contro la superficie sotto, invece di limitarsi a rimpicciolire sul posto. */
+@media (prefers-reduced-motion: no-preference){
+  .tool-card{box-shadow:0 8px 18px -14px rgba(20,20,30,.18);transition:transform .12s ease, box-shadow .15s ease;}
+  .tool-card:active{box-shadow:0 2px 6px -4px rgba(20,20,30,.14);}
+  .cat-card{box-shadow:0 8px 18px -14px rgba(20,20,30,.16);}
+  .cat-card:active{box-shadow:0 2px 6px -4px rgba(20,20,30,.12);}
+  .list-cards .row{transition:background .12s ease, transform .12s ease, box-shadow .15s ease;}
+  .list-cards .row:active{box-shadow:0 3px 8px -6px rgba(28,28,38,.26);}
+  .vault-doc-card .vault-doc-thumb{transition:box-shadow .15s ease;}
+  .vault-doc-thumb:active{box-shadow:inset 0 0 0 1.5px var(--line);}
+}
