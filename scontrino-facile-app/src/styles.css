@@ -157,6 +157,10 @@ button{cursor:pointer;}
   padding:8px 13px 8px 10px;border-radius:99px;background:rgba(255,255,255,0.16);color:#fff;
   font-size:14.5px;font-weight:650;white-space:nowrap;
 }
+@media (prefers-reduced-motion: no-preference){
+  .hero-icon-btn svg{animation:iconFloat 2.6s ease-in-out infinite;}
+  .hero-icon-btn:last-child svg{animation-delay:.3s;}
+}
 .hero-card::after{
   content:"";position:absolute;right:-34px;bottom:-46px;width:150px;height:150px;
   border-radius:50%;background:rgba(255,255,255,0.08);
@@ -192,6 +196,9 @@ button{cursor:pointer;}
   width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
   display:flex;align-items:center;justify-content:center;
 }
+@media (prefers-reduced-motion: no-preference){
+  .cta-scan-icon svg{animation:iconBreathe 2.2s ease-in-out infinite;}
+}
 
 .quick-cats{
   display:flex;gap:14px;overflow-x:auto;padding:18px 20px 4px;
@@ -204,6 +211,19 @@ button{cursor:pointer;}
   transition:transform .12s ease;
 }
 .quick-cat-ic{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;}
+/* Le icone delle categorie rapide "galleggiano" di continuo, una dopo l'altra come
+   un'onda invece che tutte insieme — è la parte più a vista della Home, la prima cosa
+   che si nota anche senza toccare nulla. */
+@media (prefers-reduced-motion: no-preference){
+  @keyframes iconFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+  .quick-cat-ic{animation:iconFloat 2.6s ease-in-out infinite;}
+  .quick-cats .quick-cat:nth-child(1) .quick-cat-ic{animation-delay:0s;}
+  .quick-cats .quick-cat:nth-child(2) .quick-cat-ic{animation-delay:.15s;}
+  .quick-cats .quick-cat:nth-child(3) .quick-cat-ic{animation-delay:.3s;}
+  .quick-cats .quick-cat:nth-child(4) .quick-cat-ic{animation-delay:.45s;}
+  .quick-cats .quick-cat:nth-child(5) .quick-cat-ic{animation-delay:.6s;}
+  .quick-cats .quick-cat:nth-child(n+6) .quick-cat-ic{animation-delay:.75s;}
+}
 
 .sect-label{
   font-size:14.5px;font-weight:700;text-transform:uppercase;letter-spacing:.055em;
