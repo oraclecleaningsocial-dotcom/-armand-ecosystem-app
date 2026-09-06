@@ -739,6 +739,22 @@ button{cursor:pointer;}
 }
 .sticky-note-del:active{opacity:1;}
 
+/* Dettatura vocale: pulsante microfono discreto quando inattivo, rosso e con un anello
+   che pulsa quando sta ascoltando — stesso linguaggio visivo del pulsante di scansione
+   nella tab bar, per riconoscere subito "sta registrando" a colpo d'occhio. */
+.reminder-add .mic-btn{
+  position:relative;background:var(--paper-raised);color:var(--ink-soft);
+  border:1px solid var(--line);
+}
+.reminder-add .mic-btn.is-listening{background:var(--negative);color:#fff;border-color:transparent;}
+@media (prefers-reduced-motion: no-preference){
+  .reminder-add .mic-btn.is-listening::after{
+    content:"";position:absolute;inset:-5px;border-radius:12px;
+    border:2px solid var(--negative);opacity:.6;pointer-events:none;
+    animation:fabPulse 1.6s ease-out infinite;
+  }
+}
+
 /* ---------- to-do ---------- */
 .todo-list{display:flex;flex-direction:column;margin-top:10px;}
 .todo-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);}
