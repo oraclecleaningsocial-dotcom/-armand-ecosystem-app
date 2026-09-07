@@ -10,6 +10,7 @@ import NotesWidget from '../components/NotesWidget'
 import TodoWidget from '../components/TodoWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
+import { useStaggerReveal } from '../utils/useStaggerReveal'
 import { useI18n } from '../i18n'
 
 export default function Dashboard({
@@ -20,6 +21,7 @@ export default function Dashboard({
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
   const [expandedCat, setExpandedCat] = useState(null)
+  const expandedListRef = useStaggerReveal([expandedCat])
   const [selectedMonth, setSelectedMonth] = useState(null)
   const { total, byCategory, receipts: periodReceipts } = useMemo(() => totalsByPeriod(receipts, period), [receipts, period])
   const animatedTotal = useCountUp(total)
@@ -117,7 +119,7 @@ export default function Dashboard({
                   {expandedReceipts.length === 0 ? (
                     <p className="empty">{t('dashboard.noReceiptsInCategory')}</p>
                   ) : (
-                    <div className="list list-cards">
+                    <div className="list list-cards" ref={expandedListRef}>
                       {expandedReceipts.map((r) => (
                         <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen?.(id, 'dashboard')} />
                       ))}

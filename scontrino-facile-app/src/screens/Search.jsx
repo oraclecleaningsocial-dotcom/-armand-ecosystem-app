@@ -4,6 +4,7 @@ import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORIES } from '../categories'
 import { normalizeMerchant } from '../categories'
 import { useScrollRestore } from '../utils/scrollRestore'
+import { useStaggerReveal } from '../utils/useStaggerReveal'
 import { useI18n } from '../i18n'
 
 export default function Search({ receipts, onOpen, presetCategory, onConsumePreset }) {
@@ -11,6 +12,13 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
   const scrollRef = useScrollRestore('search')
   const [query, setQuery] = useState('')
   const [activeCats, setActiveCats] = useState(() => (presetCategory ? new Set([presetCategory]) : new Set()))
+  // results.length > 0 invece di [] (solo al montaggio): i risultati arrivano da uno
+  // stato caricato in modo asincrono da IndexedDB, quindi al primo render potrebbero
+  // essere ancora vuoti — questo cattura anche il momento in cui compaiono davvero.
+  // Un booleano invece della lunghezza esatta evita di far ripartire l'animazione a ogni
+  // lettera digitata nella ricerca (fastidioso), scattando solo quando si passa da
+  // "nessun risultato" a "risultati" o viceversa.
+  const listRef = useStaggerReveal([results.length > 0])
 
   useEffect(() => {
     if (presetCategory) onConsumePreset?.()
@@ -70,7 +78,7 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
       {results.length === 0 ? (
         <p className="empty">{t('search.noResults')}</p>
       ) : (
-        <div className="list">
+        <div className="list" ref={listRef}>
           {results.map((r) => (
             <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, 'search')} />
           ))}

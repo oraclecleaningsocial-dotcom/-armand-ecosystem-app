@@ -25,6 +25,7 @@ import { useUpdateChecker } from './utils/updateChecker'
 import { recalcViewportHeight } from './utils/viewportHeight'
 import { useI18n } from './i18n'
 import Icon from './components/Icon'
+import SuccessBurst from './components/SuccessBurst'
 
 // Cambio schermata con la View Transitions API nativa del browser (Safari 18+/iOS 18+,
 // Chrome/Edge recenti): invece del solo fade in dissolvenza della singola schermata in
@@ -70,6 +71,7 @@ export default function App() {
   const [detailBack, setDetailBack] = useState('home')
   const [toast, setToast] = useState('')
   const [searchPreset, setSearchPreset] = useState(null)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   function navigate(target) {
     withViewTransition(() => {
@@ -94,6 +96,7 @@ export default function App() {
   function handleSave(draft) {
     addReceipt(draft)
     showToast(t('toast.receiptSaved'))
+    setShowSuccess(true)
     navigate('home')
   }
 
@@ -183,6 +186,7 @@ export default function App() {
         {screen === 'cards' && <LoyaltyCards onClose={() => withViewTransition(() => setScreen(tab))} />}
 
         {toast && <div className="toast">{toast}</div>}
+        <SuccessBurst show={showSuccess} onDone={() => setShowSuccess(false)} />
 
         {updateAvailable && (
           <div className="update-banner">

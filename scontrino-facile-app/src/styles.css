@@ -253,19 +253,10 @@ button{cursor:pointer;}
   transition:background .12s ease, transform .12s ease;
 }
 .row:hover,.row:focus-visible{background:var(--paper-raised);}
-/* Le righe entrano con un piccolo sfalsamento invece di comparire tutte insieme di
-   scatto — si applica solo al montaggio vero (una entry con la stessa key non la
-   ripete ad ogni render, solo quando la lista compare/cambia davvero). */
-@keyframes rowIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
-@media (prefers-reduced-motion: no-preference){
-  .list .row{animation:rowIn .32s ease backwards;}
-  .list .row:nth-child(2){animation-delay:.03s;}
-  .list .row:nth-child(3){animation-delay:.06s;}
-  .list .row:nth-child(4){animation-delay:.09s;}
-  .list .row:nth-child(5){animation-delay:.12s;}
-  .list .row:nth-child(6){animation-delay:.15s;}
-  .list .row:nth-child(n+7){animation-delay:.18s;}
-}
+/* Lo sfalsamento d'ingresso delle righe (prima qui, a puro CSS con un tetto di 6 ritardi
+   diversi) ora è un vero stagger GSAP — vedi utils/useStaggerReveal.js, usato da Home,
+   Search e dalle ricevute per categoria in Report — senza limite al numero di righe e con
+   un piccolo rimbalzo (back.out) invece del semplice ease-out CSS. */
 .row-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;}
 .row-mid{flex:1;min-width:0;text-align:left;}
 .row-name{display:block;font-size:17.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -961,6 +952,15 @@ button{cursor:pointer;}
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 .fix-gap-btn:active{transform:scale(.9);}
+
+/* ---------- burst di successo (GSAP) ---------- */
+/* pointer-events:none: è un feedback puramente visivo che compare sopra a tutto per un
+   istante, non deve mai poter bloccare un tocco successivo dell'utente. */
+.success-burst{
+  position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.success-burst-inner{opacity:0;transform:scale(.9);filter:drop-shadow(0 8px 20px rgba(18,184,160,.35));}
 
 /* ---------- prodotti (barcode + Open Food Facts) ---------- */
 .product-search{margin-top:16px;display:flex;flex-direction:column;gap:10px;}

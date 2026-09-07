@@ -5,6 +5,7 @@ import { eur } from '../utils/format'
 import { last6MonthsTrend } from '../state'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
+import { useStaggerReveal } from '../utils/useStaggerReveal'
 import { useI18n } from '../i18n'
 
 export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
@@ -17,6 +18,7 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
   const up = current >= previous
   const pct = previous > 0 ? Math.round((Math.abs(current - previous) / previous) * 100) : 0
   const recent = receipts.slice(0, 5)
+  const listRef = useStaggerReveal([recent.map((r) => r.id).join(',')])
 
   return (
     <div className="screen" ref={scrollRef}>
@@ -63,7 +65,7 @@ export default function Home({ receipts, onOpen, onNavigate, onQuickFilter }) {
       {recent.length === 0 ? (
         <p className="empty">{t('home.noReceiptsYet')}</p>
       ) : (
-        <div className="list list-cards">
+        <div className="list list-cards" ref={listRef}>
           {recent.map((r) => (
             <ReceiptRow key={r.id} receipt={r} onOpen={(id) => onOpen(id, 'home')} />
           ))}
