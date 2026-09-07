@@ -22,7 +22,6 @@ import { useTodos } from './todos'
 import { isLockEnabled } from './utils/auth'
 import { onStorageError } from './utils/storageAlert'
 import { useUpdateChecker } from './utils/updateChecker'
-import { recalcViewportHeight } from './utils/viewportHeight'
 import { useI18n } from './i18n'
 import Icon from './components/Icon'
 import SuccessBurst from './components/SuccessBurst'
@@ -209,13 +208,14 @@ export default function App() {
             <TabBar active={tab} onNavigate={navigate} />
             {/* Ripiego manuale per i rari casi in cui la barra "risale" comunque, prima
                 che uno degli eventi ascoltati in utils/viewportHeight.js abbia occasione
-                di ricalcolare da solo: un tocco qui rifà subito la stessa misura, senza
-                dover ricaricare tutta la pagina. Fissato rispetto al vero viewport (non
-                a .app-shell/.app-viewport, che sono proprio ciò che potrebbe avere
-                l'altezza sbagliata in quel momento), così resta raggiungibile comunque. */}
+                di ricalcolare da solo: un riavvio completo dell'app azzera qualunque stato
+                di layout rimasto sbagliato, invece di limitarsi a ricalcolare una singola
+                variabile CSS. Fissato rispetto al vero viewport (non a .app-shell/
+                .app-viewport, che sono proprio ciò che potrebbe avere l'altezza sbagliata
+                in quel momento), così resta raggiungibile comunque. */}
             <button
               className="fix-gap-btn"
-              onClick={() => { recalcViewportHeight(); showToast(t('common.fixedLayout')) }}
+              onClick={() => window.location.reload()}
               aria-label={t('common.fixLayout')}
             >
               <Icon name="RotateCw" size={15} />
