@@ -993,6 +993,15 @@ button{cursor:pointer;}
 }
 .brand-cover-lg{width:min(300px,82vw);height:auto;aspect-ratio:1.6;border-radius:20px;box-shadow:0 16px 30px -16px rgba(0,0,0,.5);}
 .brand-cover-lg span{font-size:18px;}
+/* Distintivo bianco per il logo vero scaricato da Clearbit: la maggior parte dei loghi ha
+   uno sfondo trasparente o bianco, quindi appoggiarli direttamente sul gradiente colorato
+   della card li renderebbe illeggibili — un badge bianco arrotondato li isola sempre bene,
+   qualunque sia il colore della catena sotto. */
+.brand-cover-logo-badge{
+  flex:none;background:#fff;border-radius:22%;padding:12%;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px -8px rgba(0,0,0,.4);
+}
+.brand-cover-logo-badge img{width:100%;height:100%;object-fit:contain;display:block;}
 .card-preview-row{display:flex;align-items:center;gap:10px;margin-top:2px;}
 .card-preview-thumb{box-sizing:border-box;width:44px;height:44px;border-radius:12px;overflow:hidden;flex:none;background:var(--paper-raised);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
 .card-preview-thumb img{width:100%;height:100%;object-fit:cover;}

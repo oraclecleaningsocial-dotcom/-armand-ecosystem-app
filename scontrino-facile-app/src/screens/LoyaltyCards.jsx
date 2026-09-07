@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { sortCards, useCards } from '../utils/cards'
 import { useBarcodeScanner } from '../utils/barcodeScanner'
-import { KNOWN_STORES, matchStoreBrand } from '../utils/storeBrands'
+import { KNOWN_STORES, matchStoreBrand, brandLogoUrl } from '../utils/storeBrands'
 import { generatePdfThumbnail, renderPdfPages } from '../utils/pdfThumbnail'
 import { compressImage } from '../utils/compressImage'
 import { useI18n } from '../i18n'
@@ -24,19 +24,28 @@ function dataUrlToFile(dataUrl, fileName, mime) {
   return new File([bytes], fileName, { type: mime })
 }
 
-// La foto della carta non basta più da sola a "riconoscere" la carta: una card colorata
-// con il nome dell'esercente (niente logo scaricato da internet — vedi storeBrands.js sul
-// perché) si mostra al posto dell'icona generica quando non c'è ancora una foto caricata,
-// così una carta aggiunta solo scansionando il codice a barre resta comunque leggibile a
-// colpo d'occhio, un po' come le card generate automaticamente in app tipo Stocard.
+// La foto della carta non basta più da sola a "riconoscere" la carta: quando il nome
+// digitato corrisponde a una catena nota (vedi storeBrands.js), si prova prima a caricare
+// il suo logo vero da internet (Clearbit, gratuito, senza chiave) su un distintivo bianco;
+// se il logo non si carica (rete assente, dominio cambiato) si ripiega su una copertina
+// colorata col nome, così una carta resta comunque leggibile a colpo d'occhio anche
+// offline, un po' come le card generate automaticamente in app tipo Stocard.
 function BrandCover({ label, brand, size = 26, large = false }) {
+  const [logoFailed, setLogoFailed] = useState(false)
   if (!brand) return <span className="vault-doc-thumb-ic"><Icon name="CreditCard" size={size} /></span>
+  const logoUrl = !logoFailed && brandLogoUrl(brand)
   return (
     <div
       className={`brand-cover ${large ? 'brand-cover-lg' : ''}`}
       style={{ background: `linear-gradient(135deg, ${brand.color}, color-mix(in srgb, ${brand.color} 70%, black))` }}
     >
-      <Icon name="CreditCard" size={size} />
+      {logoUrl ? (
+        <span className="brand-cover-logo-badge" style={{ width: size * 1.9, height: size * 1.9 }}>
+          <img src={logoUrl} alt={brand.name} onError={() => setLogoFailed(true)} />
+        </span>
+      ) : (
+        <Icon name="CreditCard" size={size} />
+      )}
       <span>{label}</span>
     </div>
   )
