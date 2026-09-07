@@ -941,6 +941,27 @@ button{cursor:pointer;}
 @keyframes updateBannerIn{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:none;}}
 @media (prefers-reduced-motion: reduce){.update-banner{animation:none;}}
 
+/* ---------- ripiego manuale per la barra che "risale" ---------- */
+/* position:fixed rispetto al vero viewport del browser (non a .app-shell/.app-viewport,
+   che sono proprio ciò che potrebbe avere l'altezza sbagliata in quel momento): resta
+   raggiungibile in basso a destra qualunque sia la posizione attuale della tab bar,
+   invece di scomparire insieme a lei quando il bug si presenta. Discreto (piccolo,
+   semitrasparente) perché serve solo nei rari casi in cui il ricalcolo automatico non è
+   ancora scattato — non è pensato per essere notato o toccato quasi mai. */
+.fix-gap-btn{
+  all:unset;cursor:pointer;position:fixed;z-index:25;
+  /* Appena sopra l'altezza normale della tab bar (~74px) invece che accanto a lei in
+     basso a destra: da lì, quando tutto funziona, non si sovrappone al tab "Report" —
+     e se la barra dovesse risalire lasciando spazio vuoto sotto, questo pulsante fisso
+     al vero viewport resta comunque visibile in quello spazio, non sparisce con lei. */
+  right:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(21,22,27,0.45);color:#fff;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.fix-gap-btn:active{transform:scale(.9);}
+
 /* ---------- prodotti (barcode + Open Food Facts) ---------- */
 .product-search{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
 .product-search-actions{display:flex;gap:10px;}

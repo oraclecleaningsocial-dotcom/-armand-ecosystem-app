@@ -22,6 +22,7 @@ import { useTodos } from './todos'
 import { isLockEnabled } from './utils/auth'
 import { onStorageError } from './utils/storageAlert'
 import { useUpdateChecker } from './utils/updateChecker'
+import { recalcViewportHeight } from './utils/viewportHeight'
 import { useI18n } from './i18n'
 import Icon from './components/Icon'
 
@@ -199,8 +200,24 @@ export default function App() {
             figlio del flex-column .app-viewport, la tab bar segue il flusso normale del
             layout: qualunque sia l'altezza reale di .app-viewport, lei è semplicemente
             "l'ultimo pezzo", incollata al fondo per costruzione, senza calcoli di viewport. */}
-        {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) &&
-          <TabBar active={tab} onNavigate={navigate} />}
+        {['home', 'search', 'calendar', 'dashboard', 'detail'].includes(screen) && (
+          <>
+            <TabBar active={tab} onNavigate={navigate} />
+            {/* Ripiego manuale per i rari casi in cui la barra "risale" comunque, prima
+                che uno degli eventi ascoltati in utils/viewportHeight.js abbia occasione
+                di ricalcolare da solo: un tocco qui rifà subito la stessa misura, senza
+                dover ricaricare tutta la pagina. Fissato rispetto al vero viewport (non
+                a .app-shell/.app-viewport, che sono proprio ciò che potrebbe avere
+                l'altezza sbagliata in quel momento), così resta raggiungibile comunque. */}
+            <button
+              className="fix-gap-btn"
+              onClick={() => { recalcViewportHeight(); showToast(t('common.fixedLayout')) }}
+              aria-label={t('common.fixLayout')}
+            >
+              <Icon name="RotateCw" size={15} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
