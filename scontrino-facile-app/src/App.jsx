@@ -43,6 +43,17 @@ function withViewTransition(updateFn) {
   document.startViewTransition(() => flushSync(updateFn))
 }
 
+// Schermate raggiungibili da un link diretto (?screen=...): usato dalle "shortcuts" del
+// manifest (long-press sull'icona, o l'app trovata dentro Shortcuts di Apple) per aprire
+// l'app già sulla schermata giusta invece che sempre su Home. "detail" resta escluso
+// perché richiede anche un ID di ricevuta che un link semplice non può fornire.
+const DEEP_LINKABLE_SCREENS = ['home', 'search', 'calendar', 'dashboard', 'scan', 'calculator', 'vault', 'fiscal', 'settings', 'products', 'tickets', 'cards']
+
+function screenFromUrl() {
+  const requested = new URLSearchParams(window.location.search).get('screen')
+  return DEEP_LINKABLE_SCREENS.includes(requested) ? requested : 'home'
+}
+
 export default function App() {
   const { t } = useI18n()
   const updateAvailable = useUpdateChecker()
@@ -51,8 +62,9 @@ export default function App() {
   const { reminders, addReminder, deleteReminder } = useReminders()
   const { notes, addNote, deleteNote } = useNotes()
   const { todos, addTodo, toggleTodo, deleteTodo } = useTodos()
-  const [tab, setTab] = useState('home')
-  const [screen, setScreen] = useState('home')
+  const initialScreen = screenFromUrl()
+  const [tab, setTab] = useState(['home', 'search', 'calendar', 'dashboard'].includes(initialScreen) ? initialScreen : 'home')
+  const [screen, setScreen] = useState(initialScreen)
   const [detailId, setDetailId] = useState(null)
   const [detailBack, setDetailBack] = useState('home')
   const [toast, setToast] = useState('')
@@ -94,6 +106,14 @@ export default function App() {
     setToast(msg)
     setTimeout(() => setToast(''), duration)
   }
+
+  // Ripulisce ?screen=... dall'URL dopo averlo letto una volta sola: altrimenti
+  // resterebbe lì (visibile e condivisibile per errore) e riporterebbe l'utente alla
+  // stessa schermata a ogni successivo refresh, invece di funzionare come un link
+  // "usa e getta" pensato solo per l'apertura da una shortcut.
+  useEffect(() => {
+    if (window.location.search) window.history.replaceState(null, '', window.location.pathname)
+  }, [])
 
   // Un salvataggio fallito per spazio esaurito (localStorage pieno) veniva prima ignorato
   // in silenzio da ogni modulo di stato — l'utente lo scopriva solo alla riapertura
