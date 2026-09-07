@@ -3,7 +3,7 @@ import Icon from '../components/Icon'
 import { downloadJson, parseBackup, serializeBackup } from '../utils/backup'
 import { disableLock, isBiometricSupported, isLockEnabled, registerBiometric } from '../utils/auth'
 import { changeVaultPin, isVaultSetUp } from '../utils/vault'
-import { toLocalDateKey } from '../utils/format'
+import { toLocalDateKey, getFormatLocale } from '../utils/format'
 import { idbGet, idbSet } from '../utils/idb'
 import { LANGUAGES, useI18n } from '../i18n'
 
@@ -138,8 +138,6 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
     }
   }
 
-  const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
-
   return (
     <div className="screen">
       <div className="pad dash-head" style={{ paddingTop: 'calc(env(safe-area-inset-top,0px) + 18px)' }}>
@@ -148,7 +146,7 @@ export default function Settings({ receipts, merchantCategoryMap, onRestore, onC
       <div className="pad">
         <h1 className="scr-title">{t('settings.title')}</h1>
         <p className="backup-hint" style={{ marginTop: 4 }}>
-          {t('settings.appVersion', { date: new Date(__BUILD_TIME__).toLocaleString(dateLocale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
+          {t('settings.appVersion', { date: new Date(__BUILD_TIME__).toLocaleString(getFormatLocale(), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) })}
         </p>
       </div>
 

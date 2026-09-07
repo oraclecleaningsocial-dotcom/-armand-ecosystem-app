@@ -37,6 +37,7 @@ export const TRANSLATIONS = {
     'common.edit': 'Modifica',
     'common.delete': 'Elimina',
     'common.close': 'Chiudi',
+    'common.preview': 'Anteprima',
     'common.updateAvailable': 'Nuova versione disponibile',
     'common.updateReload': 'Aggiorna',
     'common.add': 'Aggiungi',
@@ -50,6 +51,11 @@ export const TRANSLATIONS = {
     'common.receipt_other': 'ricevute',
     'common.loading': 'Caricamento…',
     'common.error': 'Errore',
+
+    'toast.receiptSaved': 'Ricevuta salvata',
+    'toast.receiptDeleted': 'Ricevuta eliminata',
+    'toast.backupRestored': 'Backup ripristinato',
+    'toast.storageFull': 'Spazio di archiviazione pieno: alcuni dati potrebbero non essere salvati. Vai in Impostazioni ed esporta un backup, poi elimina scontrini o documenti vecchi.',
 
     'home.greeting': 'Ciao 👋',
     'home.spentThisMonth': 'speso questo mese',
@@ -350,6 +356,7 @@ export const TRANSLATIONS = {
     'common.edit': 'Edit',
     'common.delete': 'Delete',
     'common.close': 'Close',
+    'common.preview': 'Preview',
     'common.updateAvailable': 'New version available',
     'common.updateReload': 'Reload',
     'common.add': 'Add',
@@ -363,6 +370,11 @@ export const TRANSLATIONS = {
     'common.receipt_other': 'receipts',
     'common.loading': 'Loading…',
     'common.error': 'Error',
+
+    'toast.receiptSaved': 'Receipt saved',
+    'toast.receiptDeleted': 'Receipt deleted',
+    'toast.backupRestored': 'Backup restored',
+    'toast.storageFull': 'Storage is full: some data may not be saved. Go to Settings and export a backup, then delete old receipts or documents.',
 
     'home.greeting': 'Hi 👋',
     'home.spentThisMonth': 'spent this month',
@@ -663,6 +675,7 @@ export const TRANSLATIONS = {
     'common.edit': 'Modifier',
     'common.delete': 'Supprimer',
     'common.close': 'Fermer',
+    'common.preview': 'Aperçu',
     'common.updateAvailable': 'Nouvelle version disponible',
     'common.updateReload': 'Actualiser',
     'common.add': 'Ajouter',
@@ -676,6 +689,11 @@ export const TRANSLATIONS = {
     'common.receipt_other': 'tickets',
     'common.loading': 'Chargement…',
     'common.error': 'Erreur',
+
+    'toast.receiptSaved': 'Ticket enregistré',
+    'toast.receiptDeleted': 'Ticket supprimé',
+    'toast.backupRestored': 'Sauvegarde restaurée',
+    'toast.storageFull': 'Stockage plein : certaines données pourraient ne pas être enregistrées. Allez dans Réglages pour exporter une sauvegarde, puis supprimez d\'anciens tickets ou documents.',
 
     'home.greeting': 'Salut 👋',
     'home.spentThisMonth': 'dépensé ce mois-ci',

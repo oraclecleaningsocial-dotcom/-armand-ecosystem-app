@@ -32,6 +32,15 @@ function dataUrlToFile(dataUrl, fileName, mime) {
 // offline, un po' come le card generate automaticamente in app tipo Stocard.
 function BrandCover({ label, brand, size = 26, large = false }) {
   const [logoFailed, setLogoFailed] = useState(false)
+  // Sull'anteprima del form, cambiare il nome digitato riusa la stessa istanza di questo
+  // componente (non viene rimontata) — senza questo, un logo fallito per una catena
+  // restava "fallito" per sempre anche dopo aver corretto il nome in un'altra catena
+  // riconosciuta con un logo perfettamente valido.
+  const [prevDomain, setPrevDomain] = useState(brand?.domain)
+  if (brand?.domain !== prevDomain) {
+    setPrevDomain(brand?.domain)
+    setLogoFailed(false)
+  }
   if (!brand) return <span className="vault-doc-thumb-ic"><Icon name="CreditCard" size={size} /></span>
   const logoUrl = !logoFailed && brandLogoUrl(brand)
   return (
@@ -200,7 +209,7 @@ export default function LoyaltyCards({ onClose }) {
             <div className="card-preview-row">
               <div className="card-preview-thumb">
                 {pendingFile?.fileMime?.startsWith('image/') ? (
-                  <img src={pendingFile.fileDataUrl} alt={t('common.loading')} />
+                  <img src={pendingFile.fileDataUrl} alt={t('common.preview')} />
                 ) : pendingFile ? (
                   <span className="vault-doc-thumb-ic"><Icon name="FileText" size={22} /></span>
                 ) : (

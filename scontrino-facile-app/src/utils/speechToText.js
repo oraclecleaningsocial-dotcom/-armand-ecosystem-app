@@ -21,6 +21,11 @@ export function useSpeechToText(lang) {
   // continuous:true — questo distingue quel caso (da riavviare in automatico) da uno
   // stop esplicito dell'utente (da NON riavviare).
   const stoppedByUserRef = useRef(true)
+  // Errori come permesso negato o nessun microfono non si risolvono da soli: senza
+  // questo, onend li riavviava comunque (non era stato l'utente a fermarli), che a sua
+  // volta falliva subito con lo stesso errore, in un loop infinito di avvio/errore che
+  // non si fermava mai da solo — solo smontando il componente.
+  const fatalErrorRef = useRef(false)
 
   function start() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -47,9 +52,12 @@ export function useSpeechToText(lang) {
     }
     recognition.onerror = (event) => {
       setError(event.error || 'error')
+      if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(event.error)) {
+        fatalErrorRef.current = true
+      }
     }
     recognition.onend = () => {
-      if (stoppedByUserRef.current) {
+      if (stoppedByUserRef.current || fatalErrorRef.current) {
         setListening(false)
         return
       }
@@ -60,6 +68,7 @@ export function useSpeechToText(lang) {
       }
     }
 
+    fatalErrorRef.current = false
     stoppedByUserRef.current = false
     recognitionRef.current = recognition
     try {

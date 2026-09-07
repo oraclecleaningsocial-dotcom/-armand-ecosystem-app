@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Icon from './Icon'
 import ReceiptRow from './ReceiptRow'
-import { eur, fromLocalDateKey, toLocalDateKey } from '../utils/format'
+import { eur, fromLocalDateKey, toLocalDateKey, getFormatLocale } from '../utils/format'
 import { getDeadlinesForYear } from '../fiscalDeadlines'
 import { getHolidaysForYear } from '../italianHolidays'
 import { useI18n } from '../i18n'
@@ -17,8 +17,8 @@ function startOfWeek(d) {
 }
 
 export default function ReceiptCalendar({ receipts, onOpen, from = 'calendar', reminders = [], onAddReminder, onDeleteReminder, scrollRef }) {
-  const { t, lang } = useI18n()
-  const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
+  const { t } = useI18n()
+  const dateLocale = getFormatLocale()
   const WEEKDAYS = t('calendar.weekdays').split(',')
   const MONTHS_SHORT = t('calendar.monthsShort').split(',')
   const VIEW_MODES = [

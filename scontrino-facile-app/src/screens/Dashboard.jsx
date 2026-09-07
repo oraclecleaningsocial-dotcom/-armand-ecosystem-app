@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import ReceiptRow from '../components/ReceiptRow'
 import { CATEGORY_MAP } from '../categories'
-import { eur } from '../utils/format'
+import { eur, getFormatLocale } from '../utils/format'
 import { last6MonthsTrend, totalsByPeriod } from '../state'
 import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import CurrencyWidget from '../components/CurrencyWidget'
@@ -15,7 +15,7 @@ import { useI18n } from '../i18n'
 export default function Dashboard({
   receipts, onNavigate, onOpen, notes, onAddNote, onDeleteNote, todos, onAddTodo, onToggleTodo, onDeleteTodo,
 }) {
-  const { t, lang } = useI18n()
+  const { t } = useI18n()
   const scrollRef = useScrollRestore('dashboard')
   const now = new Date()
   const [period] = useState({ year: now.getFullYear(), month: now.getMonth() })
@@ -48,8 +48,7 @@ export default function Dashboard({
     ? Math.round(((activeMonth.total - prevTrendMonth.total) / prevTrendMonth.total) * 100)
     : null
   const activeUp = prevTrendMonth ? activeMonth.total >= prevTrendMonth.total : true
-  const dateLocale = lang === 'en' ? 'en-GB' : lang === 'fr' ? 'fr-FR' : 'it-IT'
-  const monthName = new Date(period.year, period.month).toLocaleDateString(dateLocale, { month: 'long' })
+  const monthName = new Date(period.year, period.month).toLocaleDateString(getFormatLocale(), { month: 'long' })
   const expandedReceipts = expandedCat ? periodReceipts.filter((r) => r.category === expandedCat) : []
 
   function exportCsv() {

@@ -80,13 +80,13 @@ export default function App() {
 
   function handleSave(draft) {
     addReceipt(draft)
-    showToast('Ricevuta salvata')
+    showToast(t('toast.receiptSaved'))
     navigate('home')
   }
 
   function handleDelete(id) {
     deleteReceipt(id)
-    showToast('Ricevuta eliminata')
+    showToast(t('toast.receiptDeleted'))
     withViewTransition(() => setScreen(detailBack))
   }
 
@@ -99,15 +99,12 @@ export default function App() {
   // in silenzio da ogni modulo di stato — l'utente lo scopriva solo alla riapertura
   // dell'app, con dati mancanti. Con questo almeno lo sa subito.
   useEffect(() => {
-    return onStorageError(() => showToast(
-      'Spazio di archiviazione pieno: alcuni dati potrebbero non essere salvati. Vai in Impostazioni ed esporta un backup, poi elimina scontrini o documenti vecchi.',
-      4500,
-    ))
-  }, [])
+    return onStorageError(() => showToast(t('toast.storageFull'), 4500))
+  }, [t])
 
   function handleRestore(newReceipts, newMap) {
     replaceAll(newReceipts, newMap)
-    showToast('Backup ripristinato')
+    showToast(t('toast.backupRestored'))
   }
 
   const activeReceipt = receipts.find((r) => r.id === detailId)
