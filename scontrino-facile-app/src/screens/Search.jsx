@@ -12,13 +12,6 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
   const scrollRef = useScrollRestore('search')
   const [query, setQuery] = useState('')
   const [activeCats, setActiveCats] = useState(() => (presetCategory ? new Set([presetCategory]) : new Set()))
-  // results.length > 0 invece di [] (solo al montaggio): i risultati arrivano da uno
-  // stato caricato in modo asincrono da IndexedDB, quindi al primo render potrebbero
-  // essere ancora vuoti — questo cattura anche il momento in cui compaiono davvero.
-  // Un booleano invece della lunghezza esatta evita di far ripartire l'animazione a ogni
-  // lettera digitata nella ricerca (fastidioso), scattando solo quando si passa da
-  // "nessun risultato" a "risultati" o viceversa.
-  const listRef = useStaggerReveal([results.length > 0])
 
   useEffect(() => {
     if (presetCategory) onConsumePreset?.()
@@ -36,6 +29,14 @@ export default function Search({ receipts, onOpen, presetCategory, onConsumePres
       return matchesQuery && matchesCategory
     })
   }, [receipts, query, activeCats])
+
+  // results.length > 0 invece di [] (solo al montaggio): i risultati arrivano da uno
+  // stato caricato in modo asincrono da IndexedDB, quindi al primo render potrebbero
+  // essere ancora vuoti — questo cattura anche il momento in cui compaiono davvero.
+  // Un booleano invece della lunghezza esatta evita di far ripartire l'animazione a ogni
+  // lettera digitata nella ricerca (fastidioso), scattando solo quando si passa da
+  // "nessun risultato" a "risultati" o viceversa.
+  const listRef = useStaggerReveal([results.length > 0])
 
   function toggleCat(id) {
     setActiveCats((prev) => {
