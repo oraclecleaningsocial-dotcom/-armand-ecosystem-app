@@ -212,6 +212,10 @@ export default function Dashboard({
             <span className="tool-card-ic"><Icon name="CreditCard" size={19} /></span>
             {t('dashboard.toolCards')}
           </button>
+          <button className="tool-card" onClick={() => onNavigate?.('budget')}>
+            <span className="tool-card-ic"><Icon name="TrendingUp" size={19} /></span>
+            {t('dashboard.toolBudget')}
+          </button>
         </div>
       </div>
 

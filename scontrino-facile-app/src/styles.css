@@ -800,6 +800,51 @@ button{cursor:pointer;}
 .fiscal-card.is-active .fiscal-card-date{color:var(--accent-strong);font-weight:650;}
 .fiscal-card-desc{color:var(--ink-soft);font-size:14.5px;line-height:1.4;}
 
+/* ---------- entrate e uscite (bilancio) ---------- */
+.budget-summary{
+  margin-top:16px;padding:18px;border-radius:20px;
+  background:var(--paper-raised);border:1px solid var(--line);
+  display:flex;flex-direction:column;gap:10px;
+}
+.budget-summary-row{display:flex;align-items:center;justify-content:space-between;}
+.budget-summary-label{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink-soft);font-weight:600;}
+.budget-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+.budget-summary-amt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:16px;}
+.budget-summary-hint{margin:0;font-size:13px;color:var(--ink-soft);}
+.budget-summary-balance{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:4px;padding-top:12px;border-top:1px solid var(--line);
+  font-size:15.5px;font-weight:650;
+}
+.budget-summary-balance b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:22px;}
+.budget-summary-balance b.is-positive{color:var(--positive);}
+.budget-summary-balance b.is-negative{color:var(--negative);}
+
+.budget-section{margin-top:24px;}
+.budget-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.budget-section-total{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;}
+.budget-add-form{display:flex;gap:8px;align-items:center;}
+.budget-add-form input{
+  background:var(--paper-raised);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;font-size:16px;
+}
+.budget-add-form input:first-child{flex:1;min-width:0;}
+.budget-amount-input{width:88px;flex:none;font-family:var(--f-mono);}
+.budget-add-form button{
+  all:unset;cursor:pointer;flex:none;width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent);color:var(--accent-ink);
+}
+.budget-add-form button:disabled{opacity:.4;cursor:default;}
+.budget-rows{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+.budget-row{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;
+  background:var(--paper-raised);border:1px solid var(--line);
+}
+.budget-row-name{flex:1;min-width:0;font-size:15.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.budget-row-amt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:650;font-size:15px;}
+.budget-row-del{all:unset;cursor:pointer;flex:none;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;padding:2px;}
+
 /* ---------- promemoria calendario ---------- */
 .cal-dots{display:flex;gap:3px;height:4px;align-items:center;}
 .cal-dot.reminder{background:var(--hero-1);}

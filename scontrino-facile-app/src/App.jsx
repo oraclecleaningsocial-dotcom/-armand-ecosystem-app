@@ -15,6 +15,7 @@ import Settings from './screens/Settings'
 import Products from './screens/Products'
 import Tickets from './screens/Tickets'
 import LoyaltyCards from './screens/LoyaltyCards'
+import Budget from './screens/Budget'
 import { useReceipts } from './state'
 import { useReminders } from './reminders'
 import { useNotes } from './notes'
@@ -48,7 +49,7 @@ function withViewTransition(updateFn) {
 // manifest (long-press sull'icona, o l'app trovata dentro Shortcuts di Apple) per aprire
 // l'app già sulla schermata giusta invece che sempre su Home. "detail" resta escluso
 // perché richiede anche un ID di ricevuta che un link semplice non può fornire.
-const DEEP_LINKABLE_SCREENS = ['home', 'search', 'calendar', 'dashboard', 'scan', 'calculator', 'vault', 'fiscal', 'settings', 'products', 'tickets', 'cards']
+const DEEP_LINKABLE_SCREENS = ['home', 'search', 'calendar', 'dashboard', 'scan', 'calculator', 'vault', 'fiscal', 'settings', 'products', 'tickets', 'cards', 'budget']
 
 function screenFromUrl() {
   const requested = new URLSearchParams(window.location.search).get('screen')
@@ -183,6 +184,7 @@ export default function App() {
         {screen === 'products' && <Products onClose={() => withViewTransition(() => setScreen(tab))} />}
         {screen === 'tickets' && <Tickets onClose={() => withViewTransition(() => setScreen(tab))} />}
         {screen === 'cards' && <LoyaltyCards onClose={() => withViewTransition(() => setScreen(tab))} />}
+        {screen === 'budget' && <Budget receipts={receipts} onClose={() => withViewTransition(() => setScreen(tab))} />}
 
         {toast && <div className="toast">{toast}</div>}
         <SuccessBurst show={showSuccess} onDone={() => setShowSuccess(false)} />
