@@ -8,6 +8,7 @@ import { downloadCsv, receiptsToCsv } from '../utils/csv'
 import CurrencyWidget from '../components/CurrencyWidget'
 import NotesWidget from '../components/NotesWidget'
 import TodoWidget from '../components/TodoWidget'
+import BudgetWidget from '../components/BudgetWidget'
 import { useScrollRestore } from '../utils/scrollRestore'
 import { useCountUp } from '../utils/useCountUp'
 import { useStaggerReveal } from '../utils/useStaggerReveal'
@@ -221,6 +222,7 @@ export default function Dashboard({
 
       <div className="pad widgets-block">
         <p className="sect-label"><Icon name="LayoutGrid" size={13} /> {t('dashboard.widgets')}</p>
+        <BudgetWidget receipts={receipts} onNavigate={onNavigate} />
         <TodoWidget todos={todos} onAddTodo={onAddTodo} onToggleTodo={onToggleTodo} onDeleteTodo={onDeleteTodo} />
         <NotesWidget notes={notes} onAddNote={onAddNote} onDeleteNote={onDeleteNote} />
         <CurrencyWidget />

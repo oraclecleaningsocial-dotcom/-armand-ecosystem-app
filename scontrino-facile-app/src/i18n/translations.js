@@ -190,6 +190,8 @@ export const TRANSLATIONS = {
     'budget.fixedExpenses': 'Spese fisse',
     'budget.fixedExpensePlaceholder': 'Es. Affitto, bolletta...',
     'budget.noFixedExpenses': 'Nessuna spesa fissa registrata.',
+    'budget.widgetEmpty': 'Aggiungi le tue entrate e spese fisse per vedere qui il bilancio del mese.',
+    'budget.manage': 'Gestisci',
 
     'settings.title': 'Impostazioni',
     'settings.appVersion': 'Versione app: {date}',
@@ -524,6 +526,8 @@ export const TRANSLATIONS = {
     'budget.fixedExpenses': 'Fixed expenses',
     'budget.fixedExpensePlaceholder': 'E.g. Rent, bill...',
     'budget.noFixedExpenses': 'No fixed expenses recorded yet.',
+    'budget.widgetEmpty': 'Add your income and fixed expenses to see this month\'s balance here.',
+    'budget.manage': 'Manage',
 
     'settings.title': 'Settings',
     'settings.appVersion': 'App version: {date}',
@@ -858,6 +862,8 @@ export const TRANSLATIONS = {
     'budget.fixedExpenses': 'Dépenses fixes',
     'budget.fixedExpensePlaceholder': 'Ex. Loyer, facture...',
     'budget.noFixedExpenses': 'Aucune dépense fixe enregistrée.',
+    'budget.widgetEmpty': 'Ajoutez vos revenus et dépenses fixes pour voir ici le solde du mois.',
+    'budget.manage': 'Gérer',
 
     'settings.title': 'Paramètres',
     'settings.appVersion': "Version de l'app : {date}",

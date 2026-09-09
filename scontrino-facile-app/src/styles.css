@@ -890,6 +890,12 @@ button{cursor:pointer;}
 .widget-card{padding:16px;border-radius:16px;background:var(--paper-raised);border:1px solid var(--line);}
 .widget-title{font-weight:650;font-size:16px;margin:0 0 12px;}
 .widget-hint{font-size:13.5px;color:var(--ink-soft);margin:10px 0 0;line-height:1.4;}
+.budget-widget-body{display:flex;flex-direction:column;gap:10px;}
+.widget-link{
+  all:unset;cursor:pointer;box-sizing:border-box;width:100%;margin-top:12px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  font-size:14px;font-weight:650;color:var(--accent-strong);
+}
 
 /* ---------- note (griglia da bigliettini adesivi) ---------- */
 .notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
